@@ -1,40 +1,48 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Alert } from 'antd';
+import { Form, Input, Button, Checkbox, Alert, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import './Auth.css';
 
 function SignIn() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/auth/signin', {
-        method: 'POST',
+      const response = await fetch("/api/auth/signin", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: values.email,
-          password: values.password
+          password: values.password,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
+      if (response.ok && data.success) {
+        // Token is in data.data.token based on backend response
+        const token = data.data?.token || data.token;
+        
+        if (token) {
+          localStorage.setItem('token', token);
+          message.success(data.message || 'Connexion réussie!');
+          navigate('/dashboard');
+        } else {
+          setError('Token non reçu du serveur');
+        }
       } else {
-        setError(data.message || 'Erreur de connexion');
+        setError(data.message || "Erreur de connexion");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      setError("Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }
@@ -49,7 +57,9 @@ function SignIn() {
             <span className="logo-text">Nexia Digital CRM</span>
           </div>
           <h2>Connexion</h2>
-          <p className="auth-subtitle">Bienvenue dans votre CRM Nexia Digital</p>
+          <p className="auth-subtitle">
+            Bienvenue dans votre CRM Nexia Digital
+          </p>
         </div>
 
         {error && (
@@ -58,7 +68,7 @@ function SignIn() {
             type="error"
             showIcon
             closable
-            onClose={() => setError('')}
+            onClose={() => setError("")}
             style={{ marginBottom: 24 }}
           />
         )}
@@ -74,25 +84,21 @@ function SignIn() {
             name="email"
             label="Email"
             rules={[
-              { required: true, message: 'Veuillez entrer votre email' },
-              { type: 'email', message: 'Email invalide' }
+              { required: true, message: "Veuillez entrer votre email" },
+              { type: "email", message: "Email invalide" },
             ]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="votre@email.com"
-            />
+            <Input prefix={<UserOutlined />} placeholder="votre@email.com" />
           </Form.Item>
 
           <Form.Item
             name="password"
             label="Mot de passe"
-            rules={[{ required: true, message: 'Veuillez entrer votre mot de passe' }]}
+            rules={[
+              { required: true, message: "Veuillez entrer votre mot de passe" },
+            ]}
           >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
-            />
+            <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
           </Form.Item>
 
           <Form.Item>
@@ -100,14 +106,16 @@ function SignIn() {
               <Form.Item name="remember" valuePropName="checked" noStyle>
                 <Checkbox>Se souvenir de moi</Checkbox>
               </Form.Item>
-              <a href="#forgot" className="link-text">Mot de passe oublié ?</a>
+              <a href="#forgot" className="link-text">
+                Mot de passe oublié ?
+              </a>
             </div>
           </Form.Item>
 
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
+            <Button
+              type="primary"
+              htmlType="submit"
               loading={loading}
               block
               className="btn-submit"
@@ -119,8 +127,10 @@ function SignIn() {
 
         <div className="auth-footer">
           <p>
-            Vous n'avez pas de compte ?{' '}
-            <Link to="/signup" className="link-primary">Créer un compte</Link>
+            Vous n'avez pas de compte ?{" "}
+            <Link to="/signup" className="link-primary">
+              Créer un compte
+            </Link>
           </p>
         </div>
       </div>

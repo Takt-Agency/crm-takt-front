@@ -1,41 +1,49 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Alert } from 'antd';
+import { Form, Input, Button, Checkbox, Alert, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import './Auth.css';
 
 function SignUp() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: values.name,
           email: values.email,
-          password: values.password
+          password: values.password,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
+      if (response.ok && data.success) {
+        // Token is in data.data.token based on backend response
+        const token = data.data?.token || data.token;
+        
+        if (token) {
+          localStorage.setItem('token', token);
+          message.success(data.message || 'Compte créé avec succès!');
+          navigate('/dashboard');
+        } else {
+          setError('Token non reçu du serveur');
+        }
       } else {
-        setError(data.message || 'Erreur lors de l\'inscription');
+        setError(data.message || "Erreur lors de l'inscription");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      setError("Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }
@@ -59,76 +67,67 @@ function SignUp() {
             type="error"
             showIcon
             closable
-            onClose={() => setError('')}
+            onClose={() => setError("")}
             style={{ marginBottom: 24 }}
           />
         )}
 
-        <Form
-          name="signup"
-          onFinish={onFinish}
-          size="large"
-          layout="vertical"
-        >
+        <Form name="signup" onFinish={onFinish} size="large" layout="vertical">
           <Form.Item
             name="name"
             label="Nom complet"
-            rules={[{ required: true, message: 'Veuillez entrer votre nom' }]}
+            rules={[{ required: true, message: "Veuillez entrer votre nom" }]}
           >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="Jean Dupont"
-            />
+            <Input prefix={<UserOutlined />} placeholder="Jean Dupont" />
           </Form.Item>
 
           <Form.Item
             name="email"
             label="Email"
             rules={[
-              { required: true, message: 'Veuillez entrer votre email' },
-              { type: 'email', message: 'Email invalide' }
+              { required: true, message: "Veuillez entrer votre email" },
+              { type: "email", message: "Email invalide" },
             ]}
           >
-            <Input 
-              prefix={<MailOutlined />} 
-              placeholder="votre@email.com"
-            />
+            <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
           </Form.Item>
 
           <Form.Item
             name="password"
             label="Mot de passe"
             rules={[
-              { required: true, message: 'Veuillez entrer un mot de passe' },
-              { min: 6, message: 'Le mot de passe doit contenir au moins 6 caractères' }
+              { required: true, message: "Veuillez entrer un mot de passe" },
+              {
+                min: 6,
+                message: "Le mot de passe doit contenir au moins 6 caractères",
+              },
             ]}
           >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
-            />
+            <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
             label="Confirmer le mot de passe"
-            dependencies={['password']}
+            dependencies={["password"]}
             rules={[
-              { required: true, message: 'Veuillez confirmer votre mot de passe' },
+              {
+                required: true,
+                message: "Veuillez confirmer votre mot de passe",
+              },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
+                  if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Les mots de passe ne correspondent pas'));
+                  return Promise.reject(
+                    new Error("Les mots de passe ne correspondent pas"),
+                  );
                 },
               }),
             ]}
           >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="••••••••"
-            />
+            <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
           </Form.Item>
 
           <Form.Item
@@ -137,7 +136,11 @@ function SignUp() {
             rules={[
               {
                 validator: (_, value) =>
-                  value ? Promise.resolve() : Promise.reject(new Error('Vous devez accepter les conditions')),
+                  value
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        new Error("Vous devez accepter les conditions"),
+                      ),
               },
             ]}
           >
@@ -147,9 +150,9 @@ function SignUp() {
           </Form.Item>
 
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
+            <Button
+              type="primary"
+              htmlType="submit"
               loading={loading}
               block
               className="btn-submit"
@@ -161,8 +164,10 @@ function SignUp() {
 
         <div className="auth-footer">
           <p>
-            Vous avez déjà un compte ?{' '}
-            <Link to="/signin" className="link-primary">Se connecter</Link>
+            Vous avez déjà un compte ?{" "}
+            <Link to="/signin" className="link-primary">
+              Se connecter
+            </Link>
           </p>
         </div>
       </div>
