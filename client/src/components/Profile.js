@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout, Menu, Form, Input, Button, Card, message, Spin, Avatar, Dropdown } from 'antd';
+import { Layout, Menu, Form, Input, Button, Card, message, Spin, Avatar, Dropdown, Tag } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -22,6 +22,15 @@ import './Profile.css';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
+
+const ROLES = {
+  super_admin: { label: 'Super Admin', color: 'red' },
+  administrateur: { label: 'Administrateur', color: 'orange' },
+  manager: { label: 'Manager', color: 'blue' },
+  commercial: { label: 'Commercial', color: 'green' },
+  comptable: { label: 'Comptable', color: 'purple' },
+  employe: { label: 'Employé', color: 'default' },
+};
 
 function Profile() {
   const [form] = Form.useForm();
@@ -122,6 +131,13 @@ function Profile() {
       label: 'Tableau de bord',
       onClick: () => navigate('/dashboard'),
     },
+    // Show user management for super admin, administrateur, and manager
+    ...(user && ['super_admin', 'administrateur', 'manager'].includes(user.role) ? [{
+      key: '9',
+      icon: <TeamOutlined />,
+      label: 'Utilisateurs',
+      onClick: () => navigate('/users'),
+    }] : []),
     {
       key: '2',
       icon: <UserOutlined />,
@@ -210,7 +226,14 @@ function Profile() {
             >
               <div className="user-info-wrapper">
                 <Avatar icon={<UserOutlined />} className="user-avatar" />
-                {user && <span className="user-name">{user.name}</span>}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  {user && <span className="user-name">{user.name}</span>}
+                  {user?.role && (
+                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>
+                      {ROLES[user.role]?.label || user.role}
+                    </Tag>
+                  )}
+                </div>
               </div>
             </Dropdown>
           </div>
@@ -237,6 +260,11 @@ function Profile() {
                 <div className="profile-info">
                   <h3>{user?.name}</h3>
                   <p>{user?.email}</p>
+                  {user?.role && (
+                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ marginTop: '8px' }}>
+                      {ROLES[user.role]?.label || user.role}
+                    </Tag>
+                  )}
                 </div>
               </div>
 

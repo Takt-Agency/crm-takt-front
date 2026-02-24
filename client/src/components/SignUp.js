@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Alert, message } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Checkbox, Alert, message, Select } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, TeamOutlined } from '@ant-design/icons';
 import './Auth.css';
+
+const { Option } = Select;
 
 function SignUp() {
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,7 @@ function SignUp() {
           name: values.name,
           email: values.email,
           password: values.password,
+          role: values.role || 'employe',
         }),
       });
 
@@ -90,6 +93,19 @@ function SignUp() {
             ]}
           >
             <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
+          </Form.Item>
+
+          <Form.Item
+            name="role"
+            label="Rôle"
+            initialValue="employe"
+          >
+            <Select prefix={<TeamOutlined />} placeholder="Sélectionnez votre rôle">
+              <Option value="employe">Employé</Option>
+              <Option value="commercial">Commercial</Option>
+              <Option value="comptable">Comptable</Option>
+              <Option value="manager">Manager</Option>
+            </Select>
           </Form.Item>
 
           <Form.Item

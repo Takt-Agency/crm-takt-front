@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout, Menu, Card, Row, Col, Button, Avatar, Dropdown, message } from 'antd';
+import { Layout, Menu, Card, Row, Col, Button, Avatar, Dropdown, message, Tag } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -20,6 +20,15 @@ import { getMe, logout } from '../utils/api';
 import './Dashboard.css';
 
 const { Header, Sider, Content } = Layout;
+
+const ROLES = {
+  super_admin: { label: 'Super Admin', color: 'red' },
+  administrateur: { label: 'Administrateur', color: 'orange' },
+  manager: { label: 'Manager', color: 'blue' },
+  commercial: { label: 'Commercial', color: 'green' },
+  comptable: { label: 'Comptable', color: 'purple' },
+  employe: { label: 'Employé', color: 'default' },
+};
 
 function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
@@ -81,6 +90,13 @@ function Dashboard() {
       icon: <DashboardOutlined />,
       label: 'Tableau de bord',
     },
+    // Show user management for super admin, administrateur, and manager
+    ...(user && ['super_admin', 'administrateur', 'manager'].includes(user.role) ? [{
+      key: '9',
+      icon: <TeamOutlined />,
+      label: 'Utilisateurs',
+      onClick: () => navigate('/users'),
+    }] : []),
     {
       key: '2',
       icon: <UserOutlined />,
@@ -161,7 +177,14 @@ function Dashboard() {
             >
               <div className="user-info-wrapper">
                 <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <span className="user-name">{user?.name || 'Utilisateur'}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span className="user-name">{user?.name || 'Utilisateur'}</span>
+                  {user?.role && (
+                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>
+                      {ROLES[user.role]?.label || user.role}
+                    </Tag>
+                  )}
+                </div>
               </div>
             </Dropdown>
           </div>

@@ -10,7 +10,9 @@ import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
 import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
+import UserManagement from "./components/UserManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RoleBasedRoute from "./components/RoleBasedRoute";
 
 function App() {
   return (
@@ -33,6 +35,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/users" 
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'administrateur', 'manager']}>
+                  <UserManagement />
+                </RoleBasedRoute>
               </ProtectedRoute>
             } 
           />
