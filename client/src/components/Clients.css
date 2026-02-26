@@ -1,0 +1,151 @@
+.clients-container {
+  min-height: 100vh;
+}
+
+.clients-header {
+  padding: 0 24px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clients-content {
+  margin: 24px 16px 0;
+  overflow: initial;
+}
+
+.stats-card {
+  margin-bottom: 24px;
+}
+
+.search-bar {
+  margin-bottom: 16px;
+}
+
+.clients-table {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.client-email,
+.client-phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.location-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ca-value {
+  font-weight: 600;
+  color: #722ed1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .clients-header {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .search-bar .ant-space {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-bar .ant-input {
+    width: 100% !important;
+  }
+}
+
+/* Custom Table Styles */
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.ant-table-tbody > tr:hover {
+  background: #f5f5f5;
+}
+
+/* Modal Styles */
+.ant-modal-header {
+  background: linear-gradient(to right, #1890ff, #096dd9);
+  color: white;
+}
+
+.ant-modal-title {
+  color: white;
+}
+
+.ant-modal-close {
+  color: white;
+}
+
+.ant-modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Statistics Cards */
+.ant-statistic-title {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Sidebar Styles */
+.ant-layout-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected {
+  background-color: #1890ff;
+}
+
+/* Button Styles */
+.ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Tag Styles */
+.ant-tag {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+}

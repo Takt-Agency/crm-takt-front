@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Spin } from 'antd';
-import { getMe } from '../utils/api';
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { Spin } from "antd";
+import { getMe } from "../utils/api";
 
 function RoleBasedRoute({ children, allowedRoles }) {
   const [loading, setLoading] = useState(true);
@@ -12,7 +12,7 @@ function RoleBasedRoute({ children, allowedRoles }) {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       setLoading(false);
       return;
@@ -22,7 +22,7 @@ function RoleBasedRoute({ children, allowedRoles }) {
       const userData = await getMe();
       setUser(userData);
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
     } finally {
       setLoading(false);
     }
@@ -30,12 +30,14 @@ function RoleBasedRoute({ children, allowedRoles }) {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
         <Spin size="large" tip="Vérification des permissions..." />
       </div>
     );

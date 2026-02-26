@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Alert, message, Select } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, TeamOutlined } from '@ant-design/icons';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Form, Input, Button, Checkbox, Alert, message, Select } from "antd";
+import {
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+import "./Auth.css";
 
 const { Option } = Select;
 
@@ -25,7 +30,7 @@ function SignUp() {
           name: values.name,
           email: values.email,
           password: values.password,
-          role: values.role || 'employe',
+          role: values.role || "employe",
         }),
       });
 
@@ -34,13 +39,13 @@ function SignUp() {
       if (response.ok && data.success) {
         // Token is in data.data.token based on backend response
         const token = data.data?.token || data.token;
-        
+
         if (token) {
-          localStorage.setItem('token', token);
-          message.success(data.message || 'Compte créé avec succès!');
-          navigate('/dashboard');
+          localStorage.setItem("token", token);
+          message.success(data.message || "Compte créé avec succès!");
+          navigate("/dashboard");
         } else {
-          setError('Token non reçu du serveur');
+          setError("Token non reçu du serveur");
         }
       } else {
         setError(data.message || "Erreur lors de l'inscription");
@@ -95,12 +100,11 @@ function SignUp() {
             <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
           </Form.Item>
 
-          <Form.Item
-            name="role"
-            label="Rôle"
-            initialValue="employe"
-          >
-            <Select prefix={<TeamOutlined />} placeholder="Sélectionnez votre rôle">
+          <Form.Item name="role" label="Rôle" initialValue="employe">
+            <Select
+              prefix={<TeamOutlined />}
+              placeholder="Sélectionnez votre rôle"
+            >
               <Option value="employe">Employé</Option>
               <Option value="commercial">Commercial</Option>
               <Option value="comptable">Comptable</Option>

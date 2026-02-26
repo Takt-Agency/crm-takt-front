@@ -1,6 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layout, Menu, Card, Row, Col, Button, Avatar, Dropdown, message, Tag } from 'antd';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Layout,
+  Menu,
+  Card,
+  Row,
+  Col,
+  Button,
+  Avatar,
+  Dropdown,
+  message,
+  Tag,
+} from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -14,20 +25,20 @@ import {
   SettingOutlined,
   LogoutOutlined,
   ExportOutlined,
-  ArrowUpOutlined
-} from '@ant-design/icons';
-import { getMe, logout } from '../utils/api';
-import './Dashboard.css';
+  ArrowUpOutlined,
+} from "@ant-design/icons";
+import { getMe, logout } from "../utils/api";
+import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
 
 const ROLES = {
-  super_admin: { label: 'Super Admin', color: 'red' },
-  administrateur: { label: 'Administrateur', color: 'orange' },
-  manager: { label: 'Manager', color: 'blue' },
-  commercial: { label: 'Commercial', color: 'green' },
-  comptable: { label: 'Comptable', color: 'purple' },
-  employe: { label: 'Employé', color: 'default' },
+  super_admin: { label: "Super Admin", color: "red" },
+  administrateur: { label: "Administrateur", color: "orange" },
+  manager: { label: "Manager", color: "blue" },
+  commercial: { label: "Commercial", color: "green" },
+  comptable: { label: "Comptable", color: "purple" },
+  employe: { label: "Employé", color: "default" },
 };
 
 function Dashboard() {
@@ -44,7 +55,7 @@ function Dashboard() {
       const userData = await getMe();
       setUser(userData);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error("Error fetching user data:", error);
       // Don't show error message, just use default user state
       // The user can still use the dashboard
     }
@@ -55,90 +66,95 @@ function Dashboard() {
   };
 
   const handleMenuClick = ({ key }) => {
-    if (key === 'profile') {
-      navigate('/profile');
-    } else if (key === 'logout') {
+    if (key === "profile") {
+      navigate("/profile");
+    } else if (key === "logout") {
       handleLogout();
     }
   };
 
   const userMenuItems = [
     {
-      key: 'profile',
+      key: "profile",
       icon: <UserOutlined />,
-      label: 'Mon profil',
+      label: "Mon profil",
     },
     {
-      key: 'settings',
+      key: "settings",
       icon: <SettingOutlined />,
-      label: 'Paramètres',
+      label: "Paramètres",
     },
     {
-      type: 'divider',
+      type: "divider",
     },
     {
-      key: 'logout',
+      key: "logout",
       icon: <LogoutOutlined />,
-      label: 'Déconnexion',
+      label: "Déconnexion",
       danger: true,
     },
   ];
 
   const menuItems = [
     {
-      key: '1',
+      key: "1",
       icon: <DashboardOutlined />,
-      label: 'Tableau de bord',
+      label: "Tableau de bord",
+    },
+    {
+      key: "2",
+      icon: <UserOutlined />,
+      label: "Clients",
+      onClick: () => navigate("/clients"),
     },
     // Show user management for super admin, administrateur, and manager
-    ...(user && ['super_admin', 'administrateur', 'manager'].includes(user.role) ? [{
-      key: '9',
-      icon: <TeamOutlined />,
-      label: 'Utilisateurs',
-      onClick: () => navigate('/users'),
-    }] : []),
+    ...(user && ["super_admin", "administrateur", "manager"].includes(user.role)
+      ? [
+          {
+            key: "9",
+            icon: <TeamOutlined />,
+            label: "Utilisateurs",
+            onClick: () => navigate("/users"),
+          },
+        ]
+      : []),
     {
-      key: '2',
-      icon: <UserOutlined />,
-      label: 'Clients',
+      key: "3",
+      icon: <TeamOutlined />,
+      label: "Prospects",
     },
     {
-      key: '3',
-      icon: <TeamOutlined />,
-      label: 'Prospects',
-    },
-    {
-      key: '4',
+      key: "4",
       icon: <CheckSquareOutlined />,
-      label: 'Tâches',
+      label: "Tâches",
     },
     {
-      key: '5',
+      key: "5",
       icon: <FileTextOutlined />,
-      label: 'Devis & Facturation',
+      label: "Devis & Facturation",
     },
     {
-      key: '6',
+      key: "6",
       icon: <EuroOutlined />,
-      label: 'Finances',
+      label: "Finances",
     },
     {
-      key: '7',
+      key: "7",
       icon: <UserSwitchOutlined />,
-      label: 'RH',
+      label: "RH",
     },
     {
-      key: '8',
+      key: "8",
       icon: <RiseOutlined />,
-      label: 'Marketing',
+      label: "Marketing",
     },
   ];
 
   return (
     <Layout className="dashboard-layout">
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         className="dashboard-sider"
         width={240}
@@ -150,7 +166,7 @@ function Dashboard() {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={['1']}
+          selectedKeys={["1"]}
           items={menuItems}
           className="dashboard-menu"
         />
@@ -159,7 +175,12 @@ function Dashboard() {
             <Menu.Item key="params" icon={<SettingOutlined />}>
               Paramètres
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout} danger>
+            <Menu.Item
+              key="logout"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              danger
+            >
               Déconnexion
             </Menu.Item>
           </Menu>
@@ -170,17 +191,32 @@ function Dashboard() {
         <Header className="dashboard-header">
           <h1 className="header-title">Nexia Digital CRM</h1>
           <div className="header-actions">
-            <Button type="text" icon={<BellOutlined />} className="header-icon-btn" />
-            <Dropdown 
-              menu={{ items: userMenuItems, onClick: handleMenuClick }} 
+            <Button
+              type="text"
+              icon={<BellOutlined />}
+              className="header-icon-btn"
+            />
+            <Dropdown
+              menu={{ items: userMenuItems, onClick: handleMenuClick }}
               placement="bottomRight"
             >
               <div className="user-info-wrapper">
                 <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <span className="user-name">{user?.name || 'Utilisateur'}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <span className="user-name">
+                    {user?.name || "Utilisateur"}
+                  </span>
                   {user?.role && (
-                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>
+                    <Tag
+                      color={ROLES[user.role]?.color || "default"}
+                      style={{ fontSize: "10px", padding: "0 4px", margin: 0 }}
+                    >
                       {ROLES[user.role]?.label || user.role}
                     </Tag>
                   )}
@@ -194,9 +230,16 @@ function Dashboard() {
           <div className="content-header">
             <div>
               <h2 className="page-title">Tableau de bord</h2>
-              <p className="page-subtitle">Bienvenue dans votre CRM Nexia Digital</p>
+              <p className="page-subtitle">
+                Bienvenue dans votre CRM Nexia Digital
+              </p>
             </div>
-            <Button type="primary" icon={<ExportOutlined />} size="large" className="export-btn">
+            <Button
+              type="primary"
+              icon={<ExportOutlined />}
+              size="large"
+              className="export-btn"
+            >
               Exporter rapport
             </Button>
           </div>
@@ -265,69 +308,136 @@ function Dashboard() {
           {/* Charts Section */}
           <Row gutter={[24, 24]} className="charts-section">
             <Col xs={24} lg={14}>
-              <Card title="Chiffre d'affaires mensuel" extra={<span className="card-subtitle">Comparaison avec les objectifs</span>} className="chart-card">
+              <Card
+                title="Chiffre d'affaires mensuel"
+                extra={
+                  <span className="card-subtitle">
+                    Comparaison avec les objectifs
+                  </span>
+                }
+                className="chart-card"
+              >
                 <div className="bar-chart">
                   <div className="chart-bars">
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '45%' }}></div>
+                      <div className="bar" style={{ height: "45%" }}></div>
                       <span className="bar-label">Jan</span>
                     </div>
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '55%' }}></div>
+                      <div className="bar" style={{ height: "55%" }}></div>
                       <span className="bar-label">Fév</span>
                     </div>
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '50%' }}></div>
+                      <div className="bar" style={{ height: "50%" }}></div>
                       <span className="bar-label">Mar</span>
                     </div>
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '60%' }}></div>
+                      <div className="bar" style={{ height: "60%" }}></div>
                       <span className="bar-label">Avr</span>
                     </div>
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '56%' }}></div>
+                      <div className="bar" style={{ height: "56%" }}></div>
                       <span className="bar-label">Mai</span>
                     </div>
                     <div className="bar-group">
-                      <div className="bar" style={{ height: '70%' }}></div>
+                      <div className="bar" style={{ height: "70%" }}></div>
                       <span className="bar-label">Juin</span>
                     </div>
                   </div>
                   <div className="chart-legend">
-                    <span className="legend-item"><span className="legend-dot blue"></span> Réalisé</span>
+                    <span className="legend-item">
+                      <span className="legend-dot blue"></span> Réalisé
+                    </span>
                   </div>
                 </div>
               </Card>
             </Col>
 
             <Col xs={24} lg={10}>
-              <Card title="Pipeline commercial" extra={<span className="card-subtitle">Distribution des deals</span>} className="chart-card">
+              <Card
+                title="Pipeline commercial"
+                extra={
+                  <span className="card-subtitle">Distribution des deals</span>
+                }
+                className="chart-card"
+              >
                 <div className="donut-chart">
                   <svg viewBox="0 0 200 200" className="donut-svg">
-                    <circle cx="100" cy="100" r="60" fill="none" stroke="#1E90FF" strokeWidth="30" strokeDasharray="113 283" transform="rotate(-90 100 100)" />
-                    <circle cx="100" cy="100" r="60" fill="none" stroke="#FDB022" strokeWidth="30" strokeDasharray="70 283" strokeDashoffset="-113" transform="rotate(-90 100 100)" />
-                    <circle cx="100" cy="100" r="60" fill="none" stroke="#00BCD4" strokeWidth="30" strokeDasharray="56 283" strokeDashoffset="-183" transform="rotate(-90 100 100)" />
-                    <circle cx="100" cy="100" r="60" fill="none" stroke="#4CAF50" strokeWidth="30" strokeDasharray="44 283" strokeDashoffset="-239" transform="rotate(-90 100 100)" />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="60"
+                      fill="none"
+                      stroke="#1E90FF"
+                      strokeWidth="30"
+                      strokeDasharray="113 283"
+                      transform="rotate(-90 100 100)"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="60"
+                      fill="none"
+                      stroke="#FDB022"
+                      strokeWidth="30"
+                      strokeDasharray="70 283"
+                      strokeDashoffset="-113"
+                      transform="rotate(-90 100 100)"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="60"
+                      fill="none"
+                      stroke="#00BCD4"
+                      strokeWidth="30"
+                      strokeDasharray="56 283"
+                      strokeDashoffset="-183"
+                      transform="rotate(-90 100 100)"
+                    />
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="60"
+                      fill="none"
+                      stroke="#4CAF50"
+                      strokeWidth="30"
+                      strokeDasharray="44 283"
+                      strokeDashoffset="-239"
+                      transform="rotate(-90 100 100)"
+                    />
                   </svg>
                 </div>
                 <div className="pipeline-legend">
                   <div className="pipeline-item">
-                    <span className="pipeline-dot" style={{ background: '#1E90FF' }}></span>
+                    <span
+                      className="pipeline-dot"
+                      style={{ background: "#1E90FF" }}
+                    ></span>
                     <span className="pipeline-label">Prospect</span>
                     <span className="pipeline-value">8</span>
                   </div>
                   <div className="pipeline-item">
-                    <span className="pipeline-dot" style={{ background: '#FDB022' }}></span>
+                    <span
+                      className="pipeline-dot"
+                      style={{ background: "#FDB022" }}
+                    ></span>
                     <span className="pipeline-label">Qualification</span>
                     <span className="pipeline-value">12</span>
                   </div>
                   <div className="pipeline-item">
-                    <span className="pipeline-dot" style={{ background: '#00BCD4' }}></span>
+                    <span
+                      className="pipeline-dot"
+                      style={{ background: "#00BCD4" }}
+                    ></span>
                     <span className="pipeline-label">Proposition</span>
                     <span className="pipeline-value">6</span>
                   </div>
                   <div className="pipeline-item">
-                    <span className="pipeline-dot" style={{ background: '#4CAF50' }}></span>
+                    <span
+                      className="pipeline-dot"
+                      style={{ background: "#4CAF50" }}
+                    ></span>
                     <span className="pipeline-label">Négociation</span>
                     <span className="pipeline-value">4</span>
                   </div>

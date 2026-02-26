@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Layout,
   Menu,
@@ -19,7 +19,7 @@ import {
   Statistic,
   Avatar,
   Dropdown,
-} from 'antd';
+} from "antd";
 import {
   UserOutlined,
   PlusOutlined,
@@ -41,7 +41,7 @@ import {
   EuroOutlined,
   UserSwitchOutlined,
   RiseOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import {
   getAllUsers,
   createUser,
@@ -51,28 +51,32 @@ import {
   getUserStats,
   getMe,
   logout,
-} from '../utils/api';
-import './UserManagement.css';
+} from "../utils/api";
+import "./UserManagement.css";
 
 const { Header, Sider, Content } = Layout;
 const { Option } = Select;
 
 const ROLES = {
-  super_admin: { label: 'Super Admin', color: 'red' },
-  administrateur: { label: 'Administrateur', color: 'orange' },
-  manager: { label: 'Manager', color: 'blue' },
-  commercial: { label: 'Commercial', color: 'green' },
-  comptable: { label: 'Comptable', color: 'purple' },
-  employe: { label: 'Employé', color: 'default' },
+  super_admin: { label: "Super Admin", color: "red" },
+  administrateur: { label: "Administrateur", color: "orange" },
+  manager: { label: "Manager", color: "blue" },
+  commercial: { label: "Commercial", color: "green" },
+  comptable: { label: "Comptable", color: "purple" },
+  employe: { label: "Employé", color: "default" },
 };
 
 function UserManagement() {
   const [collapsed, setCollapsed] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
   const [filters, setFilters] = useState({});
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [stats, setStats] = useState(null);
@@ -91,7 +95,7 @@ function UserManagement() {
       const userData = await getMe();
       setCurrentUser(userData);
     } catch (error) {
-      console.error('Error fetching current user:', error);
+      console.error("Error fetching current user:", error);
     }
   };
 
@@ -112,7 +116,9 @@ function UserManagement() {
         total: data.pagination?.total || 0,
       });
     } catch (error) {
-      message.error(error.message || 'Erreur lors du chargement des utilisateurs');
+      message.error(
+        error.message || "Erreur lors du chargement des utilisateurs",
+      );
     } finally {
       setLoading(false);
     }
@@ -123,7 +129,7 @@ function UserManagement() {
       const statsData = await getUserStats();
       setStats(statsData);
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("Error fetching stats:", error);
     }
   };
 
@@ -163,37 +169,37 @@ function UserManagement() {
   const handleDeleteUser = async (userId) => {
     try {
       await deleteUser(userId);
-      message.success('Utilisateur supprimé avec succès');
+      message.success("Utilisateur supprimé avec succès");
       fetchUsers(pagination.current, pagination.pageSize);
       fetchStats();
     } catch (error) {
-      message.error(error.message || 'Erreur lors de la suppression');
+      message.error(error.message || "Erreur lors de la suppression");
     }
   };
 
   const handleToggleStatus = async (userId) => {
     try {
       await toggleUserStatus(userId);
-      message.success('Statut mis à jour avec succès');
+      message.success("Statut mis à jour avec succès");
       fetchUsers(pagination.current, pagination.pageSize);
       fetchStats();
     } catch (error) {
-      message.error(error.message || 'Erreur lors de la mise à jour du statut');
+      message.error(error.message || "Erreur lors de la mise à jour du statut");
     }
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (editingUser) {
         await updateUser(editingUser.id || editingUser._id, values);
-        message.success('Utilisateur mis à jour avec succès');
+        message.success("Utilisateur mis à jour avec succès");
       } else {
         await createUser(values);
-        message.success('Utilisateur créé avec succès');
+        message.success("Utilisateur créé avec succès");
       }
-      
+
       setModalVisible(false);
       form.resetFields();
       fetchUsers(pagination.current, pagination.pageSize);
@@ -203,7 +209,7 @@ function UserManagement() {
         // Validation error
         return;
       }
-      message.error(error.message || 'Erreur lors de l\'opération');
+      message.error(error.message || "Erreur lors de l'opération");
     }
   };
 
@@ -218,107 +224,118 @@ function UserManagement() {
   };
 
   const handleMenuClick = ({ key }) => {
-    if (key === 'dashboard') {
-      navigate('/dashboard');
-    } else if (key === 'profile') {
-      navigate('/profile');
-    } else if (key === 'logout') {
+    if (key === "1") {
+      navigate("/dashboard");
+    } else if (key === "2") {
+      navigate("/clients");
+    } else if (key === "9") {
+      navigate("/users");
+    } else if (key === "profile") {
+      navigate("/profile");
+    } else if (key === "logout") {
       handleLogout();
     }
   };
 
   const userMenuItems = [
     {
-      key: 'profile',
+      key: "profile",
       icon: <UserOutlined />,
-      label: 'Mon profil',
+      label: "Mon profil",
     },
     {
-      key: 'settings',
+      key: "settings",
       icon: <SettingOutlined />,
-      label: 'Paramètres',
+      label: "Paramètres",
     },
     {
-      type: 'divider',
+      type: "divider",
     },
     {
-      key: 'logout',
+      key: "logout",
       icon: <LogoutOutlined />,
-      label: 'Déconnexion',
+      label: "Déconnexion",
       danger: true,
     },
   ];
 
   const menuItems = [
     {
-      key: '1',
+      key: "1",
       icon: <DashboardOutlined />,
-      label: 'Tableau de bord',
-      onClick: () => navigate('/dashboard'),
+      label: "Tableau de bord",
+      onClick: () => navigate("/dashboard"),
     },
     {
-      key: 'users',
-      icon: <TeamOutlined />,
-      label: 'Utilisateurs',
-    },
-    {
-      key: '2',
+      key: "2",
       icon: <UserOutlined />,
-      label: 'Clients',
+      label: "Clients",
+      onClick: () => navigate("/clients"),
     },
     {
-      key: '3',
+      key: "9",
       icon: <TeamOutlined />,
-      label: 'Prospects',
+      label: "Utilisateurs",
+      onClick: () => navigate("/users"),
     },
     {
-      key: '4',
+      key: "3",
+      icon: <TeamOutlined />,
+      label: "Prospects",
+    },
+    {
+      key: "4",
       icon: <CheckSquareOutlined />,
-      label: 'Tâches',
+      label: "Tâches",
     },
     {
-      key: '5',
+      key: "5",
       icon: <FileTextOutlined />,
-      label: 'Devis & Facturation',
+      label: "Devis & Facturation",
     },
     {
-      key: '6',
+      key: "6",
       icon: <EuroOutlined />,
-      label: 'Finances',
+      label: "Finances",
     },
     {
-      key: '7',
+      key: "7",
       icon: <UserSwitchOutlined />,
-      label: 'RH',
+      label: "RH",
     },
     {
-      key: '8',
+      key: "8",
       icon: <RiseOutlined />,
-      label: 'Marketing',
+      label: "Marketing",
     },
   ];
 
   const columns = [
     {
-      title: 'Utilisateur',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Utilisateur",
+      dataIndex: "name",
+      key: "name",
       render: (text, record) => (
         <Space>
-          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#1890ff' }} />
+          <Avatar
+            icon={<UserOutlined />}
+            style={{ backgroundColor: "#1890ff" }}
+          />
           <div>
             <div style={{ fontWeight: 500 }}>{text}</div>
-            <div style={{ fontSize: '12px', color: '#999' }}>{record.email}</div>
+            <div style={{ fontSize: "12px", color: "#999" }}>
+              {record.email}
+            </div>
           </div>
         </Space>
       ),
     },
     {
-      title: 'Rôle',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Rôle",
+      dataIndex: "role",
+      key: "role",
       render: (role) => {
-        const roleInfo = ROLES[role] || { label: role, color: 'default' };
+        const roleInfo = ROLES[role] || { label: role, color: "default" };
         return <Tag color={roleInfo.color}>{roleInfo.label}</Tag>;
       },
       filters: Object.keys(ROLES).map((key) => ({
@@ -327,38 +344,43 @@ function UserManagement() {
       })),
     },
     {
-      title: 'Département',
-      dataIndex: 'department',
-      key: 'department',
-      render: (text) => text || '-',
+      title: "Département",
+      dataIndex: "department",
+      key: "department",
+      render: (text) => text || "-",
     },
     {
-      title: 'Téléphone',
-      dataIndex: 'phone',
-      key: 'phone',
-      render: (text) => text || '-',
+      title: "Téléphone",
+      dataIndex: "phone",
+      key: "phone",
+      render: (text) => text || "-",
     },
     {
-      title: 'Statut',
-      dataIndex: 'isActive',
-      key: 'isActive',
+      title: "Statut",
+      dataIndex: "isActive",
+      key: "isActive",
       render: (isActive) => (
-        <Tag icon={isActive ? <CheckCircleOutlined /> : <CloseCircleOutlined />} color={isActive ? 'success' : 'error'}>
-          {isActive ? 'Actif' : 'Inactif'}
+        <Tag
+          icon={isActive ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          color={isActive ? "success" : "error"}
+        >
+          {isActive ? "Actif" : "Inactif"}
         </Tag>
       ),
       filters: [
-        { text: 'Actif', value: 'true' },
-        { text: 'Inactif', value: 'false' },
+        { text: "Actif", value: "true" },
+        { text: "Inactif", value: "false" },
       ],
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => {
-        const canModify = currentUser?.role === 'super_admin' || 
-                         (currentUser?.role === 'administrateur' && record.role !== 'super_admin');
-        
+        const canModify =
+          currentUser?.role === "super_admin" ||
+          (currentUser?.role === "administrateur" &&
+            record.role !== "super_admin");
+
         return (
           <Space>
             <Button
@@ -371,7 +393,7 @@ function UserManagement() {
             </Button>
             <Popconfirm
               title="Changer le statut?"
-              description={`Voulez-vous ${record.isActive ? 'désactiver' : 'activer'} cet utilisateur?`}
+              description={`Voulez-vous ${record.isActive ? "désactiver" : "activer"} cet utilisateur?`}
               onConfirm={() => handleToggleStatus(record.id || record._id)}
               okText="Oui"
               cancelText="Non"
@@ -382,7 +404,7 @@ function UserManagement() {
                 icon={<PoweroffOutlined />}
                 disabled={!canModify}
               >
-                {record.isActive ? 'Désactiver' : 'Activer'}
+                {record.isActive ? "Désactiver" : "Activer"}
               </Button>
             </Popconfirm>
             <Popconfirm
@@ -408,7 +430,9 @@ function UserManagement() {
     },
   ];
 
-  const canCreateUsers = currentUser?.role === 'super_admin' || currentUser?.role === 'administrateur';
+  const canCreateUsers =
+    currentUser?.role === "super_admin" ||
+    currentUser?.role === "administrateur";
 
   return (
     <Layout className="user-management-layout">
@@ -426,7 +450,7 @@ function UserManagement() {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={['users']}
+          selectedKeys={["9"]}
           items={menuItems}
           className="dashboard-menu"
         />
@@ -435,7 +459,12 @@ function UserManagement() {
             <Menu.Item key="params" icon={<SettingOutlined />}>
               Paramètres
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout} danger>
+            <Menu.Item
+              key="logout"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              danger
+            >
               Déconnexion
             </Menu.Item>
           </Menu>
@@ -446,14 +475,20 @@ function UserManagement() {
         <Header className="dashboard-header">
           <h1 className="header-title">Gestion des Utilisateurs</h1>
           <div className="header-actions">
-            <Button type="text" icon={<BellOutlined />} className="header-icon-btn" />
+            <Button
+              type="text"
+              icon={<BellOutlined />}
+              className="header-icon-btn"
+            />
             <Dropdown
               menu={{ items: userMenuItems, onClick: handleMenuClick }}
               placement="bottomRight"
             >
               <div className="user-info-wrapper">
                 <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <span className="user-name">{currentUser?.name || 'Utilisateur'}</span>
+                <span className="user-name">
+                  {currentUser?.name || "Utilisateur"}
+                </span>
               </div>
             </Dropdown>
           </div>
@@ -469,7 +504,7 @@ function UserManagement() {
                     title="Total Utilisateurs"
                     value={stats.totalUsers}
                     prefix={<TeamOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
+                    valueStyle={{ color: "#1890ff" }}
                   />
                 </Card>
               </Col>
@@ -479,7 +514,7 @@ function UserManagement() {
                     title="Utilisateurs Actifs"
                     value={stats.activeUsers}
                     prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
+                    valueStyle={{ color: "#52c41a" }}
                   />
                 </Card>
               </Col>
@@ -489,7 +524,7 @@ function UserManagement() {
                     title="Utilisateurs Inactifs"
                     value={stats.inactiveUsers}
                     prefix={<CloseCircleOutlined />}
-                    valueStyle={{ color: '#ff4d4f' }}
+                    valueStyle={{ color: "#ff4d4f" }}
                   />
                 </Card>
               </Col>
@@ -497,9 +532,12 @@ function UserManagement() {
                 <Card>
                   <Statistic
                     title="Administrateurs"
-                    value={(stats.roleCount?.super_admin || 0) + (stats.roleCount?.administrateur || 0)}
+                    value={
+                      (stats.roleCount?.super_admin || 0) +
+                      (stats.roleCount?.administrateur || 0)
+                    }
                     prefix={<UserAddOutlined />}
-                    valueStyle={{ color: '#fa8c16' }}
+                    valueStyle={{ color: "#fa8c16" }}
                   />
                 </Card>
               </Col>
@@ -508,7 +546,14 @@ function UserManagement() {
 
           {/* Filters and Actions */}
           <Card style={{ marginBottom: 16 }}>
-            <Space wrap style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
+            <Space
+              wrap
+              style={{
+                marginBottom: 16,
+                width: "100%",
+                justifyContent: "space-between",
+              }}
+            >
               <Space wrap>
                 <Input
                   placeholder="Rechercher..."
@@ -523,7 +568,7 @@ function UserManagement() {
                   placeholder="Filtrer par rôle"
                   style={{ width: 180 }}
                   allowClear
-                  onChange={(value) => handleFilterChange('role', value)}
+                  onChange={(value) => handleFilterChange("role", value)}
                 >
                   {Object.keys(ROLES).map((role) => (
                     <Option key={role} value={role}>
@@ -535,19 +580,26 @@ function UserManagement() {
                   placeholder="Statut"
                   style={{ width: 150 }}
                   allowClear
-                  onChange={(value) => handleFilterChange('isActive', value)}
+                  onChange={(value) => handleFilterChange("isActive", value)}
                 >
                   <Option value="true">Actif</Option>
                   <Option value="false">Inactif</Option>
                 </Select>
-                <Button icon={<SearchOutlined />} type="primary" onClick={handleSearch}>
+                <Button
+                  icon={<SearchOutlined />}
+                  type="primary"
+                  onClick={handleSearch}
+                >
                   Rechercher
                 </Button>
-                <Button icon={<ReloadOutlined />} onClick={() => {
-                  setSearchText('');
-                  setFilters({});
-                  fetchUsers(1, pagination.pageSize);
-                }}>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    setSearchText("");
+                    setFilters({});
+                    fetchUsers(1, pagination.pageSize);
+                  }}
+                >
                   Réinitialiser
                 </Button>
               </Space>
@@ -581,23 +633,23 @@ function UserManagement() {
 
       {/* Create/Edit User Modal */}
       <Modal
-        title={editingUser ? 'Modifier l\'utilisateur' : 'Créer un utilisateur'}
+        title={editingUser ? "Modifier l'utilisateur" : "Créer un utilisateur"}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         width={600}
-        okText={editingUser ? 'Mettre à jour' : 'Créer'}
+        okText={editingUser ? "Mettre à jour" : "Créer"}
         cancelText="Annuler"
       >
         <Form
           form={form}
           layout="vertical"
-          initialValues={{ isActive: true, role: 'employe' }}
+          initialValues={{ isActive: true, role: "employe" }}
         >
           <Form.Item
             name="name"
             label="Nom complet"
-            rules={[{ required: true, message: 'Veuillez entrer le nom' }]}
+            rules={[{ required: true, message: "Veuillez entrer le nom" }]}
           >
             <Input placeholder="Jean Dupont" />
           </Form.Item>
@@ -606,8 +658,8 @@ function UserManagement() {
             name="email"
             label="Email"
             rules={[
-              { required: true, message: 'Veuillez entrer l\'email' },
-              { type: 'email', message: 'Email invalide' },
+              { required: true, message: "Veuillez entrer l'email" },
+              { type: "email", message: "Email invalide" },
             ]}
           >
             <Input placeholder="jean@example.com" />
@@ -618,8 +670,8 @@ function UserManagement() {
               name="password"
               label="Mot de passe"
               rules={[
-                { required: true, message: 'Veuillez entrer un mot de passe' },
-                { min: 6, message: 'Minimum 6 caractères' },
+                { required: true, message: "Veuillez entrer un mot de passe" },
+                { min: 6, message: "Minimum 6 caractères" },
               ]}
             >
               <Input.Password placeholder="Mot de passe" />
@@ -629,12 +681,17 @@ function UserManagement() {
           <Form.Item
             name="role"
             label="Rôle"
-            rules={[{ required: true, message: 'Veuillez sélectionner un rôle' }]}
+            rules={[
+              { required: true, message: "Veuillez sélectionner un rôle" },
+            ]}
           >
             <Select>
               {Object.keys(ROLES).map((role) => {
                 // Only super admin can create/assign super admin role
-                if (role === 'super_admin' && currentUser?.role !== 'super_admin') {
+                if (
+                  role === "super_admin" &&
+                  currentUser?.role !== "super_admin"
+                ) {
                   return null;
                 }
                 return (

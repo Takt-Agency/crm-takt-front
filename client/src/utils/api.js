@@ -1,35 +1,35 @@
 // API utility functions for authenticated requests
 
-const API_URL = process.env.REACT_APP_API_URL || '';
+const API_URL = process.env.REACT_APP_API_URL || "";
 
 // Get auth headers with token
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   return {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
 // Get current user
 export const getMe = async () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (!token) {
-    throw new Error('No token found');
+    throw new Error("No token found");
   }
 
   const response = await fetch(`${API_URL}/api/auth/me`, {
-    method: 'GET',
+    method: "GET",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Failed to fetch user data');
+    throw new Error(errorData.message || "Failed to fetch user data");
   }
 
   const data = await response.json();
@@ -40,29 +40,34 @@ export const getMe = async () => {
 // Update user profile
 export const updateProfile = async (data) => {
   const response = await fetch(`${API_URL}/api/auth/profile`, {
-    method: 'PUT',
+    method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to update profile');
+    throw new Error(error.message || "Failed to update profile");
   }
 
   const responseData = await response.json();
   // Backend returns { success: true, data: { user: {...} } }
-  return responseData.data?.user || responseData.user || responseData.data || responseData;
+  return (
+    responseData.data?.user ||
+    responseData.user ||
+    responseData.data ||
+    responseData
+  );
 };
 
 // Logout
 export const logout = () => {
-  localStorage.removeItem('token');
-  window.location.href = '/signin';
+  localStorage.removeItem("token");
+  window.location.href = "/signin";
 };
 
 // =========== USER MANAGEMENT API ===========
@@ -70,25 +75,29 @@ export const logout = () => {
 // Get all users with filters and pagination
 export const getAllUsers = async (params = {}) => {
   const queryParams = new URLSearchParams();
-  
-  if (params.role) queryParams.append('role', params.role);
-  if (params.isActive !== undefined) queryParams.append('isActive', params.isActive);
-  if (params.search) queryParams.append('search', params.search);
-  if (params.page) queryParams.append('page', params.page);
-  if (params.limit) queryParams.append('limit', params.limit);
 
-  const response = await fetch(`${API_URL}/api/users?${queryParams.toString()}`, {
-    method: 'GET',
-    headers: getAuthHeaders(),
-  });
+  if (params.role) queryParams.append("role", params.role);
+  if (params.isActive !== undefined)
+    queryParams.append("isActive", params.isActive);
+  if (params.search) queryParams.append("search", params.search);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/users?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch users');
+    throw new Error(error.message || "Failed to fetch users");
   }
 
   const data = await response.json();
@@ -98,17 +107,17 @@ export const getAllUsers = async (params = {}) => {
 // Get single user by ID
 export const getUserById = async (id) => {
   const response = await fetch(`${API_URL}/api/users/${id}`, {
-    method: 'GET',
+    method: "GET",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch user');
+    throw new Error(error.message || "Failed to fetch user");
   }
 
   const data = await response.json();
@@ -118,18 +127,18 @@ export const getUserById = async (id) => {
 // Create new user
 export const createUser = async (userData) => {
   const response = await fetch(`${API_URL}/api/users`, {
-    method: 'POST',
+    method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to create user');
+    throw new Error(error.message || "Failed to create user");
   }
 
   const data = await response.json();
@@ -139,18 +148,18 @@ export const createUser = async (userData) => {
 // Update user
 export const updateUser = async (id, userData) => {
   const response = await fetch(`${API_URL}/api/users/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to update user');
+    throw new Error(error.message || "Failed to update user");
   }
 
   const data = await response.json();
@@ -160,17 +169,17 @@ export const updateUser = async (id, userData) => {
 // Delete user
 export const deleteUser = async (id) => {
   const response = await fetch(`${API_URL}/api/users/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to delete user');
+    throw new Error(error.message || "Failed to delete user");
   }
 
   const data = await response.json();
@@ -180,17 +189,17 @@ export const deleteUser = async (id) => {
 // Toggle user active status
 export const toggleUserStatus = async (id) => {
   const response = await fetch(`${API_URL}/api/users/${id}/toggle-status`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to toggle user status');
+    throw new Error(error.message || "Failed to toggle user status");
   }
 
   const data = await response.json();
@@ -200,17 +209,17 @@ export const toggleUserStatus = async (id) => {
 // Get users by role
 export const getUsersByRole = async (role) => {
   const response = await fetch(`${API_URL}/api/users/role/${role}`, {
-    method: 'GET',
+    method: "GET",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch users by role');
+    throw new Error(error.message || "Failed to fetch users by role");
   }
 
   const data = await response.json();
@@ -220,19 +229,195 @@ export const getUsersByRole = async (role) => {
 // Get user statistics
 export const getUserStats = async () => {
   const response = await fetch(`${API_URL}/api/users/stats/counts`, {
-    method: 'GET',
+    method: "GET",
     headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
     if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/signin';
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to fetch user statistics');
+    throw new Error(error.message || "Failed to fetch user statistics");
   }
 
   const data = await response.json();
   return data.data || data;
+};
+
+// =========== CLIENT MANAGEMENT API ===========
+
+// Get all clients with filters and pagination
+export const getAllClients = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.statut) queryParams.append("statut", params.statut);
+  if (params.search) queryParams.append("search", params.search);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
+  if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+  if (params.order) queryParams.append("order", params.order);
+
+  const response = await fetch(
+    `${API_URL}/api/clients?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch clients");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Get single client by ID
+export const getClientById = async (id) => {
+  const response = await fetch(`${API_URL}/api/clients/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch client");
+  }
+
+  const data = await response.json();
+  return data.data?.client || data.client || data.data || data;
+};
+
+// Create new client
+export const createClient = async (clientData) => {
+  const response = await fetch(`${API_URL}/api/clients`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(clientData),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create client");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Update client
+export const updateClient = async (id, clientData) => {
+  const response = await fetch(`${API_URL}/api/clients/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(clientData),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update client");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Delete client
+export const deleteClient = async (id) => {
+  const response = await fetch(`${API_URL}/api/clients/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete client");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get clients by status
+export const getClientsByStatus = async (statut) => {
+  const response = await fetch(`${API_URL}/api/clients/status/${statut}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch clients by status");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Get client statistics
+export const getClientStats = async () => {
+  const response = await fetch(`${API_URL}/api/clients/stats/counts`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch client statistics");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Update last contact date
+export const updateLastContact = async (id) => {
+  const response = await fetch(`${API_URL}/api/clients/${id}/contact`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update last contact");
+  }
+
+  const data = await response.json();
+  return data;
 };

@@ -1,6 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layout, Menu, Form, Input, Button, Card, message, Spin, Avatar, Dropdown, Tag } from 'antd';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Layout,
+  Menu,
+  Form,
+  Input,
+  Button,
+  Card,
+  message,
+  Spin,
+  Avatar,
+  Dropdown,
+  Tag,
+} from "antd";
 import {
   DashboardOutlined,
   UserOutlined,
@@ -15,21 +27,21 @@ import {
   LogoutOutlined,
   MailOutlined,
   LockOutlined,
-  ArrowLeftOutlined
-} from '@ant-design/icons';
-import { getMe, updateProfile, logout } from '../utils/api';
-import './Profile.css';
-import './Dashboard.css';
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
+import { getMe, updateProfile, logout } from "../utils/api";
+import "./Profile.css";
+import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
 
 const ROLES = {
-  super_admin: { label: 'Super Admin', color: 'red' },
-  administrateur: { label: 'Administrateur', color: 'orange' },
-  manager: { label: 'Manager', color: 'blue' },
-  commercial: { label: 'Commercial', color: 'green' },
-  comptable: { label: 'Comptable', color: 'purple' },
-  employe: { label: 'Employé', color: 'default' },
+  super_admin: { label: "Super Admin", color: "red" },
+  administrateur: { label: "Administrateur", color: "orange" },
+  manager: { label: "Manager", color: "blue" },
+  commercial: { label: "Commercial", color: "green" },
+  comptable: { label: "Comptable", color: "purple" },
+  employe: { label: "Employé", color: "default" },
 };
 
 function Profile() {
@@ -50,7 +62,7 @@ function Profile() {
           email: userData.email,
         });
       } catch (error) {
-        message.error('Erreur lors du chargement du profil');
+        message.error("Erreur lors du chargement du profil");
       } finally {
         setLoading(false);
       }
@@ -75,16 +87,16 @@ function Profile() {
 
       const updatedUser = await updateProfile(updateData);
       setUser(updatedUser);
-      message.success('Profil mis à jour avec succès');
-      
+      message.success("Profil mis à jour avec succès");
+
       // Clear password fields
       form.setFieldsValue({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
     } catch (error) {
-      message.error(error.message || 'Erreur lors de la mise à jour du profil');
+      message.error(error.message || "Erreur lors de la mise à jour du profil");
     } finally {
       setSubmitting(false);
     }
@@ -95,83 +107,87 @@ function Profile() {
   };
 
   const handleMenuClick = ({ key }) => {
-    if (key === 'profile') {
-      navigate('/profile');
-    } else if (key === 'logout') {
+    if (key === "profile") {
+      navigate("/profile");
+    } else if (key === "logout") {
       handleLogout();
     }
   };
 
   const userMenuItems = [
     {
-      key: 'profile',
+      key: "profile",
       icon: <UserOutlined />,
-      label: 'Mon profil',
+      label: "Mon profil",
     },
     {
-      key: 'settings',
+      key: "settings",
       icon: <SettingOutlined />,
-      label: 'Paramètres',
+      label: "Paramètres",
     },
     {
-      type: 'divider',
+      type: "divider",
     },
     {
-      key: 'logout',
+      key: "logout",
       icon: <LogoutOutlined />,
-      label: 'Déconnexion',
+      label: "Déconnexion",
       danger: true,
     },
   ];
 
   const menuItems = [
     {
-      key: '1',
+      key: "1",
       icon: <DashboardOutlined />,
-      label: 'Tableau de bord',
-      onClick: () => navigate('/dashboard'),
+      label: "Tableau de bord",
+      onClick: () => navigate("/dashboard"),
     },
     // Show user management for super admin, administrateur, and manager
-    ...(user && ['super_admin', 'administrateur', 'manager'].includes(user.role) ? [{
-      key: '9',
-      icon: <TeamOutlined />,
-      label: 'Utilisateurs',
-      onClick: () => navigate('/users'),
-    }] : []),
+    ...(user && ["super_admin", "administrateur", "manager"].includes(user.role)
+      ? [
+          {
+            key: "9",
+            icon: <TeamOutlined />,
+            label: "Utilisateurs",
+            onClick: () => navigate("/users"),
+          },
+        ]
+      : []),
     {
-      key: '2',
+      key: "2",
       icon: <UserOutlined />,
-      label: 'Clients',
+      label: "Clients",
     },
     {
-      key: '3',
+      key: "3",
       icon: <TeamOutlined />,
-      label: 'Prospects',
+      label: "Prospects",
     },
     {
-      key: '4',
+      key: "4",
       icon: <CheckSquareOutlined />,
-      label: 'Tâches',
+      label: "Tâches",
     },
     {
-      key: '5',
+      key: "5",
       icon: <FileTextOutlined />,
-      label: 'Devis & Facturation',
+      label: "Devis & Facturation",
     },
     {
-      key: '6',
+      key: "6",
       icon: <EuroOutlined />,
-      label: 'Finances',
+      label: "Finances",
     },
     {
-      key: '7',
+      key: "7",
       icon: <UserSwitchOutlined />,
-      label: 'RH',
+      label: "RH",
     },
     {
-      key: '8',
+      key: "8",
       icon: <RiseOutlined />,
-      label: 'Marketing',
+      label: "Marketing",
     },
   ];
 
@@ -185,9 +201,9 @@ function Profile() {
 
   return (
     <Layout className="dashboard-layout">
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         className="dashboard-sider"
         width={240}
@@ -208,7 +224,12 @@ function Profile() {
             <Menu.Item key="params" icon={<SettingOutlined />}>
               Paramètres
             </Menu.Item>
-            <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout} danger>
+            <Menu.Item
+              key="logout"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              danger
+            >
               Déconnexion
             </Menu.Item>
           </Menu>
@@ -219,17 +240,30 @@ function Profile() {
         <Header className="dashboard-header">
           <h1 className="header-title">Nexia Digital CRM</h1>
           <div className="header-actions">
-            <Button type="text" icon={<BellOutlined />} className="header-icon-btn" />
-            <Dropdown 
-              menu={{ items: userMenuItems, onClick: handleMenuClick }} 
+            <Button
+              type="text"
+              icon={<BellOutlined />}
+              className="header-icon-btn"
+            />
+            <Dropdown
+              menu={{ items: userMenuItems, onClick: handleMenuClick }}
               placement="bottomRight"
             >
               <div className="user-info-wrapper">
                 <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
+                >
                   {user && <span className="user-name">{user.name}</span>}
                   {user?.role && (
-                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ fontSize: '10px', padding: '0 4px', margin: 0 }}>
+                    <Tag
+                      color={ROLES[user.role]?.color || "default"}
+                      style={{ fontSize: "10px", padding: "0 4px", margin: 0 }}
+                    >
                       {ROLES[user.role]?.label || user.role}
                     </Tag>
                   )}
@@ -242,10 +276,10 @@ function Profile() {
         <Content className="dashboard-content">
           <div className="profile-container">
             <div className="profile-header">
-              <Button 
-                type="text" 
-                icon={<ArrowLeftOutlined />} 
-                onClick={() => navigate('/dashboard')}
+              <Button
+                type="text"
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate("/dashboard")}
                 className="back-button"
               >
                 Retour au tableau de bord
@@ -256,12 +290,19 @@ function Profile() {
 
             <Card className="profile-card">
               <div className="profile-avatar-section">
-                <Avatar size={80} icon={<UserOutlined />} className="profile-avatar-large" />
+                <Avatar
+                  size={80}
+                  icon={<UserOutlined />}
+                  className="profile-avatar-large"
+                />
                 <div className="profile-info">
                   <h3>{user?.name}</h3>
                   <p>{user?.email}</p>
                   {user?.role && (
-                    <Tag color={ROLES[user.role]?.color || 'default'} style={{ marginTop: '8px' }}>
+                    <Tag
+                      color={ROLES[user.role]?.color || "default"}
+                      style={{ marginTop: "8px" }}
+                    >
                       {ROLES[user.role]?.label || user.role}
                     </Tag>
                   )}
@@ -275,12 +316,14 @@ function Profile() {
                 size="large"
                 className="profile-form"
               >
-                <h4 className="form-section-title">Informations personnelles</h4>
-                
+                <h4 className="form-section-title">
+                  Informations personnelles
+                </h4>
+
                 <Form.Item
                   name="name"
                   label="Nom complet"
-                  rules={[{ required: true, message: 'Le nom est requis' }]}
+                  rules={[{ required: true, message: "Le nom est requis" }]}
                 >
                   <Input prefix={<UserOutlined />} placeholder="Votre nom" />
                 </Form.Item>
@@ -289,21 +332,27 @@ function Profile() {
                   name="email"
                   label="Email"
                   rules={[
-                    { required: true, message: 'L\'email est requis' },
-                    { type: 'email', message: 'Email invalide' },
+                    { required: true, message: "L'email est requis" },
+                    { type: "email", message: "Email invalide" },
                   ]}
                 >
-                  <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
+                  <Input
+                    prefix={<MailOutlined />}
+                    placeholder="votre@email.com"
+                  />
                 </Form.Item>
 
                 <h4 className="form-section-title">Changer le mot de passe</h4>
-                <p className="form-section-subtitle">Laissez vide si vous ne souhaitez pas changer votre mot de passe</p>
+                <p className="form-section-subtitle">
+                  Laissez vide si vous ne souhaitez pas changer votre mot de
+                  passe
+                </p>
 
-                <Form.Item
-                  name="currentPassword"
-                  label="Mot de passe actuel"
-                >
-                  <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
+                <Form.Item name="currentPassword" label="Mot de passe actuel">
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="••••••••"
+                  />
                 </Form.Item>
 
                 <Form.Item
@@ -313,35 +362,51 @@ function Profile() {
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (value && value.length < 6) {
-                          return Promise.reject(new Error('Le mot de passe doit contenir au moins 6 caractères'));
+                          return Promise.reject(
+                            new Error(
+                              "Le mot de passe doit contenir au moins 6 caractères",
+                            ),
+                          );
                         }
                         return Promise.resolve();
                       },
                     }),
                   ]}
                 >
-                  <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="••••••••"
+                  />
                 </Form.Item>
 
                 <Form.Item
                   name="confirmPassword"
                   label="Confirmer le nouveau mot de passe"
-                  dependencies={['newPassword']}
+                  dependencies={["newPassword"]}
                   rules={[
                     ({ getFieldValue }) => ({
                       validator(_, value) {
-                        if (getFieldValue('newPassword') && !value) {
-                          return Promise.reject(new Error('Veuillez confirmer votre nouveau mot de passe'));
+                        if (getFieldValue("newPassword") && !value) {
+                          return Promise.reject(
+                            new Error(
+                              "Veuillez confirmer votre nouveau mot de passe",
+                            ),
+                          );
                         }
-                        if (value && getFieldValue('newPassword') !== value) {
-                          return Promise.reject(new Error('Les mots de passe ne correspondent pas'));
+                        if (value && getFieldValue("newPassword") !== value) {
+                          return Promise.reject(
+                            new Error("Les mots de passe ne correspondent pas"),
+                          );
                         }
                         return Promise.resolve();
                       },
                     }),
                   ]}
                 >
-                  <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="••••••••"
+                  />
                 </Form.Item>
 
                 <Form.Item>
