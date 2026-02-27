@@ -12,6 +12,11 @@ import {
   Avatar,
   Dropdown,
   Tag,
+  Modal,
+  Alert,
+  Space,
+  Typography,
+  Divider,
 } from "antd";
 import {
   DashboardOutlined,
@@ -28,12 +33,19 @@ import {
   MailOutlined,
   LockOutlined,
   ArrowLeftOutlined,
+  SafetyOutlined,
+  QrcodeOutlined,
+  KeyOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
-import { getMe, updateProfile, logout } from "../utils/api";
+import { getMe, updateProfile, logout, setupTwoFactor, verifyAndEnableTwoFactor, disableTwoFactor, getTwoFactorStatus, regenerateBackupCodes } from "../utils/api";
 import "./Profile.css";
 import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
+const { Title, Text, Paragraph } = Typography;
 
 const ROLES = {
   super_admin: { label: "Super Admin", color: "red" },
@@ -50,6 +62,17 @@ function Profile() {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  
+  // 2FA states
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [backupCodesRemaining, setBackupCodesRemaining] = useState(0);
+  const [setup2FAModal, setSetup2FAModal] = useState(false);
+  const [qrCode, setQrCode] = useState("");
+  const [secret, setSecret] = useState("");
+  const [verifyForm] = Form.useForm();
+  const [backupCodes, setBackupCodes] = useState([]);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,6 +84,9 @@ function Profile() {
           name: userData.name,
           email: userData.email,
         });
+        
+        // Load 2FA status
+        await refreshTwoFactorStatus();
       } catch (error) {
         message.error("Erreur lors du chargement du profil");
       } finally {
@@ -70,6 +96,18 @@ function Profile() {
 
     loadUserData();
   }, [form]);
+
+  // Separate function to refresh 2FA status
+  const refreshTwoFactorStatus = async () => {
+    try {
+      const statusData = await getTwoFactorStatus();
+      setTwoFactorEnabled(statusData.twoFactorEnabled);
+      setBackupCodesRemaining(statusData.backupCodesRemaining);
+      console.log('[Profile] 2FA Status refreshed:', statusData);
+    } catch (error) {
+      console.error('[Profile] Failed to refresh 2FA status:', error);
+    }
+  };
 
   const onFinish = async (values) => {
     setSubmitting(true);
@@ -100,6 +138,130 @@ function Profile() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // 2FA Handler Functions
+  const handleEnable2FA = async () => {
+    try {
+      const data = await setupTwoFactor();
+      setQrCode(data.qrCode);
+      setSecret(data.secret);
+      setSetup2FAModal(true);
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la configuration de 2FA");
+    }
+  };
+
+  const handleVerify2FA = async (values) => {
+    try {
+      const result = await verifyAndEnableTwoFactor(values.token);
+      message.success(result.message || "2FA activé avec succès");
+      setTwoFactorEnabled(true);
+      setBackupCodes(result.data.backupCodes);
+      setShowBackupCodes(true);
+      setSetup2FAModal(false);
+      verifyForm.resetFields();
+      
+      // Refresh status
+      await refreshTwoFactorStatus();
+    } catch (error) {
+      message.error(error.message || "Code invalide");
+    }
+  };
+
+  const handleDisable2FA = () => {
+    Modal.confirm({
+      title: "Désactiver l'authentification à deux facteurs",
+      content: (
+        <Form
+          id="disable2faForm"
+          onFinish={async (values) => {
+            try {
+              await disableTwoFactor(values.password);
+              message.success("2FA désactivé avec succès");
+              setTwoFactorEnabled(false);
+              setBackupCodesRemaining(0);
+              Modal.destroyAll();
+            } catch (error) {
+              message.error(error.message || "Erreur lors de la désactivation");
+            }
+          }}
+        >
+          <Form.Item
+            name="password"
+            label="Mot de passe"
+            rules={[{ required: true, message: "Mot de passe requis" }]}
+          >
+            <Input.Password placeholder="Entrez votre mot de passe" />
+          </Form.Item>
+        </Form>
+      ),
+      okText: "Désactiver",
+      cancelText: "Annuler",
+      okButtonProps: { danger: true, htmlType: "submit", form: "disable2faForm" },
+      onOk: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(), 100);
+        });
+      },
+    });
+  };
+
+  const handleRegenerateBackupCodes = () => {
+    Modal.confirm({
+      title: "Régénérer les codes de secours",
+      icon: <KeyOutlined style={{ color: "#faad14" }} />,
+      content: (
+        <>
+          <Alert
+            message="⚠️ Attention"
+            description="Ceci va remplacer TOUS vos anciens codes de secours (utilisés ou non) par 6 nouveaux codes. Les anciens codes ne fonctionneront plus."
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+          <Form
+            id="regenerateCodesForm"
+            onFinish={async (values) => {
+              try {
+                const result = await regenerateBackupCodes(values.password);
+                setBackupCodes(result.data.backupCodes);
+                setShowBackupCodes(true);
+                Modal.destroyAll();
+                
+                // Refresh status
+                await refreshTwoFactorStatus();
+                message.success("6 nouveaux codes de secours générés!");
+              } catch (error) {
+                message.error(error.message || "Erreur lors de la régénération");
+              }
+            }}
+          >
+            <Form.Item
+              name="password"
+              label="Mot de passe"
+              rules={[{ required: true, message: "Mot de passe requis" }]}
+            >
+              <Input.Password placeholder="Entrez votre mot de passe" />
+            </Form.Item>
+          </Form>
+        </>
+      ),
+      okText: "Régénérer",
+      cancelText: "Annuler",
+      okButtonProps: { htmlType: "submit", form: "regenerateCodesForm" },
+      onOk: () => {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(), 100);
+        });
+      },
+    });
+  };
+
+  const copyBackupCodes = () => {
+    const codesText = backupCodes.join("\\n");
+    navigator.clipboard.writeText(codesText);
+    message.success("Codes copiés dans le presse-papier");
   };
 
   const handleLogout = () => {
@@ -422,9 +584,278 @@ function Profile() {
                 </Form.Item>
               </Form>
             </Card>
+
+            {/* 2FA Card */}
+            <Card
+              title={
+                <Space>
+                  <SafetyOutlined />
+                  <span>Authentification à deux facteurs (2FA)</span>
+                </Space>
+              }
+              className="profile-card"
+              style={{ marginTop: 24 }}
+            >
+              <div style={{ marginBottom: 16 }}>
+                <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+                  <div>
+                    <Text strong>Statut: </Text>
+                    {twoFactorEnabled ? (
+                      <Tag icon={<CheckCircleOutlined />} color="success">
+                        Activé
+                      </Tag>
+                    ) : (
+                      <Tag icon={<CloseCircleOutlined />} color="default">
+                        Désactivé
+                      </Tag>
+                    )}
+                  </div>
+                  
+                  {twoFactorEnabled && (
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "8px"
+                    }}>
+                      <Text strong>Codes de secours restants: </Text>
+                      <Tag color={backupCodesRemaining <= 2 ? "red" : "blue"} style={{ fontSize: "14px" }}>
+                        {backupCodesRemaining}/6
+                      </Tag>
+                      <Button 
+                        size="small" 
+                        type="text" 
+                        icon={<SafetyOutlined />}
+                        onClick={refreshTwoFactorStatus}
+                        title="Actualiser le statut"
+                      />
+                    </div>
+                  )}
+
+                  {twoFactorEnabled && backupCodesRemaining <= 2 && (
+                    <Alert
+                      message="Attention: Codes de secours faibles!"
+                      description="Il vous reste peu de codes de secours. Pensez à les régénérer."
+                      type="warning"
+                      showIcon
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
+
+                  {twoFactorEnabled && (
+                    <Alert
+                      message="À propos des codes de secours"
+                      description={
+                        <div>
+                          <p>• Vous avez reçu 6 codes lors de l'activation de 2FA</p>
+                          <p>• Chaque code utilisé est automatiquement supprimé</p>
+                          <p>• Vous ne pouvez voir les codes que lors de leur génération</p>
+                          <p>• La régénération remplace TOUS les anciens codes par 6 nouveaux</p>
+                        </div>
+                      }
+                      type="info"
+                      showIcon
+                      style={{ marginTop: 8 }}
+                    />
+                  )}
+
+                  <Paragraph type="secondary">
+                    L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire
+                    à votre compte en exigeant un code de votre application d'authentification lors de la connexion.
+                  </Paragraph>
+
+                  <Space wrap>
+                    {!twoFactorEnabled ? (
+                      <Button
+                        type="primary"
+                        icon={<SafetyOutlined />}
+                        onClick={handleEnable2FA}
+                      >
+                        Activer 2FA
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          danger
+                          icon={<CloseCircleOutlined />}
+                          onClick={handleDisable2FA}
+                        >
+                          Désactiver 2FA
+                        </Button>
+                        <Button
+                          icon={<KeyOutlined />}
+                          onClick={handleRegenerateBackupCodes}
+                        >
+                          Régénérer codes de secours
+                        </Button>
+                      </>
+                    )}
+                  </Space>
+                </Space>
+              </div>
+            </Card>
           </div>
         </Content>
       </Layout>
+
+      {/* Setup 2FA Modal */}
+      <Modal
+        title={
+          <Space>
+            <QrcodeOutlined />
+            <span>Configurer l'authentification à deux facteurs</span>
+          </Space>
+        }
+        open={setup2FAModal}
+        onCancel={() => {
+          setSetup2FAModal(false);
+          verifyForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
+          <Alert
+            message="Étape 1: Scanner le code QR"
+            description="Utilisez une application d'authentification comme Google Authenticator, Authy ou Microsoft Authenticator pour scanner ce code QR."
+            type="info"
+            showIcon
+          />
+
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            {qrCode && <img src={qrCode} alt="QR Code" style={{ maxWidth: "300px" }} />}
+          </div>
+
+          <div>
+            <Text strong>Ou entrez manuellement cette clé:</Text>
+            <div style={{ 
+              background: "#f5f5f5", 
+              padding: "12px", 
+              borderRadius: "4px",
+              marginTop: "8px",
+              fontFamily: "monospace",
+              wordBreak: "break-all"
+            }}>
+              {secret}
+            </div>
+          </div>
+
+          <Divider />
+
+          <Alert
+            message="Étape 2: Vérifier le code"
+            description="Entrez le code à 6 chiffres généré par votre application d'authentification."
+            type="info"
+            showIcon
+          />
+
+          <Form form={verifyForm} onFinish={handleVerify2FA} layout="vertical">
+            <Form.Item
+              name="token"
+              label="Code de vérification"
+              rules={[
+                { required: true, message: "Code requis" },
+                { len: 6, message: "Le code doit contenir 6 chiffres" },
+              ]}
+            >
+              <Input
+                placeholder="123456"
+                maxLength={6}
+                size="large"
+                style={{ fontSize: "24px", textAlign: "center", letterSpacing: "8px" }}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block size="large">
+                Vérifier et activer 2FA
+              </Button>
+            </Form.Item>
+          </Form>
+        </Space>
+      </Modal>
+
+      {/* Backup Codes Modal */}
+      <Modal
+        title={
+          <Space>
+            <KeyOutlined />
+            <span>Vos nouveaux codes de secours</span>
+          </Space>
+        }
+        open={showBackupCodes}
+        onCancel={() => setShowBackupCodes(false)}
+        footer={[
+          <Button key="copy" onClick={copyBackupCodes}>
+            Copier tous les codes
+          </Button>,
+          <Button key="close" type="primary" onClick={() => setShowBackupCodes(false)}>
+            J'ai sauvegardé les codes
+          </Button>,
+        ]}
+        width={600}
+        closable={false}
+        maskClosable={false}
+      >
+        <Space orientation="vertical" size="large" style={{ width: "100%" }}>
+          <Alert
+            message="Important: Sauvegardez ces codes en lieu sûr"
+            description={
+              <div>
+                <p>Chaque code ne peut être utilisé qu'une seule fois. Vous pouvez les utiliser pour vous connecter si vous perdez l'accès à votre application d'authentification.</p>
+                <p style={{ marginTop: 8, fontWeight: "bold", color: "#d46b08" }}>
+                  Format: 8 caractères hexadécimaux (0-9, A-F) - Exemple: A1B2C3D4
+                </p>
+                <p style={{ marginTop: 8, fontWeight: "bold", color: "#cf1322" }}>
+                  ⚠️ Ces codes ne seront affichés qu'une seule fois! Une fois fermé, vous ne pourrez plus les voir.
+                </p>
+              </div>
+            }
+            type="warning"
+            showIcon
+          />
+
+          <div style={{ 
+            background: "#f5f5f5", 
+            padding: "20px", 
+            borderRadius: "8px"
+          }}>
+            {backupCodes.map((code, index) => (
+              <div 
+                key={index} 
+                style={{ 
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px", 
+                  background: "white",
+                  marginBottom: index < backupCodes.length - 1 ? "8px" : "0",
+                  borderRadius: "4px",
+                  border: "1px solid #d9d9d9"
+                }}
+              >
+                <span style={{ 
+                  fontFamily: "monospace", 
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  letterSpacing: "2px"
+                }}>
+                  {code}
+                </span>
+                <Button 
+                  size="small" 
+                  icon={<CopyOutlined />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(code);
+                    message.success(`Code ${index + 1} copié!`);
+                  }}
+                >
+                  Copier
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Space>
+      </Modal>
     </Layout>
   );
 }

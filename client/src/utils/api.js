@@ -421,3 +421,146 @@ export const updateLastContact = async (id) => {
   const data = await response.json();
   return data;
 };
+
+// =========== TWO-FACTOR AUTHENTICATION API ===========
+
+// Setup 2FA - Generate secret and QR code
+export const setupTwoFactor = async () => {
+  const response = await fetch(`${API_URL}/api/2fa/setup`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to setup 2FA");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Verify and enable 2FA
+export const verifyAndEnableTwoFactor = async (token) => {
+  const response = await fetch(`${API_URL}/api/2fa/verify`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to verify 2FA");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Disable 2FA
+export const disableTwoFactor = async (password) => {
+  const response = await fetch(`${API_URL}/api/2fa/disable`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to disable 2FA");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get 2FA status
+export const getTwoFactorStatus = async () => {
+  const response = await fetch(`${API_URL}/api/2fa/status`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to get 2FA status");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Verify 2FA during login
+export const verifyTwoFactorLogin = async (userId, token) => {
+  const response = await fetch(`${API_URL}/api/2fa/verify-login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId, token }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to verify 2FA token");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Complete login after 2FA verification
+export const completeTwoFactorLogin = async (userId) => {
+  const response = await fetch(`${API_URL}/api/auth/verify-2fa-login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to complete login");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// Regenerate backup codes
+export const regenerateBackupCodes = async (password) => {
+  const response = await fetch(`${API_URL}/api/2fa/regenerate-backup-codes`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to regenerate backup codes");
+  }
+
+  const data = await response.json();
+  return data;
+};
