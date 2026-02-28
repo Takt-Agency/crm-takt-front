@@ -564,3 +564,61 @@ export const regenerateBackupCodes = async (password) => {
   const data = await response.json();
   return data;
 };
+
+// =========== PASSWORD RESET API ===========
+
+// Request password reset
+export const forgotPassword = async (email) => {
+  const response = await fetch(`${API_URL}/api/password-reset/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to request password reset");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Verify reset token
+export const verifyResetToken = async (token) => {
+  const response = await fetch(`${API_URL}/api/password-reset/verify-token/${token}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Invalid or expired token");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Reset password with token
+export const resetPassword = async (token, newPassword) => {
+  const response = await fetch(`${API_URL}/api/password-reset/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token, newPassword }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to reset password");
+  }
+
+  const data = await response.json();
+  return data;
+};

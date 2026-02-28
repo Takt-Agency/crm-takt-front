@@ -174,9 +174,9 @@ function SignIn() {
                 <Form.Item name="remember" valuePropName="checked" noStyle>
                   <Checkbox>Se souvenir de moi</Checkbox>
                 </Form.Item>
-                <a href="#forgot" className="link-text">
+                <Link to="/forgot-password" className="link-text">
                   Mot de passe oublié ?
-                </a>
+                </Link>
               </div>
             </Form.Item>
 

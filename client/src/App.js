@@ -8,6 +8,8 @@ import {
 import "./App.css";
 import SignIn from "./components/SignIn";
 import SignUp from "./components/SignUp";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
 import UserManagement from "./components/UserManagement";
@@ -23,6 +25,8 @@ function App() {
           <Route path="/" element={<Navigate to="/signin" replace />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/dashboard"
             element={
