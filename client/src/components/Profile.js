@@ -40,12 +40,21 @@ import {
   CloseCircleOutlined,
   CopyOutlined,
 } from "@ant-design/icons";
-import { getMe, updateProfile, logout, setupTwoFactor, verifyAndEnableTwoFactor, disableTwoFactor, getTwoFactorStatus, regenerateBackupCodes } from "../utils/api";
+import {
+  getMe,
+  updateProfile,
+  logout,
+  setupTwoFactor,
+  verifyAndEnableTwoFactor,
+  disableTwoFactor,
+  getTwoFactorStatus,
+  regenerateBackupCodes,
+} from "../utils/api";
 import "./Profile.css";
 import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 
 const ROLES = {
   super_admin: { label: "Super Admin", color: "red" },
@@ -62,7 +71,7 @@ function Profile() {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  
+
   // 2FA states
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [backupCodesRemaining, setBackupCodesRemaining] = useState(0);
@@ -72,7 +81,7 @@ function Profile() {
   const [verifyForm] = Form.useForm();
   const [backupCodes, setBackupCodes] = useState([]);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,7 +93,7 @@ function Profile() {
           name: userData.name,
           email: userData.email,
         });
-        
+
         // Load 2FA status
         await refreshTwoFactorStatus();
       } catch (error) {
@@ -103,9 +112,9 @@ function Profile() {
       const statusData = await getTwoFactorStatus();
       setTwoFactorEnabled(statusData.twoFactorEnabled);
       setBackupCodesRemaining(statusData.backupCodesRemaining);
-      console.log('[Profile] 2FA Status refreshed:', statusData);
+      console.log("[Profile] 2FA Status refreshed:", statusData);
     } catch (error) {
-      console.error('[Profile] Failed to refresh 2FA status:', error);
+      console.error("[Profile] Failed to refresh 2FA status:", error);
     }
   };
 
@@ -161,7 +170,7 @@ function Profile() {
       setShowBackupCodes(true);
       setSetup2FAModal(false);
       verifyForm.resetFields();
-      
+
       // Refresh status
       await refreshTwoFactorStatus();
     } catch (error) {
@@ -198,7 +207,11 @@ function Profile() {
       ),
       okText: "Désactiver",
       cancelText: "Annuler",
-      okButtonProps: { danger: true, htmlType: "submit", form: "disable2faForm" },
+      okButtonProps: {
+        danger: true,
+        htmlType: "submit",
+        form: "disable2faForm",
+      },
       onOk: () => {
         return new Promise((resolve) => {
           setTimeout(() => resolve(), 100);
@@ -228,12 +241,14 @@ function Profile() {
                 setBackupCodes(result.data.backupCodes);
                 setShowBackupCodes(true);
                 Modal.destroyAll();
-                
+
                 // Refresh status
                 await refreshTwoFactorStatus();
                 message.success("6 nouveaux codes de secours générés!");
               } catch (error) {
-                message.error(error.message || "Erreur lors de la régénération");
+                message.error(
+                  error.message || "Erreur lors de la régénération",
+                );
               }
             }}
           >
@@ -597,7 +612,11 @@ function Profile() {
               style={{ marginTop: 24 }}
             >
               <div style={{ marginBottom: 16 }}>
-                <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+                <Space
+                  orientation="vertical"
+                  size="middle"
+                  style={{ width: "100%" }}
+                >
                   <div>
                     <Text strong>Statut: </Text>
                     {twoFactorEnabled ? (
@@ -610,20 +629,25 @@ function Profile() {
                       </Tag>
                     )}
                   </div>
-                  
+
                   {twoFactorEnabled && (
-                    <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: "8px"
-                    }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
                       <Text strong>Codes de secours restants: </Text>
-                      <Tag color={backupCodesRemaining <= 2 ? "red" : "blue"} style={{ fontSize: "14px" }}>
+                      <Tag
+                        color={backupCodesRemaining <= 2 ? "red" : "blue"}
+                        style={{ fontSize: "14px" }}
+                      >
                         {backupCodesRemaining}/6
                       </Tag>
-                      <Button 
-                        size="small" 
-                        type="text" 
+                      <Button
+                        size="small"
+                        type="text"
                         icon={<SafetyOutlined />}
                         onClick={refreshTwoFactorStatus}
                         title="Actualiser le statut"
@@ -646,10 +670,20 @@ function Profile() {
                       message="À propos des codes de secours"
                       description={
                         <div>
-                          <p>• Vous avez reçu 6 codes lors de l'activation de 2FA</p>
-                          <p>• Chaque code utilisé est automatiquement supprimé</p>
-                          <p>• Vous ne pouvez voir les codes que lors de leur génération</p>
-                          <p>• La régénération remplace TOUS les anciens codes par 6 nouveaux</p>
+                          <p>
+                            • Vous avez reçu 6 codes lors de l'activation de 2FA
+                          </p>
+                          <p>
+                            • Chaque code utilisé est automatiquement supprimé
+                          </p>
+                          <p>
+                            • Vous ne pouvez voir les codes que lors de leur
+                            génération
+                          </p>
+                          <p>
+                            • La régénération remplace TOUS les anciens codes
+                            par 6 nouveaux
+                          </p>
                         </div>
                       }
                       type="info"
@@ -659,8 +693,10 @@ function Profile() {
                   )}
 
                   <Paragraph type="secondary">
-                    L'authentification à deux facteurs ajoute une couche de sécurité supplémentaire
-                    à votre compte en exigeant un code de votre application d'authentification lors de la connexion.
+                    L'authentification à deux facteurs ajoute une couche de
+                    sécurité supplémentaire à votre compte en exigeant un code
+                    de votre application d'authentification lors de la
+                    connexion.
                   </Paragraph>
 
                   <Space wrap>
@@ -722,19 +758,23 @@ function Profile() {
           />
 
           <div style={{ textAlign: "center", padding: "20px 0" }}>
-            {qrCode && <img src={qrCode} alt="QR Code" style={{ maxWidth: "300px" }} />}
+            {qrCode && (
+              <img src={qrCode} alt="QR Code" style={{ maxWidth: "300px" }} />
+            )}
           </div>
 
           <div>
             <Text strong>Ou entrez manuellement cette clé:</Text>
-            <div style={{ 
-              background: "#f5f5f5", 
-              padding: "12px", 
-              borderRadius: "4px",
-              marginTop: "8px",
-              fontFamily: "monospace",
-              wordBreak: "break-all"
-            }}>
+            <div
+              style={{
+                background: "#f5f5f5",
+                padding: "12px",
+                borderRadius: "4px",
+                marginTop: "8px",
+                fontFamily: "monospace",
+                wordBreak: "break-all",
+              }}
+            >
               {secret}
             </div>
           </div>
@@ -761,7 +801,11 @@ function Profile() {
                 placeholder="123456"
                 maxLength={6}
                 size="large"
-                style={{ fontSize: "24px", textAlign: "center", letterSpacing: "8px" }}
+                style={{
+                  fontSize: "24px",
+                  textAlign: "center",
+                  letterSpacing: "8px",
+                }}
               />
             </Form.Item>
 
@@ -788,7 +832,11 @@ function Profile() {
           <Button key="copy" onClick={copyBackupCodes}>
             Copier tous les codes
           </Button>,
-          <Button key="close" type="primary" onClick={() => setShowBackupCodes(false)}>
+          <Button
+            key="close"
+            type="primary"
+            onClick={() => setShowBackupCodes(false)}
+          >
             J'ai sauvegardé les codes
           </Button>,
         ]}
@@ -801,12 +849,22 @@ function Profile() {
             message="Important: Sauvegardez ces codes en lieu sûr"
             description={
               <div>
-                <p>Chaque code ne peut être utilisé qu'une seule fois. Vous pouvez les utiliser pour vous connecter si vous perdez l'accès à votre application d'authentification.</p>
-                <p style={{ marginTop: 8, fontWeight: "bold", color: "#d46b08" }}>
-                  Format: 8 caractères hexadécimaux (0-9, A-F) - Exemple: A1B2C3D4
+                <p>
+                  Chaque code ne peut être utilisé qu'une seule fois. Vous
+                  pouvez les utiliser pour vous connecter si vous perdez l'accès
+                  à votre application d'authentification.
                 </p>
-                <p style={{ marginTop: 8, fontWeight: "bold", color: "#cf1322" }}>
-                  ⚠️ Ces codes ne seront affichés qu'une seule fois! Une fois fermé, vous ne pourrez plus les voir.
+                <p
+                  style={{ marginTop: 8, fontWeight: "bold", color: "#d46b08" }}
+                >
+                  Format: 8 caractères hexadécimaux (0-9, A-F) - Exemple:
+                  A1B2C3D4
+                </p>
+                <p
+                  style={{ marginTop: 8, fontWeight: "bold", color: "#cf1322" }}
+                >
+                  ⚠️ Ces codes ne seront affichés qu'une seule fois! Une fois
+                  fermé, vous ne pourrez plus les voir.
                 </p>
               </div>
             }
@@ -814,35 +872,39 @@ function Profile() {
             showIcon
           />
 
-          <div style={{ 
-            background: "#f5f5f5", 
-            padding: "20px", 
-            borderRadius: "8px"
-          }}>
+          <div
+            style={{
+              background: "#f5f5f5",
+              padding: "20px",
+              borderRadius: "8px",
+            }}
+          >
             {backupCodes.map((code, index) => (
-              <div 
-                key={index} 
-                style={{ 
+              <div
+                key={index}
+                style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "12px", 
+                  padding: "12px",
                   background: "white",
                   marginBottom: index < backupCodes.length - 1 ? "8px" : "0",
                   borderRadius: "4px",
-                  border: "1px solid #d9d9d9"
+                  border: "1px solid #d9d9d9",
                 }}
               >
-                <span style={{ 
-                  fontFamily: "monospace", 
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                  letterSpacing: "2px"
-                }}>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    letterSpacing: "2px",
+                  }}
+                >
                   {code}
                 </span>
-                <Button 
-                  size="small" 
+                <Button
+                  size="small"
                   icon={<CopyOutlined />}
                   onClick={() => {
                     navigator.clipboard.writeText(code);

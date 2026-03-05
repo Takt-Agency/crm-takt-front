@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  Layout,
-  Menu,
   Table,
   Button,
   Input,
@@ -12,12 +9,10 @@ import {
   Form,
   message,
   Tag,
-  Popconfirm,
   Card,
   Row,
   Col,
   Statistic,
-  Avatar,
   Dropdown,
   DatePicker,
   InputNumber,
@@ -29,24 +24,15 @@ import {
   DeleteOutlined,
   SearchOutlined,
   ReloadOutlined,
-  TeamOutlined,
   ShopOutlined,
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
-  DashboardOutlined,
-  LogoutOutlined,
-  BellOutlined,
   EuroOutlined,
-  RiseOutlined,
   CalendarOutlined,
-  FileTextOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   QuestionCircleOutlined,
-  CheckSquareOutlined,
-  UserSwitchOutlined,
-  SettingOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
 import {
@@ -57,23 +43,12 @@ import {
   getClientStats,
   updateLastContact,
   getMe,
-  logout,
 } from "../utils/api";
 import dayjs from "dayjs";
 import "./Clients.css";
 import "./Dashboard.css";
 
-const { Header, Sider, Content } = Layout;
 const { Option } = Select;
-
-const ROLES = {
-  super_admin: { label: "Super Admin", color: "red" },
-  administrateur: { label: "Administrateur", color: "orange" },
-  manager: { label: "Manager", color: "blue" },
-  commercial: { label: "Commercial", color: "green" },
-  comptable: { label: "Comptable", color: "purple" },
-  employe: { label: "Employé", color: "default" },
-};
 
 const STATUTS = {
   Actif: { label: "Actif", color: "green", icon: <CheckCircleOutlined /> },
@@ -86,7 +61,6 @@ const STATUTS = {
 };
 
 function Clients() {
-  const [collapsed, setCollapsed] = useState(false);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({
@@ -101,7 +75,6 @@ function Clients() {
   const [stats, setStats] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [form] = Form.useForm();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCurrentUser();
@@ -246,41 +219,6 @@ function Clients() {
       message.error(error.message || "Erreur lors de la mise à jour");
     }
   };
-
-  const handleMenuClick = (key) => {
-    if (key === "1") {
-      navigate("/dashboard");
-    } else if (key === "2") {
-      navigate("/clients");
-    } else if (key === "9") {
-      navigate("/users");
-    } else if (key === "profile") {
-      navigate("/profile");
-    } else if (key === "logout") {
-      logout();
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-  };
-
-  const userMenuItems = [
-    {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Mon Profil",
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Déconnexion",
-      danger: true,
-    },
-  ];
 
   const columns = [
     {
@@ -433,249 +371,109 @@ function Clients() {
     },
   ];
 
-  const menuItems = [
-    {
-      key: "1",
-      icon: <DashboardOutlined />,
-      label: "Tableau de bord",
-      onClick: () => navigate("/dashboard"),
-    },
-    {
-      key: "2",
-      icon: <UserOutlined />,
-      label: "Clients",
-      onClick: () => navigate("/clients"),
-    },
-    // Show user management for super admin, administrateur, and manager
-    ...(currentUser &&
-    ["super_admin", "administrateur", "manager"].includes(currentUser.role)
-      ? [
-          {
-            key: "9",
-            icon: <TeamOutlined />,
-            label: "Utilisateurs",
-            onClick: () => navigate("/users"),
-          },
-        ]
-      : []),
-    {
-      key: "3",
-      icon: <TeamOutlined />,
-      label: "Prospects",
-    },
-    {
-      key: "4",
-      icon: <CheckSquareOutlined />,
-      label: "Tâches",
-    },
-    {
-      key: "5",
-      icon: <FileTextOutlined />,
-      label: "Devis & Facturation",
-    },
-    {
-      key: "6",
-      icon: <EuroOutlined />,
-      label: "Finances",
-    },
-    {
-      key: "7",
-      icon: <UserSwitchOutlined />,
-      label: "RH",
-    },
-    {
-      key: "8",
-      icon: <RiseOutlined />,
-      label: "Marketing",
-    },
-  ];
-
   return (
-    <Layout className="dashboard-layout" style={{ minHeight: "100vh" }}>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        className="dashboard-sider"
-        width={240}
-      >
-        <div className="logo-container">
-          <div className="logo-icon">N</div>
-          {!collapsed && <span className="logo-text">Nexia Digital</span>}
-        </div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={["2"]}
-          items={menuItems}
-          className="dashboard-menu"
-        />
-        <div className="sidebar-footer">
-          <Menu mode="inline" className="dashboard-menu">
-            <Menu.Item key="params" icon={<SettingOutlined />}>
-              Paramètres
-            </Menu.Item>
-            <Menu.Item
-              key="logout"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              danger
-            >
-              Déconnexion
-            </Menu.Item>
-          </Menu>
-        </div>
-      </Sider>
+    <div className="dashboard-content">
+      {/* Statistics Cards */}
+      {stats && (
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Total Clients"
+                value={stats.totalClients}
+                prefix={<ShopOutlined />}
+                valueStyle={{ color: "#1890ff" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Clients Actifs"
+                value={stats.actifClients}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: "#52c41a" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Prospects"
+                value={stats.prospectClients}
+                prefix={<QuestionCircleOutlined />}
+                valueStyle={{ color: "#faad14" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="CA Total"
+                value={stats.totalCA}
+                prefix={<EuroOutlined />}
+                valueStyle={{ color: "#722ed1" }}
+                suffix="€"
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
 
-      <Layout>
-        <Header className="dashboard-header">
-          <h1 className="header-title">Nexia Digital CRM</h1>
-          <div className="header-actions">
+      {/* Search and Filter Bar */}
+      <Card style={{ marginBottom: 16 }}>
+        <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
+          <Space wrap>
+            <Input
+              placeholder="Rechercher..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onPressEnter={handleSearch}
+              style={{ width: 300 }}
+            />
             <Button
-              type="text"
-              icon={<BellOutlined />}
-              className="header-icon-btn"
-            />
-            <Dropdown
-              menu={{ items: userMenuItems, onClick: handleMenuClick }}
-              placement="bottomRight"
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
             >
-              <div className="user-info-wrapper">
-                <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <span className="user-name">
-                    {currentUser?.name || "Utilisateur"}
-                  </span>
-                  {currentUser?.role && (
-                    <Tag
-                      color={ROLES[currentUser.role]?.color || "default"}
-                      style={{ fontSize: "10px", padding: "0 4px", margin: 0 }}
-                    >
-                      {ROLES[currentUser.role]?.label || currentUser.role}
-                    </Tag>
-                  )}
-                </div>
-              </div>
-            </Dropdown>
-          </div>
-        </Header>
+              Rechercher
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+              Réinitialiser
+            </Button>
+          </Space>
+          {currentUser &&
+            [
+              "super_admin",
+              "administrateur",
+              "manager",
+              "commercial",
+              "comptable",
+            ].includes(currentUser.role) && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleAddClient}
+              >
+                Nouveau Client
+              </Button>
+            )}
+        </Space>
+      </Card>
 
-        <Content
-          className="dashboard-content"
-          style={{ margin: "24px 16px 0", overflow: "initial" }}
-        >
-          {/* Statistics Cards */}
-          {stats && (
-            <Row gutter={16} style={{ marginBottom: 24 }}>
-              <Col xs={24} sm={12} lg={6}>
-                <Card>
-                  <Statistic
-                    title="Total Clients"
-                    value={stats.totalClients}
-                    prefix={<ShopOutlined />}
-                    valueStyle={{ color: "#1890ff" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card>
-                  <Statistic
-                    title="Clients Actifs"
-                    value={stats.actifClients}
-                    prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: "#52c41a" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card>
-                  <Statistic
-                    title="Prospects"
-                    value={stats.prospectClients}
-                    prefix={<QuestionCircleOutlined />}
-                    valueStyle={{ color: "#faad14" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Card>
-                  <Statistic
-                    title="CA Total"
-                    value={stats.totalCA}
-                    prefix={<EuroOutlined />}
-                    valueStyle={{ color: "#722ed1" }}
-                    suffix="€"
-                  />
-                </Card>
-              </Col>
-            </Row>
-          )}
-
-          {/* Search and Filter Bar */}
-          <Card style={{ marginBottom: 16 }}>
-            <Space
-              wrap
-              style={{ width: "100%", justifyContent: "space-between" }}
-            >
-              <Space wrap>
-                <Input
-                  placeholder="Rechercher..."
-                  prefix={<SearchOutlined />}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  onPressEnter={handleSearch}
-                  style={{ width: 300 }}
-                />
-                <Button
-                  type="primary"
-                  icon={<SearchOutlined />}
-                  onClick={handleSearch}
-                >
-                  Rechercher
-                </Button>
-                <Button icon={<ReloadOutlined />} onClick={handleReset}>
-                  Réinitialiser
-                </Button>
-              </Space>
-              {currentUser &&
-                [
-                  "super_admin",
-                  "administrateur",
-                  "manager",
-                  "commercial",
-                  "comptable",
-                ].includes(currentUser.role) && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddClient}
-                  >
-                    Nouveau Client
-                  </Button>
-                )}
-            </Space>
-          </Card>
-
-          {/* Clients Table */}
-          <Card>
-            <Table
-              columns={columns}
-              dataSource={clients}
-              rowKey="_id"
-              loading={loading}
-              pagination={pagination}
-              onChange={handleTableChange}
-              scroll={{ x: 1200 }}
-            />
-          </Card>
-        </Content>
-      </Layout>
+      {/* Clients Table */}
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={clients}
+          rowKey="_id"
+          loading={loading}
+          pagination={pagination}
+          onChange={handleTableChange}
+          scroll={{ x: 1200 }}
+        />
+      </Card>
 
       {/* Add/Edit Client Modal */}
       <Modal
@@ -813,7 +611,7 @@ function Clients() {
           </Form.Item>
         </Form>
       </Modal>
-    </Layout>
+    </div>
   );
 }
 

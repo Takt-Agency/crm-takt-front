@@ -14,6 +14,8 @@ import Dashboard from "./components/Dashboard";
 import Profile from "./components/Profile";
 import UserManagement from "./components/UserManagement";
 import Clients from "./components/Clients";
+import Pipeline from "./components/Pipeline";
+import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
 
@@ -31,7 +33,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
               </ProtectedRoute>
             }
           />
@@ -47,11 +51,13 @@ function App() {
             path="/users"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute
-                  allowedRoles={["super_admin", "administrateur", "manager"]}
-                >
-                  <UserManagement />
-                </RoleBasedRoute>
+                <MainLayout>
+                  <RoleBasedRoute
+                    allowedRoles={["super_admin", "administrateur", "manager"]}
+                  >
+                    <UserManagement />
+                  </RoleBasedRoute>
+                </MainLayout>
               </ProtectedRoute>
             }
           />
@@ -59,7 +65,19 @@ function App() {
             path="/clients"
             element={
               <ProtectedRoute>
-                <Clients />
+                <MainLayout>
+                  <Clients />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/prospects"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Pipeline />
+                </MainLayout>
               </ProtectedRoute>
             }
           />

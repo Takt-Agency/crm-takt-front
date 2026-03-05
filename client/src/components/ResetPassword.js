@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Alert, message, Result, Spin } from 'antd';
-import { LockOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { verifyResetToken, resetPassword } from '../utils/api';
-import './Auth.css';
+import React, { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { Form, Input, Button, Alert, message, Result, Spin } from "antd";
+import { LockOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import { verifyResetToken, resetPassword } from "../utils/api";
+import "./Auth.css";
 
 function ResetPassword() {
   const { token } = useParams();
@@ -43,12 +43,12 @@ function ResetPassword() {
 
     try {
       const data = await resetPassword(token, values.newPassword);
-      message.success(data.message || 'Mot de passe réinitialisé!');
+      message.success(data.message || "Mot de passe réinitialisé!");
       setSuccess(true);
-      
+
       // Redirect to signin after 3 seconds
       setTimeout(() => {
-        navigate('/signin');
+        navigate("/signin");
       }, 3000);
     } catch (err) {
       setError(err.message || "Erreur lors de la réinitialisation");
@@ -60,9 +60,14 @@ function ResetPassword() {
   if (verifying) {
     return (
       <div className="auth-container">
-        <div className="auth-card" style={{ textAlign: 'center', padding: '60px 40px' }}>
+        <div
+          className="auth-card"
+          style={{ textAlign: "center", padding: "60px 40px" }}
+        >
           <Spin size="large" />
-          <p style={{ marginTop: 20, color: '#666' }}>Vérification du lien...</p>
+          <p style={{ marginTop: 20, color: "#666" }}>
+            Vérification du lien...
+          </p>
         </div>
       </div>
     );
@@ -77,8 +82,11 @@ function ResetPassword() {
             title="Lien invalide ou expiré"
             subTitle={
               <div>
-                <p>Ce lien de réinitialisation n'est plus valide. Les raisons possibles:</p>
-                <ul style={{ textAlign: 'left', marginTop: 16 }}>
+                <p>
+                  Ce lien de réinitialisation n'est plus valide. Les raisons
+                  possibles:
+                </p>
+                <ul style={{ textAlign: "left", marginTop: 16 }}>
                   <li>Le lien a expiré (valide pendant 1 heure)</li>
                   <li>Le lien a déjà été utilisé</li>
                   <li>Le lien est incorrect</li>
@@ -92,9 +100,7 @@ function ResetPassword() {
                 </Button>
               </Link>,
               <Link to="/signin" key="signin">
-                <Button size="large">
-                  Retour à la connexion
-                </Button>
+                <Button size="large">Retour à la connexion</Button>
               </Link>,
             ]}
           />
@@ -108,14 +114,17 @@ function ResetPassword() {
       <div className="auth-container">
         <div className="auth-card">
           <Result
-            icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+            icon={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
             status="success"
             title="Mot de passe réinitialisé!"
             subTitle={
               <div>
                 <p>Votre mot de passe a été réinitialisé avec succès.</p>
-                <p style={{ marginTop: 16 }}>Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
-                <p style={{ marginTop: 16, color: '#666', fontSize: '14px' }}>
+                <p style={{ marginTop: 16 }}>
+                  Vous pouvez maintenant vous connecter avec votre nouveau mot
+                  de passe.
+                </p>
+                <p style={{ marginTop: 16, color: "#666", fontSize: "14px" }}>
                   Redirection automatique dans 3 secondes...
                 </p>
               </div>
@@ -143,7 +152,9 @@ function ResetPassword() {
           </div>
           <h2>Nouveau mot de passe</h2>
           <p className="auth-subtitle">
-            {userEmail ? `Réinitialisation pour ${userEmail}` : 'Créez votre nouveau mot de passe'}
+            {userEmail
+              ? `Réinitialisation pour ${userEmail}`
+              : "Créez votre nouveau mot de passe"}
           </p>
         </div>
 
@@ -183,12 +194,15 @@ function ResetPassword() {
             label="Nouveau mot de passe"
             rules={[
               { required: true, message: "Veuillez entrer un mot de passe" },
-              { min: 6, message: "Le mot de passe doit contenir au moins 6 caractères" },
+              {
+                min: 6,
+                message: "Le mot de passe doit contenir au moins 6 caractères",
+              },
             ]}
             hasFeedback
           >
-            <Input.Password 
-              prefix={<LockOutlined />} 
+            <Input.Password
+              prefix={<LockOutlined />}
               placeholder="Nouveau mot de passe"
               autoFocus
             />
@@ -197,22 +211,27 @@ function ResetPassword() {
           <Form.Item
             name="confirmPassword"
             label="Confirmer le mot de passe"
-            dependencies={['newPassword']}
+            dependencies={["newPassword"]}
             hasFeedback
             rules={[
-              { required: true, message: "Veuillez confirmer votre mot de passe" },
+              {
+                required: true,
+                message: "Veuillez confirmer votre mot de passe",
+              },
               ({ getFieldValue }) => ({
                 validator(_, value) {
-                  if (!value || getFieldValue('newPassword') === value) {
+                  if (!value || getFieldValue("newPassword") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Les mots de passe ne correspondent pas'));
+                  return Promise.reject(
+                    new Error("Les mots de passe ne correspondent pas"),
+                  );
                 },
               }),
             ]}
           >
-            <Input.Password 
-              prefix={<LockOutlined />} 
+            <Input.Password
+              prefix={<LockOutlined />}
               placeholder="Confirmer le mot de passe"
             />
           </Form.Item>

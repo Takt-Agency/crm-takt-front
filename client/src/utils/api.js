@@ -569,13 +569,16 @@ export const regenerateBackupCodes = async (password) => {
 
 // Request password reset
 export const forgotPassword = async (email) => {
-  const response = await fetch(`${API_URL}/api/password-reset/forgot-password`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${API_URL}/api/password-reset/forgot-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
     },
-    body: JSON.stringify({ email }),
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -588,12 +591,15 @@ export const forgotPassword = async (email) => {
 
 // Verify reset token
 export const verifyResetToken = async (token) => {
-  const response = await fetch(`${API_URL}/api/password-reset/verify-token/${token}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${API_URL}/api/password-reset/verify-token/${token}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -621,4 +627,164 @@ export const resetPassword = async (token, newPassword) => {
 
   const data = await response.json();
   return data;
+};
+
+// ==================== Deal/Prospects API ====================
+
+// Get all deals
+export const getAllDeals = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.stage) queryParams.append("stage", params.stage);
+  if (params.assignedTo) queryParams.append("assignedTo", params.assignedTo);
+  if (params.search) queryParams.append("search", params.search);
+
+  const response = await fetch(
+    `${API_URL}/api/deals?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch deals");
+  }
+
+  const data = await response.json();
+  return data.data; // Returns array of deals
+};
+
+// Get pipeline statistics
+export const getPipelineStats = async () => {
+  const response = await fetch(`${API_URL}/api/deals/stats`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch pipeline stats");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Get a single deal by ID
+export const getDealById = async (id) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Deal not found");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Create a new deal
+export const createDeal = async (dealData) => {
+  const response = await fetch(`${API_URL}/api/deals`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dealData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create deal");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Update a deal
+export const updateDeal = async (id, dealData) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(dealData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update deal");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Update deal stage (for drag & drop)
+export const updateDealStage = async (id, stage) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/stage`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ stage }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update deal stage");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Delete a deal
+export const deleteDeal = async (id) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete deal");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Add note to deal
+export const addDealNote = async (id, content) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/notes`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add note");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+// Add activity to deal
+export const addDealActivity = async (id, activityData) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/activities`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(activityData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add activity");
+  }
+
+  const data = await response.json();
+  return data.data;
 };

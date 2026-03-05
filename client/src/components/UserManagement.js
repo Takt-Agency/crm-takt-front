@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  Layout,
-  Menu,
   Table,
   Button,
   Input,
@@ -18,7 +15,6 @@ import {
   Col,
   Statistic,
   Avatar,
-  Dropdown,
 } from "antd";
 import {
   UserOutlined,
@@ -31,16 +27,7 @@ import {
   UserAddOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  DashboardOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  BellOutlined,
   PoweroffOutlined,
-  CheckSquareOutlined,
-  FileTextOutlined,
-  EuroOutlined,
-  UserSwitchOutlined,
-  RiseOutlined,
 } from "@ant-design/icons";
 import {
   getAllUsers,
@@ -50,11 +37,9 @@ import {
   toggleUserStatus,
   getUserStats,
   getMe,
-  logout,
 } from "../utils/api";
 import "./UserManagement.css";
 
-const { Header, Sider, Content } = Layout;
 const { Option } = Select;
 
 const ROLES = {
@@ -67,7 +52,6 @@ const ROLES = {
 };
 
 function UserManagement() {
-  const [collapsed, setCollapsed] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({
@@ -82,7 +66,6 @@ function UserManagement() {
   const [stats, setStats] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [form] = Form.useForm();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCurrentUser();
@@ -219,97 +202,6 @@ function UserManagement() {
     setEditingUser(null);
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  const handleMenuClick = ({ key }) => {
-    if (key === "1") {
-      navigate("/dashboard");
-    } else if (key === "2") {
-      navigate("/clients");
-    } else if (key === "9") {
-      navigate("/users");
-    } else if (key === "profile") {
-      navigate("/profile");
-    } else if (key === "logout") {
-      handleLogout();
-    }
-  };
-
-  const userMenuItems = [
-    {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Mon profil",
-    },
-    {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: "Paramètres",
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Déconnexion",
-      danger: true,
-    },
-  ];
-
-  const menuItems = [
-    {
-      key: "1",
-      icon: <DashboardOutlined />,
-      label: "Tableau de bord",
-      onClick: () => navigate("/dashboard"),
-    },
-    {
-      key: "2",
-      icon: <UserOutlined />,
-      label: "Clients",
-      onClick: () => navigate("/clients"),
-    },
-    {
-      key: "9",
-      icon: <TeamOutlined />,
-      label: "Utilisateurs",
-      onClick: () => navigate("/users"),
-    },
-    {
-      key: "3",
-      icon: <TeamOutlined />,
-      label: "Prospects",
-    },
-    {
-      key: "4",
-      icon: <CheckSquareOutlined />,
-      label: "Tâches",
-    },
-    {
-      key: "5",
-      icon: <FileTextOutlined />,
-      label: "Devis & Facturation",
-    },
-    {
-      key: "6",
-      icon: <EuroOutlined />,
-      label: "Finances",
-    },
-    {
-      key: "7",
-      icon: <UserSwitchOutlined />,
-      label: "RH",
-    },
-    {
-      key: "8",
-      icon: <RiseOutlined />,
-      label: "Marketing",
-    },
-  ];
-
   const columns = [
     {
       title: "Utilisateur",
@@ -430,206 +322,139 @@ function UserManagement() {
     },
   ];
 
-  const canCreateUsers =
-    currentUser?.role === "super_admin" ||
-    currentUser?.role === "administrateur";
-
   return (
-    <Layout className="user-management-layout">
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        className="dashboard-sider"
-        width={240}
-      >
-        <div className="logo-container">
-          <div className="logo-icon">N</div>
-          {!collapsed && <span className="logo-text">Nexia Digital</span>}
-        </div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={["9"]}
-          items={menuItems}
-          className="dashboard-menu"
-        />
-        <div className="sidebar-footer">
-          <Menu mode="inline" className="dashboard-menu">
-            <Menu.Item key="params" icon={<SettingOutlined />}>
-              Paramètres
-            </Menu.Item>
-            <Menu.Item
-              key="logout"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              danger
-            >
-              Déconnexion
-            </Menu.Item>
-          </Menu>
-        </div>
-      </Sider>
+    <div className="dashboard-content">
+      {/* Statistics Cards */}
+      {stats && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Total Utilisateurs"
+                value={stats.totalUsers}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: "#1890ff" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Utilisateurs Actifs"
+                value={stats.activeUsers}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: "#52c41a" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Utilisateurs Inactifs"
+                value={stats.inactiveUsers}
+                prefix={<CloseCircleOutlined />}
+                valueStyle={{ color: "#ff4d4f" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Administrateurs"
+                value={
+                  (stats.roleCount?.super_admin || 0) +
+                  (stats.roleCount?.administrateur || 0)
+                }
+                prefix={<UserAddOutlined />}
+                valueStyle={{ color: "#fa8c16" }}
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
 
-      <Layout>
-        <Header className="dashboard-header">
-          <h1 className="header-title">Gestion des Utilisateurs</h1>
-          <div className="header-actions">
-            <Button
-              type="text"
-              icon={<BellOutlined />}
-              className="header-icon-btn"
+      {/* Filters and Actions */}
+      <Card style={{ marginBottom: 16 }}>
+        <Space
+          wrap
+          style={{
+            marginBottom: 16,
+            width: "100%",
+            justifyContent: "space-between",
+          }}
+        >
+          <Space wrap>
+            <Input
+              placeholder="Rechercher..."
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onPressEnter={handleSearch}
+              style={{ width: 250 }}
+              allowClear
             />
-            <Dropdown
-              menu={{ items: userMenuItems, onClick: handleMenuClick }}
-              placement="bottomRight"
+            <Select
+              placeholder="Filtrer par rôle"
+              style={{ width: 180 }}
+              allowClear
+              onChange={(value) => handleFilterChange("role", value)}
             >
-              <div className="user-info-wrapper">
-                <Avatar icon={<UserOutlined />} className="user-avatar" />
-                <span className="user-name">
-                  {currentUser?.name || "Utilisateur"}
-                </span>
-              </div>
-            </Dropdown>
-          </div>
-        </Header>
-
-        <Content className="user-management-content">
-          {/* Statistics Cards */}
-          {stats && (
-            <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-              <Col xs={24} sm={12} md={6}>
-                <Card>
-                  <Statistic
-                    title="Total Utilisateurs"
-                    value={stats.totalUsers}
-                    prefix={<TeamOutlined />}
-                    valueStyle={{ color: "#1890ff" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card>
-                  <Statistic
-                    title="Utilisateurs Actifs"
-                    value={stats.activeUsers}
-                    prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: "#52c41a" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card>
-                  <Statistic
-                    title="Utilisateurs Inactifs"
-                    value={stats.inactiveUsers}
-                    prefix={<CloseCircleOutlined />}
-                    valueStyle={{ color: "#ff4d4f" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Card>
-                  <Statistic
-                    title="Administrateurs"
-                    value={
-                      (stats.roleCount?.super_admin || 0) +
-                      (stats.roleCount?.administrateur || 0)
-                    }
-                    prefix={<UserAddOutlined />}
-                    valueStyle={{ color: "#fa8c16" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-          )}
-
-          {/* Filters and Actions */}
-          <Card style={{ marginBottom: 16 }}>
-            <Space
-              wrap
-              style={{
-                marginBottom: 16,
-                width: "100%",
-                justifyContent: "space-between",
+              {Object.keys(ROLES).map((role) => (
+                <Option key={role} value={role}>
+                  {ROLES[role].label}
+                </Option>
+              ))}
+            </Select>
+            <Select
+              placeholder="Statut"
+              style={{ width: 150 }}
+              allowClear
+              onChange={(value) => handleFilterChange("isActive", value)}
+            >
+              <Option value="true">Actif</Option>
+              <Option value="false">Inactif</Option>
+            </Select>
+            <Button
+              icon={<SearchOutlined />}
+              type="primary"
+              onClick={handleSearch}
+            >
+              Rechercher
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                setSearchText("");
+                setFilters({});
+                fetchUsers(1, pagination.pageSize);
               }}
             >
-              <Space wrap>
-                <Input
-                  placeholder="Rechercher..."
-                  prefix={<SearchOutlined />}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  onPressEnter={handleSearch}
-                  style={{ width: 250 }}
-                  allowClear
-                />
-                <Select
-                  placeholder="Filtrer par rôle"
-                  style={{ width: 180 }}
-                  allowClear
-                  onChange={(value) => handleFilterChange("role", value)}
-                >
-                  {Object.keys(ROLES).map((role) => (
-                    <Option key={role} value={role}>
-                      {ROLES[role].label}
-                    </Option>
-                  ))}
-                </Select>
-                <Select
-                  placeholder="Statut"
-                  style={{ width: 150 }}
-                  allowClear
-                  onChange={(value) => handleFilterChange("isActive", value)}
-                >
-                  <Option value="true">Actif</Option>
-                  <Option value="false">Inactif</Option>
-                </Select>
-                <Button
-                  icon={<SearchOutlined />}
-                  type="primary"
-                  onClick={handleSearch}
-                >
-                  Rechercher
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => {
-                    setSearchText("");
-                    setFilters({});
-                    fetchUsers(1, pagination.pageSize);
-                  }}
-                >
-                  Réinitialiser
-                </Button>
-              </Space>
-              {canCreateUsers && (
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleCreateUser}
-                  size="large"
-                >
-                  Nouvel Utilisateur
-                </Button>
-              )}
-            </Space>
-          </Card>
+              Réinitialiser
+            </Button>
+          </Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreateUser}
+            size="large"
+          >
+            Nouvel Utilisateur
+          </Button>
+        </Space>
+      </Card>
 
-          {/* Users Table */}
-          <Card>
-            <Table
-              columns={columns}
-              dataSource={users}
-              rowKey={(record) => record.id || record._id}
-              loading={loading}
-              pagination={pagination}
-              onChange={handleTableChange}
-              scroll={{ x: 1000 }}
-            />
-          </Card>
-        </Content>
-      </Layout>
+      {/* Users Table */}
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={users}
+          rowKey={(record) => record.id || record._id}
+          loading={loading}
+          pagination={pagination}
+          onChange={handleTableChange}
+          scroll={{ x: 1000 }}
+        />
+      </Card>
 
       {/* Create/Edit User Modal */}
       <Modal
@@ -724,7 +549,7 @@ function UserManagement() {
           </Form.Item>
         </Form>
       </Modal>
-    </Layout>
+    </div>
   );
 }
 

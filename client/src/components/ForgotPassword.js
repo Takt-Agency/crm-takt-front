@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Form, Input, Button, Alert, message, Result } from 'antd';
-import { UserOutlined, ArrowLeftOutlined, MailOutlined } from '@ant-design/icons';
-import { forgotPassword } from '../utils/api';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Form, Input, Button, Alert, message, Result } from "antd";
+import { ArrowLeftOutlined, MailOutlined } from "@ant-design/icons";
+import { forgotPassword } from "../utils/api";
+import "./Auth.css";
 
 function ForgotPassword() {
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ function ForgotPassword() {
       const data = await forgotPassword(values.email);
       setEmail(values.email);
       setSuccess(true);
-      message.success(data.message || 'Email envoyé!');
+      message.success(data.message || "Email envoyé!");
     } catch (err) {
       setError(err.message || "Erreur lors de l'envoi de l'email");
     } finally {
@@ -36,14 +36,20 @@ function ForgotPassword() {
             title="Email envoyé!"
             subTitle={
               <div>
-                <p>Si un compte existe avec l'adresse <strong>{email}</strong>, vous recevrez un email avec les instructions pour réinitialiser votre mot de passe.</p>
-                <p style={{ marginTop: 16 }}>Le lien est valide pendant <strong>1 heure</strong>.</p>
+                <p>
+                  Si un compte existe avec l'adresse <strong>{email}</strong>,
+                  vous recevrez un email avec les instructions pour
+                  réinitialiser votre mot de passe.
+                </p>
+                <p style={{ marginTop: 16 }}>
+                  Le lien est valide pendant <strong>1 heure</strong>.
+                </p>
                 <Alert
                   title="Vérifiez votre boîte email"
                   description="N'oubliez pas de vérifier votre dossier spam si vous ne recevez pas l'email."
                   type="info"
                   showIcon
-                  style={{ marginTop: 16, textAlign: 'left' }}
+                  style={{ marginTop: 16, textAlign: "left" }}
                 />
               </div>
             }
@@ -53,8 +59,8 @@ function ForgotPassword() {
                   Retour à la connexion
                 </Button>
               </Link>,
-              <Button 
-                key="resend" 
+              <Button
+                key="resend"
                 type="link"
                 onClick={() => setSuccess(false)}
               >
@@ -114,8 +120,8 @@ function ForgotPassword() {
               { type: "email", message: "Email invalide" },
             ]}
           >
-            <Input 
-              prefix={<MailOutlined />} 
+            <Input
+              prefix={<MailOutlined />}
               placeholder="votre@email.com"
               autoFocus
             />

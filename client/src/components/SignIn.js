@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Checkbox, Alert, message, Space } from 'antd';
-import { UserOutlined, LockOutlined, SafetyOutlined, ArrowLeftOutlined } from '@ant-design/icons';
-import { verifyTwoFactorLogin, completeTwoFactorLogin } from '../utils/api';
-import './Auth.css';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Form, Input, Button, Checkbox, Alert, message, Space } from "antd";
+import {
+  UserOutlined,
+  LockOutlined,
+  SafetyOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
+import { verifyTwoFactorLogin, completeTwoFactorLogin } from "../utils/api";
+import "./Auth.css";
 
 function SignIn() {
   const [loading, setLoading] = useState(false);
@@ -41,13 +46,13 @@ function SignIn() {
         } else {
           // Normal login - no 2FA
           const token = data.data?.token || data.token;
-          
+
           if (token) {
-            localStorage.setItem('token', token);
-            message.success(data.message || 'Connexion réussie!');
-            navigate('/dashboard');
+            localStorage.setItem("token", token);
+            message.success(data.message || "Connexion réussie!");
+            navigate("/dashboard");
           } else {
-            setError('Token non reçu du serveur');
+            setError("Token non reçu du serveur");
           }
         }
       } else {
@@ -66,18 +71,18 @@ function SignIn() {
 
     try {
       // Normalize the token: remove spaces and convert to uppercase
-      let normalizedToken = values.token.replace(/\s/g, '').toUpperCase();
-      
+      let normalizedToken = values.token.replace(/\s/g, "").toUpperCase();
+
       // If token is longer than 6 chars, it's likely a backup code
       // Remove any non-hex characters (only keep 0-9, A-F)
       if (normalizedToken.length > 6) {
-        normalizedToken = normalizedToken.replace(/[^0-9A-F]/g, '');
-        console.log('Cleaned backup code:', normalizedToken);
+        normalizedToken = normalizedToken.replace(/[^0-9A-F]/g, "");
+        console.log("Cleaned backup code:", normalizedToken);
       }
-      
+
       // First verify the 2FA token
       const verifyResult = await verifyTwoFactorLogin(userId, normalizedToken);
-      
+
       // Show warning if backup code was used (contains info about remaining codes)
       if (verifyResult.warning) {
         message.warning({
@@ -85,17 +90,17 @@ function SignIn() {
           duration: 5,
         });
       }
-      
+
       // If verified, complete the login to get the JWT token
       const loginData = await completeTwoFactorLogin(userId);
       const token = loginData.token;
-      
+
       if (token) {
-        localStorage.setItem('token', token);
-        message.success('Connexion réussie!');
-        navigate('/dashboard');
+        localStorage.setItem("token", token);
+        message.success("Connexion réussie!");
+        navigate("/dashboard");
       } else {
-        setError('Token non reçu du serveur');
+        setError("Token non reçu du serveur");
       }
     } catch (err) {
       setError(err.message || "Code 2FA invalide");
@@ -121,10 +126,9 @@ function SignIn() {
           </div>
           <h2>{requiresTwoFactor ? "Vérification 2FA" : "Connexion"}</h2>
           <p className="auth-subtitle">
-            {requiresTwoFactor 
+            {requiresTwoFactor
               ? `Code de vérification pour ${userEmail}`
-              : "Bienvenue dans votre CRM Nexia Digital"
-            }
+              : "Bienvenue dans votre CRM Nexia Digital"}
           </p>
         </div>
 
@@ -163,10 +167,16 @@ function SignIn() {
               name="password"
               label="Mot de passe"
               rules={[
-                { required: true, message: "Veuillez entrer votre mot de passe" },
+                {
+                  required: true,
+                  message: "Veuillez entrer votre mot de passe",
+                },
               ]}
             >
-              <Input.Password prefix={<LockOutlined />} placeholder="••••••••" />
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="••••••••"
+              />
             </Form.Item>
 
             <Form.Item>
@@ -204,9 +214,13 @@ function SignIn() {
               title="Authentification à deux facteurs"
               description={
                 <div>
-                  <p>Entrez le code à 6 chiffres de votre application d'authentification.</p>
-                  <p style={{ marginTop: 8, fontStyle: 'italic' }}>
-                    <strong>Perdu votre téléphone?</strong> Vous pouvez utiliser un de vos codes de secours (8 caractères).
+                  <p>
+                    Entrez le code à 6 chiffres de votre application
+                    d'authentification.
+                  </p>
+                  <p style={{ marginTop: 8, fontStyle: "italic" }}>
+                    <strong>Perdu votre téléphone?</strong> Vous pouvez utiliser
+                    un de vos codes de secours (8 caractères).
                   </p>
                 </div>
               }
@@ -219,9 +233,7 @@ function SignIn() {
             <Form.Item
               name="token"
               label="Code de vérification"
-              rules={[
-                { required: true, message: "Code requis" },
-              ]}
+              rules={[{ required: true, message: "Code requis" }]}
               extra="6 chiffres d'authentificateur OU 8 caractères de code de secours"
             >
               <Input
@@ -229,16 +241,20 @@ function SignIn() {
                 placeholder="123456 ou A1B2C3D4"
                 maxLength={12}
                 size="large"
-                style={{ 
-                  fontSize: "20px", 
-                  textAlign: "center", 
-                  letterSpacing: "4px" 
+                style={{
+                  fontSize: "20px",
+                  textAlign: "center",
+                  letterSpacing: "4px",
                 }}
               />
             </Form.Item>
 
             <Form.Item>
-              <Space orientation="vertical" style={{ width: "100%" }} size="middle">
+              <Space
+                orientation="vertical"
+                style={{ width: "100%" }}
+                size="middle"
+              >
                 <Button
                   type="primary"
                   htmlType="submit"
