@@ -15,6 +15,7 @@ import Profile from "./components/Profile";
 import UserManagement from "./components/UserManagement";
 import Clients from "./components/Clients";
 import Pipeline from "./components/Pipeline";
+import Tasks from "./components/Tasks";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
@@ -77,6 +78,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Pipeline />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Tasks />
                 </MainLayout>
               </ProtectedRoute>
             }

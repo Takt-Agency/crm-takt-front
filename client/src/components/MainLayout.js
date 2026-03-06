@@ -87,6 +87,7 @@ const MainLayout = ({ children }) => {
     if (path === "/dashboard") return "1";
     if (path === "/clients") return "2";
     if (path === "/prospects") return "3";
+    if (path === "/tasks") return "4";
     if (path === "/users") return "9";
     return "1";
   };
@@ -125,6 +126,7 @@ const MainLayout = ({ children }) => {
       key: "4",
       icon: <CheckSquareOutlined />,
       label: "Tâches",
+      onClick: () => navigate("/tasks"),
     },
     {
       key: "5",

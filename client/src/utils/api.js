@@ -788,3 +788,177 @@ export const addDealActivity = async (id, activityData) => {
   const data = await response.json();
   return data.data;
 };
+
+// =========== TASK API ===========
+
+// Get all tasks with filters
+export const getAllTasks = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.status) queryParams.append("status", params.status);
+  if (params.priority) queryParams.append("priority", params.priority);
+  if (params.assignedTo) queryParams.append("assignedTo", params.assignedTo);
+  if (params.client) queryParams.append("client", params.client);
+  if (params.deal) queryParams.append("deal", params.deal);
+  if (params.search) queryParams.append("search", params.search);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/tasks?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch tasks");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get task statistics
+export const getTaskStats = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.assignedTo) queryParams.append("assignedTo", params.assignedTo);
+
+  const response = await fetch(
+    `${API_URL}/api/tasks/stats?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch task stats");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get task by ID
+export const getTaskById = async (id) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch task");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Create task
+export const createTask = async (taskData) => {
+  const response = await fetch(`${API_URL}/api/tasks`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(taskData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create task");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Update task
+export const updateTask = async (id, taskData) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(taskData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update task");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Delete task
+export const deleteTask = async (id) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete task");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Update task status
+export const updateTaskStatus = async (id, status) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update task status");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Add checklist item
+export const addChecklistItem = async (id, text) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/checklist`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add checklist item");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Toggle checklist item
+export const toggleChecklistItem = async (id, itemId) => {
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/checklist/${itemId}`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to toggle checklist item");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
