@@ -16,6 +16,8 @@ import UserManagement from "./components/UserManagement";
 import Clients from "./components/Clients";
 import Pipeline from "./components/Pipeline";
 import Tasks from "./components/Tasks";
+import Invoices from "./components/Invoices";
+import InvoiceDetail from "./components/InvoiceDetail";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
@@ -88,6 +90,26 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Tasks />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Invoices />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices/:id"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <InvoiceDetail />
                 </MainLayout>
               </ProtectedRoute>
             }

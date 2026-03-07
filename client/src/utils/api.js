@@ -962,3 +962,156 @@ export const toggleChecklistItem = async (id, itemId) => {
   return data;
 };
 
+// ========================================
+// Invoice API Functions
+// ========================================
+
+// Get all invoices with filters
+export const getAllInvoices = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.type) queryParams.append("type", params.type);
+  if (params.status) queryParams.append("status", params.status);
+  if (params.client) queryParams.append("client", params.client);
+  if (params.search) queryParams.append("search", params.search);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/invoices?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch invoices");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get invoice statistics
+export const getInvoiceStats = async () => {
+  const response = await fetch(`${API_URL}/api/invoices/stats`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch invoice stats");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Get invoice by ID
+export const getInvoiceById = async (id) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch invoice");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Create new invoice
+export const createInvoice = async (invoiceData) => {
+  const response = await fetch(`${API_URL}/api/invoices`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(invoiceData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create invoice");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Update invoice
+export const updateInvoice = async (id, invoiceData) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(invoiceData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update invoice");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Delete invoice
+export const deleteInvoice = async (id) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete invoice");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+// Download invoice PDF
+export const downloadInvoicePDF = async (id) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}/pdf`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to download PDF");
+  }
+
+  // Create blob from response
+  const blob = await response.blob();
+  
+  // Get filename from Content-Disposition header
+  const contentDisposition = response.headers.get("Content-Disposition");
+  let filename = "invoice.pdf";
+  if (contentDisposition) {
+    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+    if (matches != null && matches[1]) {
+      filename = matches[1].replace(/['"]/g, "");
+    }
+  }
+
+  // Create download link
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};

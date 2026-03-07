@@ -88,6 +88,7 @@ const MainLayout = ({ children }) => {
     if (path === "/clients") return "2";
     if (path === "/prospects") return "3";
     if (path === "/tasks") return "4";
+    if (path.startsWith("/invoices")) return "5";
     if (path === "/users") return "9";
     return "1";
   };
@@ -132,6 +133,7 @@ const MainLayout = ({ children }) => {
       key: "5",
       icon: <FileTextOutlined />,
       label: "Devis & Facturation",
+      onClick: () => navigate("/invoices"),
     },
     {
       key: "6",
@@ -185,19 +187,24 @@ const MainLayout = ({ children }) => {
           />
         </div>
         <div className="sidebar-footer">
-          <Menu mode="inline" className="dashboard-menu">
-            <Menu.Item key="params" icon={<SettingOutlined />}>
-              Paramètres
-            </Menu.Item>
-            <Menu.Item
-              key="logout"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              danger
-            >
-              Déconnexion
-            </Menu.Item>
-          </Menu>
+          <Menu
+            mode="inline"
+            className="dashboard-menu"
+            items={[
+              {
+                key: "params",
+                icon: <SettingOutlined />,
+                label: "Paramètres",
+              },
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Déconnexion",
+                danger: true,
+                onClick: handleLogout,
+              },
+            ]}
+          />
         </div>
       </Sider>
 

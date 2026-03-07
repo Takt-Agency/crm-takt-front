@@ -399,7 +399,7 @@ function Tasks() {
                 title="À faire"
                 value={stats.byStatus["À faire"] || 0}
                 prefix={<ClockCircleOutlined />}
-                valueStyle={{ color: "#595959" }}
+                styles={{ value: { color: "#595959" } }}
               />
             </Card>
           </Col>
@@ -409,7 +409,7 @@ function Tasks() {
                 title="En cours"
                 value={stats.byStatus["En cours"] || 0}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: "#1890ff" }}
+                styles={{ value: { color: "#1890ff" } }}
               />
             </Card>
           </Col>
@@ -419,7 +419,7 @@ function Tasks() {
                 title="Terminées"
                 value={stats.byStatus["Terminée"] || 0}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: "#52c41a" }}
+                styles={{ value: { color: "#52c41a" } }}
               />
             </Card>
           </Col>
