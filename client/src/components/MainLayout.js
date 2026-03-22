@@ -89,6 +89,7 @@ const MainLayout = ({ children }) => {
     if (path === "/prospects") return "3";
     if (path === "/tasks") return "4";
     if (path.startsWith("/invoices")) return "5";
+    if (path.startsWith("/finances")) return "6";
     if (path === "/users") return "9";
     return "1";
   };
@@ -139,6 +140,7 @@ const MainLayout = ({ children }) => {
       key: "6",
       icon: <EuroOutlined />,
       label: "Finances",
+      onClick: () => navigate("/finances"),
     },
     {
       key: "7",

@@ -222,8 +222,7 @@ function Tasks() {
 
   const handleToggleStatus = async (task) => {
     try {
-      const newStatus =
-        task.status === "Terminée" ? "À faire" : "Terminée";
+      const newStatus = task.status === "Terminée" ? "À faire" : "Terminée";
       await updateTaskStatus(task._id, newStatus);
       loadTasks();
       loadStats();
@@ -285,10 +284,7 @@ function Tasks() {
       key: "status",
       width: 130,
       render: (status) => (
-        <Tag
-          icon={STATUSES[status]?.icon}
-          color={STATUSES[status]?.color}
-        >
+        <Tag icon={STATUSES[status]?.icon} color={STATUSES[status]?.color}>
           {STATUSES[status]?.label}
         </Tag>
       ),
@@ -301,7 +297,9 @@ function Tasks() {
       render: (dueDate) => {
         if (!dueDate) return "-";
         const date = dayjs(dueDate);
-        const isOverdue = date.isBefore(dayjs()) && date.format("YYYY-MM-DD") !== dayjs().format("YYYY-MM-DD");
+        const isOverdue =
+          date.isBefore(dayjs()) &&
+          date.format("YYYY-MM-DD") !== dayjs().format("YYYY-MM-DD");
         return (
           <Tooltip title={date.format("DD/MM/YYYY HH:mm")}>
             <span style={{ color: isOverdue ? "#ff4d4f" : "#595959" }}>
@@ -463,7 +461,11 @@ function Tasks() {
               </Option>
             ))}
           </Select>
-          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+          <Button
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={handleSearch}
+          >
             Rechercher
           </Button>
         </div>

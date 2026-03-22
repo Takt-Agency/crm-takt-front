@@ -1094,12 +1094,14 @@ export const downloadInvoicePDF = async (id) => {
 
   // Create blob from response
   const blob = await response.blob();
-  
+
   // Get filename from Content-Disposition header
   const contentDisposition = response.headers.get("Content-Disposition");
   let filename = "invoice.pdf";
   if (contentDisposition) {
-    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+      contentDisposition,
+    );
     if (matches != null && matches[1]) {
       filename = matches[1].replace(/['"]/g, "");
     }
@@ -1114,4 +1116,286 @@ export const downloadInvoicePDF = async (id) => {
   link.click();
   document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
+};
+
+// ========================================
+// Finance API Functions
+// ========================================
+
+export const getFinanceStats = async () => {
+  const response = await fetch(`${API_URL}/api/finance/stats`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch finance stats");
+  }
+
+  return response.json();
+};
+
+export const getAllBankAccounts = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.isActive !== undefined)
+    queryParams.append("isActive", params.isActive);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/comptes-bancaires?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch bank accounts");
+  }
+
+  return response.json();
+};
+
+export const createBankAccount = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/comptes-bancaires`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create bank account");
+  }
+
+  return response.json();
+};
+
+export const updateBankAccount = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/finance/comptes-bancaires/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update bank account");
+  }
+
+  return response.json();
+};
+
+export const deleteBankAccount = async (id) => {
+  const response = await fetch(`${API_URL}/api/finance/comptes-bancaires/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete bank account");
+  }
+
+  return response.json();
+};
+
+export const getAllEncaissements = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.compteBancaire)
+    queryParams.append("compteBancaire", params.compteBancaire);
+  if (params.client) queryParams.append("client", params.client);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/encaissements?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch encaissements");
+  }
+
+  return response.json();
+};
+
+export const createEncaissement = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/encaissements`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create encaissement");
+  }
+
+  return response.json();
+};
+
+export const updateEncaissement = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/finance/encaissements/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update encaissement");
+  }
+
+  return response.json();
+};
+
+export const deleteEncaissement = async (id) => {
+  const response = await fetch(`${API_URL}/api/finance/encaissements/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete encaissement");
+  }
+
+  return response.json();
+};
+
+export const getAllDecaissements = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.compteBancaire)
+    queryParams.append("compteBancaire", params.compteBancaire);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/decaissements?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch decaissements");
+  }
+
+  return response.json();
+};
+
+export const createDecaissement = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/decaissements`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create decaissement");
+  }
+
+  return response.json();
+};
+
+export const updateDecaissement = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/finance/decaissements/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update decaissement");
+  }
+
+  return response.json();
+};
+
+export const deleteDecaissement = async (id) => {
+  const response = await fetch(`${API_URL}/api/finance/decaissements/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete decaissement");
+  }
+
+  return response.json();
+};
+
+export const getAllTresorerieEntries = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.type) queryParams.append("type", params.type);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/tresorerie?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch tresorerie entries");
+  }
+
+  return response.json();
+};
+
+export const createTresorerieEntry = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/tresorerie`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create tresorerie entry");
+  }
+
+  return response.json();
+};
+
+export const updateTresorerieEntry = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/finance/tresorerie/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update tresorerie entry");
+  }
+
+  return response.json();
+};
+
+export const deleteTresorerieEntry = async (id) => {
+  const response = await fetch(`${API_URL}/api/finance/tresorerie/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete tresorerie entry");
+  }
+
+  return response.json();
 };

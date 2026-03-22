@@ -28,10 +28,22 @@ import { getInvoiceById, downloadInvoicePDF } from "../utils/api";
 dayjs.locale("fr");
 
 const STATUSES = {
-  Brouillon: { label: "Brouillon", color: "default", icon: <FileTextOutlined /> },
-  Envoyée: { label: "Envoyée", color: "processing", icon: <ClockCircleOutlined /> },
+  Brouillon: {
+    label: "Brouillon",
+    color: "default",
+    icon: <FileTextOutlined />,
+  },
+  Envoyée: {
+    label: "Envoyée",
+    color: "processing",
+    icon: <ClockCircleOutlined />,
+  },
   Payée: { label: "Payée", color: "success", icon: <CheckCircleOutlined /> },
-  "En retard": { label: "En retard", color: "error", icon: <WarningOutlined /> },
+  "En retard": {
+    label: "En retard",
+    color: "error",
+    icon: <WarningOutlined />,
+  },
   Annulée: { label: "Annulée", color: "default", icon: <FileTextOutlined /> },
 };
 
@@ -137,10 +149,7 @@ function InvoiceDetail() {
           >
             Imprimer
           </Button>
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={handleDownloadPDF}
-          >
+          <Button icon={<DownloadOutlined />} onClick={handleDownloadPDF}>
             Télécharger PDF
           </Button>
         </Space>
@@ -171,7 +180,9 @@ function InvoiceDetail() {
         <div className="invoice-parties">
           <div className="client-info">
             <h3>Client:</h3>
-            <p><strong>{invoice.client.entreprise}</strong></p>
+            <p>
+              <strong>{invoice.client.entreprise}</strong>
+            </p>
             {invoice.client.adresse && <p>{invoice.client.adresse}</p>}
             {(invoice.client.codePostal || invoice.client.localite) && (
               <p>
@@ -225,8 +236,12 @@ function InvoiceDetail() {
           </div>
           <Divider />
           <div className="total-row total-final">
-            <span><strong>Total:</strong></span>
-            <span className="amount"><strong>€{invoice.total.toFixed(2)}</strong></span>
+            <span>
+              <strong>Total:</strong>
+            </span>
+            <span className="amount">
+              <strong>€{invoice.total.toFixed(2)}</strong>
+            </span>
           </div>
         </div>
 

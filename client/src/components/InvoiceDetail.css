@@ -4,7 +4,9 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 .invoice-card {
@@ -29,7 +31,7 @@
 }
 
 .company-info::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;

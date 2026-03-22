@@ -55,10 +55,22 @@ const TYPES = {
 };
 
 const STATUSES = {
-  Brouillon: { label: "Brouillon", color: "default", icon: <FileTextOutlined /> },
-  Envoyée: { label: "Envoyée", color: "processing", icon: <ClockCircleOutlined /> },
+  Brouillon: {
+    label: "Brouillon",
+    color: "default",
+    icon: <FileTextOutlined />,
+  },
+  Envoyée: {
+    label: "Envoyée",
+    color: "processing",
+    icon: <ClockCircleOutlined />,
+  },
   Payée: { label: "Payée", color: "success", icon: <CheckCircleOutlined /> },
-  "En retard": { label: "En retard", color: "error", icon: <WarningOutlined /> },
+  "En retard": {
+    label: "En retard",
+    color: "error",
+    icon: <WarningOutlined />,
+  },
   Annulée: { label: "Annulée", color: "default", icon: <FileTextOutlined /> },
 };
 
@@ -167,7 +179,9 @@ function Invoices() {
     try {
       const invoiceData = {
         ...values,
-        date: values.date ? values.date.toISOString() : new Date().toISOString(),
+        date: values.date
+          ? values.date.toISOString()
+          : new Date().toISOString(),
         dueDate: values.dueDate ? values.dueDate.toISOString() : null,
       };
 
@@ -409,7 +423,11 @@ function Invoices() {
               </Option>
             ))}
           </Select>
-          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+          <Button
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={handleSearch}
+          >
             Rechercher
           </Button>
         </Space>
@@ -544,7 +562,9 @@ function Invoices() {
                       <Form.Item
                         {...restField}
                         name={[name, "description"]}
-                        rules={[{ required: true, message: "Description requise" }]}
+                        rules={[
+                          { required: true, message: "Description requise" },
+                        ]}
                       >
                         <Input
                           placeholder="Description"
