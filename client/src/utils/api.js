@@ -1399,3 +1399,275 @@ export const deleteTresorerieEntry = async (id) => {
 
   return response.json();
 };
+
+// ========================================
+// HR API Functions
+// ========================================
+
+export const getHRStats = async () => {
+  const response = await fetch(`${API_URL}/api/hr/stats`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch HR stats");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const getAllEmployees = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.search) queryParams.append("search", params.search);
+  if (params.department) queryParams.append("department", params.department);
+  if (params.status) queryParams.append("status", params.status);
+
+  const response = await fetch(`${API_URL}/api/hr/employees?${queryParams.toString()}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch employees");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const createEmployee = async (payload) => {
+  const response = await fetch(`${API_URL}/api/hr/employees`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create employee");
+  }
+
+  return response.json();
+};
+
+export const updateEmployee = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/hr/employees/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update employee");
+  }
+
+  return response.json();
+};
+
+export const deleteEmployee = async (id) => {
+  const response = await fetch(`${API_URL}/api/hr/employees/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete employee");
+  }
+
+  return response.json();
+};
+
+export const getAllLeaves = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.status) queryParams.append("status", params.status);
+  if (params.employee) queryParams.append("employee", params.employee);
+  if (params.type) queryParams.append("type", params.type);
+
+  const response = await fetch(`${API_URL}/api/hr/leaves?${queryParams.toString()}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch leaves");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const createLeave = async (payload) => {
+  const response = await fetch(`${API_URL}/api/hr/leaves`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create leave");
+  }
+
+  return response.json();
+};
+
+export const updateLeaveStatus = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/hr/leaves/${id}/status`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update leave status");
+  }
+
+  return response.json();
+};
+
+export const getAllAttendance = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.employee) queryParams.append("employee", params.employee);
+  if (params.status) queryParams.append("status", params.status);
+  if (params.startDate) queryParams.append("startDate", params.startDate);
+  if (params.endDate) queryParams.append("endDate", params.endDate);
+
+  const response = await fetch(`${API_URL}/api/hr/attendance?${queryParams.toString()}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch attendance");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const recordAttendance = async (payload) => {
+  const response = await fetch(`${API_URL}/api/hr/attendance`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to record attendance");
+  }
+
+  return response.json();
+};
+
+const parseDownloadFilename = (contentDisposition, fallback) => {
+  let filename = fallback;
+  if (contentDisposition) {
+    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+      contentDisposition,
+    );
+    if (matches != null && matches[1]) {
+      filename = matches[1].replace(/['"]/g, "");
+    }
+  }
+  return filename;
+};
+
+const triggerBlobDownload = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const exportLeavesExcel = async () => {
+  const response = await fetch(`${API_URL}/api/hr/leaves/export/excel`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export leaves (Excel)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "conges.xlsx",
+  );
+  triggerBlobDownload(blob, filename);
+};
+
+export const exportLeavesPDF = async () => {
+  const response = await fetch(`${API_URL}/api/hr/leaves/export/pdf`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export leaves (PDF)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "conges.pdf",
+  );
+  triggerBlobDownload(blob, filename);
+};
+
+export const exportAttendanceExcel = async () => {
+  const response = await fetch(`${API_URL}/api/hr/attendance/export/excel`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export attendance (Excel)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "presences.xlsx",
+  );
+  triggerBlobDownload(blob, filename);
+};
+
+export const exportAttendancePDF = async () => {
+  const response = await fetch(`${API_URL}/api/hr/attendance/export/pdf`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export attendance (PDF)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "presences.pdf",
+  );
+  triggerBlobDownload(blob, filename);
+};

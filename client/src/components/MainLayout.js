@@ -90,6 +90,7 @@ const MainLayout = ({ children }) => {
     if (path === "/tasks") return "4";
     if (path.startsWith("/invoices")) return "5";
     if (path.startsWith("/finances")) return "6";
+    if (path.startsWith("/hr")) return "7";
     if (path === "/users") return "9";
     return "1";
   };
@@ -146,6 +147,7 @@ const MainLayout = ({ children }) => {
       key: "7",
       icon: <UserSwitchOutlined />,
       label: "RH",
+      onClick: () => navigate("/hr"),
     },
     {
       key: "8",

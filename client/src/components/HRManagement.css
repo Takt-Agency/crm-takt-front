@@ -1,0 +1,20 @@
+.hr-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hr-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .hr-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -19,6 +19,7 @@ import Tasks from "./components/Tasks";
 import Invoices from "./components/Invoices";
 import InvoiceDetail from "./components/InvoiceDetail";
 import Finance from "./components/Finance";
+import HRManagement from "./components/HRManagement";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
@@ -121,6 +122,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Finance />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hr"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <HRManagement />
                 </MainLayout>
               </ProtectedRoute>
             }
