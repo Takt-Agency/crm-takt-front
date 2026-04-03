@@ -118,19 +118,20 @@ function SignIn() {
 
   return (
     <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
-          <div className="logo">
-            <div className="logo-icon">N</div>
-            <span className="logo-text">Nexia Digital CRM</span>
+      <div className="auth-shell">
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="logo">
+              <div className="logo-icon">N</div>
+              <span className="logo-text">Nexia Digital CRM</span>
+            </div>
+            <h2>{requiresTwoFactor ? "Verification 2FA" : "Connexion"}</h2>
+            <p className="auth-subtitle">
+              {requiresTwoFactor
+                ? `Code de verification pour ${userEmail}`
+                : "Accedez a votre espace de travail"}
+            </p>
           </div>
-          <h2>{requiresTwoFactor ? "Vérification 2FA" : "Connexion"}</h2>
-          <p className="auth-subtitle">
-            {requiresTwoFactor
-              ? `Code de vérification pour ${userEmail}`
-              : "Bienvenue dans votre CRM Nexia Digital"}
-          </p>
-        </div>
 
         {error && (
           <Alert
@@ -143,15 +144,15 @@ function SignIn() {
           />
         )}
 
-        {!requiresTwoFactor ? (
-          // Login Form
-          <Form
-            name="signin"
-            initialValues={{ remember: true }}
-            onFinish={onFinish}
-            size="large"
-            layout="vertical"
-          >
+          {!requiresTwoFactor ? (
+            // Login Form
+            <Form
+              name="signin"
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+              size="large"
+              layout="vertical"
+            >
             <Form.Item
               name="email"
               label="Email"
@@ -201,15 +202,15 @@ function SignIn() {
                 Se connecter
               </Button>
             </Form.Item>
-          </Form>
-        ) : (
-          // 2FA Verification Form
-          <Form
-            name="verify2fa"
-            onFinish={onVerify2FA}
-            size="large"
-            layout="vertical"
-          >
+            </Form>
+          ) : (
+            // 2FA Verification Form
+            <Form
+              name="verify2fa"
+              onFinish={onVerify2FA}
+              size="large"
+              layout="vertical"
+            >
             <Alert
               title="Authentification à deux facteurs"
               description={
@@ -274,16 +275,17 @@ function SignIn() {
                 </Button>
               </Space>
             </Form.Item>
-          </Form>
-        )}
+            </Form>
+          )}
 
-        <div className="auth-footer">
-          <p>
-            Vous n'avez pas de compte ?{" "}
-            <Link to="/signup" className="link-primary">
-              Créer un compte
-            </Link>
-          </p>
+          <div className="auth-footer">
+            <p>
+              Vous n'avez pas de compte ?{" "}
+              <Link to="/signup" className="link-primary">
+                Creer un compte
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

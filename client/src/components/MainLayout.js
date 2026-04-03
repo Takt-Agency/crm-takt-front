@@ -170,16 +170,7 @@ const MainLayout = ({ children }) => {
           {!collapsed && <span className="logo-text">Nexia Digital</span>}
         </div>
         <div style={{ marginBottom: 60 }}>
-          <div
-            style={{
-              padding: "12px 16px",
-              color: "#8c8c8c",
-              fontSize: "11px",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              fontWeight: 600,
-            }}
-          >
+          <div className="menu-section-title">
             {!collapsed && "MENU PRINCIPAL"}
           </div>
           <Menu
@@ -214,8 +205,17 @@ const MainLayout = ({ children }) => {
 
       <Layout>
         <Header className="dashboard-header">
-          <h1 className="header-title">Nexia Digital CRM</h1>
+          <div className="header-branding">
+            <h1 className="header-title">Nexia Digital CRM</h1>
+          </div>
           <div className="header-actions">
+            <Button
+              type="primary"
+              className="header-cta"
+              onClick={() => navigate("/invoices")}
+            >
+              Demander un devis
+            </Button>
             <Button
               type="text"
               icon={<BellOutlined />}

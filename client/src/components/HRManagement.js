@@ -184,7 +184,9 @@ function HRManagement() {
       await loadEmployees();
       await loadStats();
     } catch (error) {
-      message.error(error.message || "Erreur lors de l'enregistrement de l'employé");
+      message.error(
+        error.message || "Erreur lors de l'enregistrement de l'employé",
+      );
     }
   };
 
@@ -315,7 +317,9 @@ function HRManagement() {
       await loadAttendance();
       await loadStats();
     } catch (error) {
-      message.error(error.message || "Erreur lors de l'enregistrement du pointage");
+      message.error(
+        error.message || "Erreur lors de l'enregistrement du pointage",
+      );
     }
   };
 
@@ -572,7 +576,10 @@ function HRManagement() {
               >
                 Export Excel
               </Button>
-              <Button icon={<DownloadOutlined />} onClick={onExportAttendancePDF}>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={onExportAttendancePDF}
+              >
                 Export PDF
               </Button>
             </div>
@@ -600,9 +607,10 @@ function HRManagement() {
   ];
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content hr-page">
       <div className="content-header">
         <div>
+          <p className="section-kicker">RESSOURCES HUMAINES</p>
           <h2 className="page-title">Ressources humaines</h2>
           <p className="page-subtitle">
             Gérez les employés, les congés, le pointage et la présence
@@ -827,7 +835,11 @@ function HRManagement() {
         okText="Enregistrer"
         cancelText="Annuler"
       >
-        <Form form={attendanceForm} layout="vertical" onFinish={onSubmitAttendance}>
+        <Form
+          form={attendanceForm}
+          layout="vertical"
+          onFinish={onSubmitAttendance}
+        >
           <Form.Item
             name="employee"
             label="Employé"

@@ -372,7 +372,7 @@ function Tasks() {
   ];
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content tasks-page">
       <div className="content-header">
         <div>
           <h2 className="page-title">Tâches</h2>

@@ -3,178 +3,60 @@
 }
 
 .user-management-content {
-  margin: 24px;
-  padding: 24px;
-  background: #f0f2f5;
-  min-height: calc(100vh - 64px);
+  margin: 20px;
+  padding: 20px;
+  background: transparent;
+  min-height: calc(100vh - 80px);
 }
 
-/* Reuse dashboard styles for consistency */
-.user-management-layout .dashboard-sider {
-  background: #fff;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
-}
-
-.user-management-layout .logo-container {
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.user-management-layout .logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 18px;
-  margin-right: 8px;
-}
-
-.user-management-layout .logo-text {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-
-.user-management-layout .dashboard-header {
-  background: #fff;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  height: 64px;
-}
-
-.user-management-layout .header-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-}
-
-.user-management-layout .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.user-management-layout .user-info-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 12px;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
-
-.user-management-layout .user-info-wrapper:hover {
-  background-color: #f5f5f5;
-}
-
-.user-management-layout .user-avatar {
-  background-color: #1890ff;
-}
-
-.user-management-layout .user-name {
-  font-weight: 500;
-  color: #333;
-}
-
-.user-management-layout .dashboard-menu {
-  border-right: none;
-}
-
-.user-management-layout .sidebar-footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  border-top: 1px solid #f0f0f0;
-}
-
-/* Statistics cards */
 .user-management-content .ant-card {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 14px;
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 10px 22px rgba(12, 65, 84, 0.08);
 }
 
 .user-management-content .ant-statistic-title {
-  font-size: 14px;
-  color: #666;
+  color: var(--text-gray);
+  font-weight: 700;
 }
 
 .user-management-content .ant-statistic-content {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-/* Table customization */
-.user-management-content .ant-table {
-  background: #fff;
+  color: var(--text-dark);
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 2rem;
 }
 
 .user-management-content .ant-table-thead > tr > th {
-  background-color: #fafafa;
-  font-weight: 600;
-  color: #333;
+  background: #edf7fc;
+  color: #3c6270;
+  font-weight: 700;
 }
 
 .user-management-content .ant-table-tbody > tr:hover > td {
-  background-color: #f5f5f5;
+  background: #f5fbff;
 }
 
-/* Modal customization */
-.ant-modal-header {
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.ant-modal-footer {
-  border-top: 1px solid #f0f0f0;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .user-management-content {
-    margin: 16px;
-    padding: 16px;
-  }
-
-  .user-management-layout .header-title {
-    font-size: 16px;
-  }
-
-  .user-management-layout .user-name {
-    display: none;
-  }
-}
-
-/* Button hover effects */
-.user-management-content .ant-btn-link:hover {
-  opacity: 0.8;
-}
-
-/* Tag styles */
 .user-management-content .ant-tag {
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-weight: 500;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
 }
 
-/* Search and filter section */
 .user-management-content .ant-space-item {
   margin-bottom: 8px;
 }
 
-/* Loading state */
-.user-management-content .ant-spin-container {
-  min-height: 200px;
+@media (max-width: 768px) {
+  .user-management-content {
+    margin: 12px;
+    padding: 12px;
+  }
+
+  .user-management-content .ant-space {
+    width: 100%;
+  }
+
+  .user-management-content .ant-space-item {
+    width: 100%;
+  }
 }

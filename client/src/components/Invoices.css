@@ -1,0 +1,67 @@
+.invoices-page .ant-statistic-title {
+  color: var(--text-gray);
+  font-weight: 700;
+}
+
+.invoices-page .ant-statistic-content {
+  color: var(--text-dark);
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 2rem;
+}
+
+.invoices-page .ant-table-cell strong {
+  color: var(--text-dark);
+}
+
+.invoices-page .ant-tag {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
+}
+
+.invoices-page .ant-space[style*="justify-content: space-between"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invoices-page .ant-btn-link {
+  border-radius: 8px;
+}
+
+.invoices-page .ant-btn-link:hover {
+  background: #eff8fd;
+}
+
+.invoices-page .ant-form-item-label > label {
+  color: #2f5665;
+  font-weight: 700;
+}
+
+.invoices-page .ant-table-tbody > tr:hover > td {
+  background: #f4fbff;
+}
+
+.invoices-page .ant-pagination-item-active {
+  border-color: var(--primary-blue);
+}
+
+.invoices-page .ant-pagination-item-active a {
+  color: var(--primary-blue);
+}
+
+@media (max-width: 768px) {
+  .invoices-page .ant-space {
+    width: 100%;
+  }
+
+  .invoices-page .ant-space-item {
+    width: 100%;
+  }
+
+  .invoices-page .ant-input,
+  .invoices-page .ant-select,
+  .invoices-page .ant-btn {
+    width: 100% !important;
+  }
+}

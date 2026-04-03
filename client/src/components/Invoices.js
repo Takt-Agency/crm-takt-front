@@ -33,6 +33,7 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import "./Dashboard.css";
+import "./Invoices.css";
 import {
   getAllInvoices,
   getInvoiceStats,
@@ -332,9 +333,10 @@ function Invoices() {
   ];
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content invoices-page">
       <div className="content-header">
         <div>
+          <p className="section-kicker">FACTURATION</p>
           <h2 className="page-title">Devis & Facturation</h2>
           <p className="page-subtitle">Gérez vos devis et factures</p>
         </div>

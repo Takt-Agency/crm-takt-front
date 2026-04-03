@@ -1174,11 +1174,14 @@ export const createBankAccount = async (payload) => {
 };
 
 export const updateBankAccount = async (id, payload) => {
-  const response = await fetch(`${API_URL}/api/finance/comptes-bancaires/${id}`, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
-  });
+  const response = await fetch(
+    `${API_URL}/api/finance/comptes-bancaires/${id}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1189,10 +1192,13 @@ export const updateBankAccount = async (id, payload) => {
 };
 
 export const deleteBankAccount = async (id) => {
-  const response = await fetch(`${API_URL}/api/finance/comptes-bancaires/${id}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/finance/comptes-bancaires/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1426,10 +1432,13 @@ export const getAllEmployees = async (params = {}) => {
   if (params.department) queryParams.append("department", params.department);
   if (params.status) queryParams.append("status", params.status);
 
-  const response = await fetch(`${API_URL}/api/hr/employees?${queryParams.toString()}`, {
-    method: "GET",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/hr/employees?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1491,10 +1500,13 @@ export const getAllLeaves = async (params = {}) => {
   if (params.employee) queryParams.append("employee", params.employee);
   if (params.type) queryParams.append("type", params.type);
 
-  const response = await fetch(`${API_URL}/api/hr/leaves?${queryParams.toString()}`, {
-    method: "GET",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/hr/leaves?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1543,10 +1555,13 @@ export const getAllAttendance = async (params = {}) => {
   if (params.startDate) queryParams.append("startDate", params.startDate);
   if (params.endDate) queryParams.append("endDate", params.endDate);
 
-  const response = await fetch(`${API_URL}/api/hr/attendance?${queryParams.toString()}`, {
-    method: "GET",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/hr/attendance?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();

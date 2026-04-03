@@ -372,7 +372,7 @@ function Clients() {
   ];
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content clients-page">
       {/* Statistics Cards */}
       {stats && (
         <Row gutter={16} style={{ marginBottom: 24 }}>

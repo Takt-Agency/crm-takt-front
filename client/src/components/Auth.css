@@ -1,46 +1,57 @@
-/* Auth Pages - Nexia Digital CRM Colors with Ant Design */
-
-/* Dashboard color scheme */
 :root {
-  --primary-blue: #1e90ff;
-  --blue-hover: #1976d2;
-  --yellow-accent: #fdb022;
-  --green-accent: #4caf50;
-  --cyan-accent: #00bcd4;
-  --background-gray: #f5f7fa;
-  --card-white: #ffffff;
-  --text-dark: #2c3e50;
-  --text-gray: #6c757d;
-  --border-gray: #e0e4e8;
-  --error-red: #dc3545;
+  --nexia-pink: #ff1f8f;
+  --nexia-cyan: #37c6f5;
+  --nexia-indigo: #6f82ff;
+  --nexia-ink: #0e3444;
+  --nexia-muted: #5f7986;
+  --nexia-line: #d7e4ec;
+  --nexia-soft: #f3f9fc;
+  --nexia-white: #ffffff;
 }
 
 .auth-container {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
   padding: 20px;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(55, 198, 245, 0.1), transparent 38%),
+    linear-gradient(180deg, #fbfeff 0%, #f2f8fc 100%);
+  overflow: hidden;
+}
+
+.auth-container::before {
+  content: "";
+  position: absolute;
+  inset: -20% auto auto -10%;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(111, 130, 255, 0.09), transparent 68%);
+  pointer-events: none;
+}
+
+.auth-shell {
+  width: min(520px, 100%);
+  display: block;
+  position: relative;
+  z-index: 1;
 }
 
 .auth-card {
-  background: var(--card-white);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  padding: 48px;
-  width: 100%;
-  max-width: 480px;
-  animation: slideUp 0.4s ease-out;
+  border-radius: 18px;
+  border: 1px solid #e2eef5;
+  background: var(--nexia-white);
+  box-shadow: 0 10px 24px rgba(31, 80, 98, 0.08);
+  padding: 32px;
+  animation: revealUp 0.55s ease-out;
 }
 
-@keyframes slideUp {
+@keyframes revealUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
@@ -48,178 +59,173 @@
   }
 }
 
-/* Logo */
 .logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32px;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
 .logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976d2 100%);
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
+  background: linear-gradient(140deg, var(--nexia-pink), var(--nexia-indigo) 60%, var(--nexia-cyan));
+  color: #fff;
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
+  box-shadow: 0 12px 22px rgba(111, 130, 255, 0.26);
 }
 
 .logo-text {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-dark);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  color: var(--nexia-ink);
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  font-weight: 700;
 }
 
-/* Header */
 .auth-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .auth-header h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin: 0 0 8px 0;
+  margin: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--nexia-ink);
+  font-weight: 800;
 }
 
 .auth-subtitle {
-  color: var(--text-gray);
-  font-size: 15px;
-  margin: 0;
+  margin: 8px 0 0;
+  color: var(--nexia-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
-/* Ant Design Form Customization */
 .auth-card .ant-form-item-label > label {
+  color: var(--nexia-ink);
   font-weight: 600;
-  color: var(--text-dark);
 }
 
 .auth-card .ant-input-affix-wrapper,
-.auth-card .ant-input {
-  border-radius: 8px;
-  border: 2px solid var(--border-gray);
-  transition: all 0.3s ease;
+.auth-card .ant-input,
+.auth-card .ant-select-selector {
+  border-radius: 12px !important;
+  border: 1px solid var(--nexia-line) !important;
+  min-height: 46px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .auth-card .ant-input-affix-wrapper:hover,
-.auth-card .ant-input:hover {
-  border-color: var(--primary-blue);
+.auth-card .ant-input:hover,
+.auth-card .ant-select-selector:hover {
+  border-color: #9fd8ee !important;
 }
 
-.auth-card .ant-input-affix-wrapper:focus,
 .auth-card .ant-input-affix-wrapper-focused,
-.auth-card .ant-input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px rgba(30, 144, 255, 0.1);
+.auth-card .ant-input:focus,
+.auth-card .ant-select-focused .ant-select-selector {
+  border-color: var(--nexia-cyan) !important;
+  box-shadow: 0 0 0 4px rgba(55, 198, 245, 0.16) !important;
 }
 
 .auth-card .ant-input-prefix {
-  color: var(--text-gray);
+  color: #7a97a5;
 }
 
-/* Form Footer */
 .form-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   font-size: 14px;
 }
 
-.link-text {
-  color: var(--primary-blue);
+.link-text,
+.link-primary {
+  color: #0c6382;
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-weight: 700;
 }
 
-.link-text:hover {
-  color: var(--blue-hover);
+.link-text:hover,
+.link-primary:hover {
+  color: #0a7ea4;
 }
 
-/* Primary Button */
 .btn-submit.ant-btn-primary {
-  height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976d2 100%);
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
-  transition: all 0.3s ease;
+  border-radius: 10px;
+  height: 46px;
+  background: linear-gradient(95deg, #ff2d98 0%, #ff4bb2 100%);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0;
+  font-weight: 700;
+  box-shadow: 0 8px 16px rgba(255, 31, 143, 0.18);
 }
 
-.btn-submit.ant-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(30, 144, 255, 0.4);
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976d2 100%);
+.btn-submit.ant-btn-primary:hover,
+.btn-submit.ant-btn-primary:focus {
+  background: linear-gradient(95deg, #ff2d98 0%, #ff4bb2 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(255, 31, 143, 0.22);
 }
 
-.btn-submit.ant-btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Checkbox */
 .auth-card .ant-checkbox-wrapper {
-  color: var(--text-gray);
+  color: var(--nexia-muted);
 }
 
 .auth-card .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: var(--primary-blue);
-  border-color: var(--primary-blue);
+  background-color: var(--nexia-pink);
+  border-color: var(--nexia-pink);
 }
 
-.auth-card .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-.auth-card .ant-checkbox:hover .ant-checkbox-inner {
-  border-color: var(--primary-blue);
+.auth-card .ant-checkbox:hover .ant-checkbox-inner,
+.auth-card .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+  border-color: var(--nexia-pink);
 }
 
-/* Footer */
 .auth-footer {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nexia-line);
   text-align: center;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-gray);
-  margin-top: 8px;
 }
 
 .auth-footer p {
-  color: var(--text-gray);
-  font-size: 14px;
   margin: 0;
+  color: var(--nexia-muted);
 }
 
-.link-primary {
-  color: var(--primary-blue);
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
+@media (max-width: 640px) {
+  .auth-container {
+    padding: 14px;
+  }
 
-.link-primary:hover {
-  color: var(--blue-hover);
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 576px) {
   .auth-card {
-    padding: 32px 24px;
+    padding: 24px 18px;
+  }
+
+  .logo-text {
+    font-size: 0.98rem;
   }
 
   .auth-header h2 {
-    font-size: 24px;
+    font-size: 1.7rem;
   }
 
   .form-footer {
     flex-direction: column;
-    gap: 12px;
     align-items: flex-start;
   }
 }

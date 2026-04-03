@@ -1,151 +1,62 @@
-.clients-container {
-  min-height: 100vh;
+.clients-page .ant-statistic-title {
+  color: var(--text-gray);
+  font-weight: 700;
 }
 
-.clients-header {
-  padding: 0 24px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.clients-page .ant-statistic-content {
+  color: var(--text-dark);
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 2rem;
 }
 
-.clients-content {
-  margin: 24px 16px 0;
-  overflow: initial;
+.clients-page .ant-card {
+  background: linear-gradient(180deg, #ffffff, #f7fcff);
 }
 
-.stats-card {
-  margin-bottom: 24px;
+.clients-page .ant-table-cell strong {
+  color: var(--text-dark);
 }
 
-.search-bar {
-  margin-bottom: 16px;
+.clients-page .ant-tag {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
 }
 
-.clients-table {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
+.clients-page .ant-modal-header {
+  background: #f5fbff;
+  border-bottom: 1px solid var(--border-gray);
 }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
+.clients-page .ant-modal-title {
+  color: var(--text-dark);
+  font-weight: 700;
 }
 
-.status-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.clients-page .ant-modal-footer {
+  border-top: 1px solid var(--border-gray);
 }
 
-.client-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.clients-page .ant-pagination-item-active {
+  border-color: var(--primary-blue);
 }
 
-.client-email,
-.client-phone {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+.clients-page .ant-pagination-item-active a {
+  color: var(--primary-blue);
 }
 
-.location-text {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ca-value {
-  font-weight: 600;
-  color: #722ed1;
-}
-
-/* Responsive Design */
 @media (max-width: 768px) {
-  .clients-header {
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-  }
-
-  .search-bar .ant-space {
-    flex-direction: column;
+  .clients-page .ant-space {
     width: 100%;
   }
 
-  .search-bar .ant-input {
+  .clients-page .ant-space-item {
+    width: 100%;
+  }
+
+  .clients-page .ant-input,
+  .clients-page .ant-select,
+  .clients-page .ant-picker {
     width: 100% !important;
   }
-}
-
-/* Custom Table Styles */
-.ant-table-thead > tr > th {
-  background: #fafafa;
-  font-weight: 600;
-}
-
-.ant-table-tbody > tr:hover {
-  background: #f5f5f5;
-}
-
-/* Modal Styles */
-.ant-modal-header {
-  background: linear-gradient(to right, #1890ff, #096dd9);
-  color: white;
-}
-
-.ant-modal-title {
-  color: white;
-}
-
-.ant-modal-close {
-  color: white;
-}
-
-.ant-modal-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Statistics Cards */
-.ant-statistic-title {
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
-}
-
-.ant-statistic-content {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-/* Sidebar Styles */
-.ant-layout-sider {
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-}
-
-.ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected {
-  background-color: #1890ff;
-}
-
-/* Button Styles */
-.ant-btn-primary {
-  background: #1890ff;
-  border-color: #1890ff;
-}
-
-.ant-btn-primary:hover {
-  background: #40a9ff;
-  border-color: #40a9ff;
-}
-
-/* Tag Styles */
-.ant-tag {
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 12px;
 }

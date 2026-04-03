@@ -1,7 +1,5 @@
-/* Profile Page Styles */
-
 .profile-container {
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
 }
 
@@ -9,126 +7,122 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 380px;
 }
 
 .profile-header {
-  margin-bottom: 32px;
+  margin-bottom: 30px;
 }
 
 .back-button {
   margin-bottom: 16px;
-  color: var(--primary-blue);
-  font-weight: 500;
+  color: #0d7ca2;
+  font-weight: 700;
 }
 
 .back-button:hover {
-  color: var(--blue-hover);
+  color: #0b91bf;
 }
 
 .profile-header h2 {
-  font-size: 28px;
-  font-weight: 700;
+  margin: 0;
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 3rem;
+  line-height: 0.92;
   color: var(--text-dark);
-  margin: 0 0 8px 0;
 }
 
 .profile-header p {
+  margin: 8px 0 0;
   color: var(--text-gray);
-  font-size: 15px;
-  margin: 0;
 }
 
 .profile-card {
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 12px 24px rgba(12, 65, 84, 0.09);
 }
 
 .profile-avatar-section {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding-bottom: 32px;
-  margin-bottom: 32px;
+  gap: 22px;
+  padding-bottom: 26px;
+  margin-bottom: 26px;
   border-bottom: 1px solid var(--border-gray);
 }
 
 .profile-avatar-large {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976D2 100%);
+  background: linear-gradient(132deg, #ff1f8f, #7082ff 55%, #37c6f5);
   font-size: 32px;
+  box-shadow: 0 12px 22px rgba(111, 130, 255, 0.26);
 }
 
 .profile-info h3 {
-  font-size: 20px;
-  font-weight: 600;
+  margin: 0;
   color: var(--text-dark);
-  margin: 0 0 4px 0;
+  font-size: 1.45rem;
 }
 
 .profile-info p {
+  margin: 6px 0 0;
   color: var(--text-gray);
-  margin: 0;
-  font-size: 14px;
-}
-
-.profile-form {
-  max-width: 600px;
 }
 
 .form-section-title {
-  font-size: 16px;
-  font-weight: 600;
   color: var(--text-dark);
-  margin: 24px 0 16px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 20px 0 10px;
 }
 
 .form-section-subtitle {
   color: var(--text-gray);
   font-size: 13px;
-  margin: -8px 0 16px 0;
+  margin: 0 0 14px;
 }
 
+.profile-form .ant-input,
 .profile-form .ant-input-affix-wrapper,
-.profile-form .ant-input {
-  border-radius: 8px;
-  border: 2px solid var(--border-gray);
+.profile-form .ant-input-password,
+.profile-form .ant-select-selector {
+  border-radius: 10px !important;
+  border-color: #cfdee8 !important;
 }
 
-.profile-form .ant-input-affix-wrapper:hover,
-.profile-form .ant-input:hover {
-  border-color: var(--primary-blue);
-}
-
-.profile-form .ant-input-affix-wrapper:focus,
-.profile-form .ant-input-affix-wrapper-focused {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 4px rgba(30, 144, 255, 0.1);
+.profile-form .ant-input-affix-wrapper-focused,
+.profile-form .ant-input:focus {
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 0 0 4px rgba(55, 198, 245, 0.14) !important;
 }
 
 .profile-submit-btn.ant-btn-primary {
-  height: 48px;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, #1976D2 100%);
+  margin-top: 14px;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.3);
-  margin-top: 16px;
+  border-radius: 12px;
+  height: 50px;
+  background: linear-gradient(96deg, #ff1f8f, #ff3da5 48%, #ff5ac7);
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 1.75rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 14px 28px rgba(255, 31, 143, 0.25);
 }
 
 .profile-submit-btn.ant-btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(30, 144, 255, 0.4);
 }
 
 @media (max-width: 768px) {
   .profile-container {
-    padding: 16px;
+    padding: 0 4px;
   }
 
   .profile-avatar-section {
     flex-direction: column;
     text-align: center;
+  }
+
+  .profile-header h2 {
+    font-size: 2.4rem;
   }
 }

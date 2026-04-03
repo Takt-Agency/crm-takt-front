@@ -29,6 +29,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "./Dashboard.css";
+import "./Finance.css";
 import {
   getFinanceStats,
   getAllBankAccounts,
@@ -638,9 +639,10 @@ function Finance() {
   ];
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content finance-page">
       <div className="content-header">
         <div>
+          <p className="section-kicker">TRESORERIE</p>
           <h2 className="page-title">Finance</h2>
           <p className="page-subtitle">Encaissements, décaissements, comptes bancaires et trésorerie</p>
         </div>

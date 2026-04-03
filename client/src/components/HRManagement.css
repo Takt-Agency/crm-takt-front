@@ -12,9 +12,76 @@
   gap: 6px;
 }
 
+.hr-page .ant-statistic-title {
+  color: var(--text-gray);
+  font-weight: 700;
+}
+
+.hr-page .ant-statistic-content {
+  color: var(--text-dark);
+  font-family: "Barlow Condensed", "Segoe UI", sans-serif;
+  font-size: 2rem;
+}
+
+.hr-page .ant-tabs-nav {
+  margin-bottom: 16px;
+}
+
+.hr-page .ant-tabs-tab {
+  border-radius: 999px;
+  padding: 8px 16px;
+  margin-right: 8px;
+  background: #eef6fb;
+}
+
+.hr-page .ant-tabs-tab-active {
+  background: linear-gradient(96deg, #ff1f8f, #ff3da5 48%, #ff5ac7);
+}
+
+.hr-page .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.hr-page .ant-tabs-ink-bar {
+  display: none;
+}
+
+.hr-page .ant-tag {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
+}
+
+.hr-page .ant-table-tbody > tr:hover > td {
+  background: #f4fbff;
+}
+
+.hr-page .ant-btn-link {
+  border-radius: 8px;
+}
+
+.hr-page .ant-btn-link:hover {
+  background: #eff8fd;
+}
+
+.hr-page .ant-form-item-label > label {
+  color: #2f5665;
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   .hr-toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .hr-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hr-actions .ant-btn {
+    width: 100%;
   }
 }

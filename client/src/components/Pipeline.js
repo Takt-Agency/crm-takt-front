@@ -347,7 +347,7 @@ const Pipeline = () => {
   };
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content pipeline-page">
       <div className="content-header">
         <div>
           <h2 className="page-title">Pipeline commercial</h2>
