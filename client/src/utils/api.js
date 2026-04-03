@@ -1208,6 +1208,165 @@ export const deleteBankAccount = async (id) => {
   return response.json();
 };
 
+export const getAllSuppliers = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.isActive !== undefined)
+    queryParams.append("isActive", params.isActive);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/fournisseurs?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch suppliers");
+  }
+
+  return response.json();
+};
+
+export const createSupplier = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/fournisseurs`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create supplier");
+  }
+
+  return response.json();
+};
+
+export const updateSupplier = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/finance/fournisseurs/${id}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update supplier");
+  }
+
+  return response.json();
+};
+
+export const deleteSupplier = async (id) => {
+  const response = await fetch(`${API_URL}/api/finance/fournisseurs/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete supplier");
+  }
+
+  return response.json();
+};
+
+export const getAllSupplierOrders = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.supplier) queryParams.append("supplier", params.supplier);
+  if (params.status) queryParams.append("status", params.status);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/commandes-fournisseurs?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch supplier orders");
+  }
+
+  return response.json();
+};
+
+export const createSupplierOrder = async (payload) => {
+  const response = await fetch(`${API_URL}/api/finance/commandes-fournisseurs`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create supplier order");
+  }
+
+  return response.json();
+};
+
+export const updateSupplierOrder = async (id, payload) => {
+  const response = await fetch(
+    `${API_URL}/api/finance/commandes-fournisseurs/${id}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update supplier order");
+  }
+
+  return response.json();
+};
+
+export const deleteSupplierOrder = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/finance/commandes-fournisseurs/${id}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete supplier order");
+  }
+
+  return response.json();
+};
+
+export const getSupplierPaymentAlerts = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.daysAhead) queryParams.append("daysAhead", params.daysAhead);
+  if (params.limit) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/alertes-paiements-fournisseurs?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch supplier payment alerts");
+  }
+
+  return response.json();
+};
+
 export const getAllEncaissements = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.search) queryParams.append("search", params.search);
@@ -1280,6 +1439,9 @@ export const getAllDecaissements = async (params = {}) => {
   if (params.search) queryParams.append("search", params.search);
   if (params.compteBancaire)
     queryParams.append("compteBancaire", params.compteBancaire);
+  if (params.fournisseur) queryParams.append("fournisseur", params.fournisseur);
+  if (params.commandeFournisseur)
+    queryParams.append("commandeFournisseur", params.commandeFournisseur);
 
   const response = await fetch(
     `${API_URL}/api/finance/decaissements?${queryParams.toString()}`,
@@ -1306,6 +1468,9 @@ export const createDecaissement = async (payload) => {
 
   if (!response.ok) {
     const error = await response.json();
+    if (response.status === 403) {
+      throw new Error("Vous n'avez pas les droits pour créer un paiement fournisseur");
+    }
     throw new Error(error.message || "Failed to create decaissement");
   }
 
@@ -1321,6 +1486,9 @@ export const updateDecaissement = async (id, payload) => {
 
   if (!response.ok) {
     const error = await response.json();
+    if (response.status === 403) {
+      throw new Error("Vous n'avez pas les droits pour modifier un paiement fournisseur");
+    }
     throw new Error(error.message || "Failed to update decaissement");
   }
 
@@ -1335,6 +1503,9 @@ export const deleteDecaissement = async (id) => {
 
   if (!response.ok) {
     const error = await response.json();
+    if (response.status === 403) {
+      throw new Error("Vous n'avez pas les droits pour supprimer un paiement fournisseur");
+    }
     throw new Error(error.message || "Failed to delete decaissement");
   }
 
