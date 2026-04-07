@@ -16,6 +16,12 @@ import {
   Spin,
   Empty,
   Tooltip,
+  Timeline,
+  List,
+  Divider,
+  Alert,
+  Badge,
+  Switch,
 } from "antd";
 import {
   PlusOutlined,
@@ -25,6 +31,11 @@ import {
   CalendarOutlined,
   UserOutlined,
   EuroCircleOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -33,10 +44,20 @@ import "./Pipeline.css";
 import {
   getAllDeals,
   getPipelineStats,
+  getDealAlerts,
+  getDealById,
   createDeal,
   updateDeal,
   updateDealStage,
   deleteDeal,
+  convertDealToClient,
+  getAllUsers,
+  addDealNote,
+  addDealActivity,
+  updateDealNote,
+  deleteDealNote,
+  updateDealActivity,
+  deleteDealActivity,
 } from "../utils/api";
 
 dayjs.extend(relativeTime);
@@ -54,6 +75,21 @@ const Pipeline = () => {
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [draggedDeal, setDraggedDeal] = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [alerts, setAlerts] = useState({
+    dueSoon: [],
+    staleDeals: [],
+    counts: { dueSoon: 0, staleDeals: 0 },
+  });
+  const [timelineVisible, setTimelineVisible] = useState(false);
+  const [timelineDeal, setTimelineDeal] = useState(null);
+  const [timelineTypeFilter, setTimelineTypeFilter] = useState("all");
+  const [timelineTextFilter, setTimelineTextFilter] = useState("");
+  const [timelineImportantOnly, setTimelineImportantOnly] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [eventEditForm] = Form.useForm();
+  const [noteForm] = Form.useForm();
+  const [activityForm] = Form.useForm();
   const [form] = Form.useForm();
 
   const stages = ["Prospect", "Qualification", "Proposition", "Négociation"];
@@ -62,18 +98,29 @@ const Pipeline = () => {
   useEffect(() => {
     loadDeals();
     loadStats();
+    loadUsers();
+    loadAlerts();
   }, []);
 
   const loadDeals = async () => {
     try {
       setLoading(true);
       const data = await getAllDeals();
-      setDeals(data || []);
+      setDeals(Array.isArray(data) ? data : data.deals || []);
     } catch (error) {
       message.error("Erreur lors du chargement des deals");
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await getAllUsers({ limit: 100 });
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error loading users:", error);
     }
   };
 
@@ -83,6 +130,25 @@ const Pipeline = () => {
       setStats(data);
     } catch (error) {
       console.error("Error loading stats:", error);
+    }
+  };
+
+  const loadAlerts = async () => {
+    try {
+      const data = await getDealAlerts({
+        daysAhead: 3,
+        staleDays: 10,
+        limit: 8,
+      });
+      setAlerts(
+        data || {
+          dueSoon: [],
+          staleDeals: [],
+          counts: { dueSoon: 0, staleDeals: 0 },
+        },
+      );
+    } catch (error) {
+      console.error("Error loading alerts:", error);
     }
   };
 
@@ -105,8 +171,12 @@ const Pipeline = () => {
     setSelectedDeal(deal);
     form.setFieldsValue({
       ...deal,
+      assignedToUser: deal.assignedToUser?._id,
       expectedCloseDate: deal.expectedCloseDate
         ? dayjs(deal.expectedCloseDate)
+        : null,
+      nextFollowUpDate: deal.nextFollowUpDate
+        ? dayjs(deal.nextFollowUpDate)
         : null,
     });
     setModalVisible(true);
@@ -119,6 +189,9 @@ const Pipeline = () => {
         ...values,
         expectedCloseDate: values.expectedCloseDate
           ? values.expectedCloseDate.toISOString()
+          : null,
+        nextFollowUpDate: values.nextFollowUpDate
+          ? values.nextFollowUpDate.toISOString()
           : null,
       };
 
@@ -134,9 +207,218 @@ const Pipeline = () => {
       form.resetFields();
       loadDeals();
       loadStats();
+      loadAlerts();
     } catch (error) {
       message.error(error.message || "Erreur lors de l'enregistrement");
     }
+  };
+
+  const openTimeline = async (deal) => {
+    try {
+      const fullDeal = await getDealById(deal._id);
+      setTimelineDeal(fullDeal);
+      noteForm.resetFields();
+      activityForm.resetFields();
+      eventEditForm.resetFields();
+      setEditingEvent(null);
+      setTimelineVisible(true);
+    } catch (error) {
+      message.error(error.message || "Impossible de charger l'historique");
+    }
+  };
+
+  const handleAddNote = async () => {
+    try {
+      const values = await noteForm.validateFields();
+      await addDealNote(timelineDeal._id, values.content);
+      const refreshed = await getDealById(timelineDeal._id);
+      setTimelineDeal(refreshed);
+      setEditingEvent(null);
+      noteForm.resetFields();
+      message.success("Note ajoutée");
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de l'ajout de note");
+      }
+    }
+  };
+
+  const handleAddActivity = async () => {
+    try {
+      const values = await activityForm.validateFields();
+      await addDealActivity(timelineDeal._id, {
+        type: values.type,
+        description: values.description,
+        date: values.date
+          ? values.date.toISOString()
+          : new Date().toISOString(),
+      });
+      const refreshed = await getDealById(timelineDeal._id);
+      setTimelineDeal(refreshed);
+      setEditingEvent(null);
+      activityForm.resetFields();
+      message.success("Activité ajoutée");
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de l'ajout d'activité");
+      }
+    }
+  };
+
+  const getEventMeta = (eventType) => {
+    const map = {
+      Appel: { icon: <PhoneOutlined />, color: "#1677ff" },
+      Email: { icon: <MailOutlined />, color: "#13c2c2" },
+      Réunion: { icon: <TeamOutlined />, color: "#722ed1" },
+      Note: { icon: <FileTextOutlined />, color: "#52c41a" },
+      Autre: { icon: <ClockCircleOutlined />, color: "#fa8c16" },
+    };
+    return map[eventType] || map.Autre;
+  };
+
+  const buildTimelineEvents = (deal) => {
+    if (!deal) return [];
+
+    const activityEvents = (deal.activities || []).map((activity, index) => ({
+      id: `activity-${index}`,
+      rawId: activity._id,
+      type: activity.type || "Autre",
+      label: activity.type || "Activité",
+      description: activity.description || "Activité enregistrée",
+      date: activity.date ? dayjs(activity.date) : dayjs(),
+      createdBy: activity.createdBy?.name || "Utilisateur",
+      createdByEmail: activity.createdBy?.email,
+      source: "activity",
+      important:
+        (activity.type || "").toLowerCase() === "réunion" ||
+        (activity.type || "").toLowerCase() === "appel",
+    }));
+
+    const noteEvents = (deal.notes || []).map((note, index) => ({
+      id: `note-${index}`,
+      rawId: note._id,
+      type: "Note",
+      label: "Note",
+      description: note.content || "Note ajoutée",
+      date: note.createdAt ? dayjs(note.createdAt) : dayjs(),
+      createdBy: note.createdBy?.name || "Utilisateur",
+      createdByEmail: note.createdBy?.email,
+      source: "note",
+      important: false,
+    }));
+
+    return [...activityEvents, ...noteEvents].sort(
+      (a, b) => b.date.valueOf() - a.date.valueOf(),
+    );
+  };
+
+  const getFilteredTimelineEvents = (deal) => {
+    const events = buildTimelineEvents(deal);
+    return events.filter((event) => {
+      const passType =
+        timelineTypeFilter === "all" ||
+        event.type.toLowerCase() === timelineTypeFilter.toLowerCase();
+      const passText =
+        !timelineTextFilter ||
+        event.description
+          .toLowerCase()
+          .includes(timelineTextFilter.trim().toLowerCase()) ||
+        event.createdBy
+          .toLowerCase()
+          .includes(timelineTextFilter.trim().toLowerCase());
+      const passImportant = !timelineImportantOnly || event.important;
+      return passType && passText && passImportant;
+    });
+  };
+
+  const startEditEvent = (event) => {
+    setEditingEvent(event);
+    if (event.source === "note") {
+      eventEditForm.setFieldsValue({
+        content: event.description,
+      });
+      return;
+    }
+
+    eventEditForm.setFieldsValue({
+      type: event.type,
+      description: event.description,
+      date: event.date,
+    });
+  };
+
+  const handleSaveEditedEvent = async () => {
+    try {
+      if (!editingEvent || !timelineDeal) return;
+
+      const values = await eventEditForm.validateFields();
+
+      if (editingEvent.source === "note") {
+        await updateDealNote(
+          timelineDeal._id,
+          editingEvent.rawId,
+          values.content,
+        );
+      } else {
+        await updateDealActivity(timelineDeal._id, editingEvent.rawId, {
+          type: values.type,
+          description: values.description,
+          date: values.date ? values.date.toISOString() : undefined,
+        });
+      }
+
+      const refreshed = await getDealById(timelineDeal._id);
+      setTimelineDeal(refreshed);
+      setEditingEvent(null);
+      eventEditForm.resetFields();
+      message.success("Événement mis à jour");
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de la mise à jour");
+      }
+    }
+  };
+
+  const handleDeleteEvent = async (event) => {
+    try {
+      if (!timelineDeal) return;
+
+      if (event.source === "note") {
+        await deleteDealNote(timelineDeal._id, event.rawId);
+      } else {
+        await deleteDealActivity(timelineDeal._id, event.rawId);
+      }
+
+      const refreshed = await getDealById(timelineDeal._id);
+      setTimelineDeal(refreshed);
+      if (editingEvent?.rawId === event.rawId) {
+        setEditingEvent(null);
+        eventEditForm.resetFields();
+      }
+      message.success("Événement supprimé");
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la suppression");
+    }
+  };
+
+  const handleConvertToClient = async (deal) => {
+    Modal.confirm({
+      title: "Convertir ce prospect en client ?",
+      content: "Le deal sera lié à une fiche client et marqué comme gagné.",
+      okText: "Convertir",
+      cancelText: "Annuler",
+      onOk: async () => {
+        try {
+          await convertDealToClient(deal._id);
+          message.success("Prospect converti en client");
+          loadDeals();
+          loadStats();
+          loadAlerts();
+        } catch (error) {
+          message.error(error.message || "Erreur lors de la conversion");
+        }
+      },
+    });
   };
 
   // Handle deal deletion
@@ -153,6 +435,7 @@ const Pipeline = () => {
           message.success("Deal supprimé avec succès");
           loadDeals();
           loadStats();
+          loadAlerts();
         } catch (error) {
           message.error("Erreur lors de la suppression");
         }
@@ -231,6 +514,11 @@ const Pipeline = () => {
         icon: <EditOutlined />,
         onClick: () => handleEditDeal(deal),
       },
+      {
+        key: "timeline",
+        label: "Historique",
+        onClick: () => openTimeline(deal),
+      },
       ...stages
         .filter((stage) => stage !== deal.stage)
         .map((stage) => ({
@@ -241,6 +529,15 @@ const Pipeline = () => {
       {
         type: "divider",
       },
+      ...(deal.stage !== "Gagné"
+        ? [
+            {
+              key: "convert",
+              label: "Convertir en client",
+              onClick: () => handleConvertToClient(deal),
+            },
+          ]
+        : []),
       {
         key: "delete",
         label: "Supprimer",
@@ -385,6 +682,28 @@ const Pipeline = () => {
         </div>
       )}
 
+      {(alerts.counts?.dueSoon > 0 || alerts.counts?.staleDeals > 0) && (
+        <Card style={{ marginBottom: 16 }}>
+          <Alert
+            type="warning"
+            showIcon
+            message="Rappels prospects"
+            description={
+              <div>
+                <Badge count={alerts.counts?.dueSoon || 0} color="#faad14" />{" "}
+                relances proches,
+                <Badge
+                  style={{ marginLeft: 8 }}
+                  count={alerts.counts?.staleDeals || 0}
+                  color="#ff4d4f"
+                />{" "}
+                deals inactifs.
+              </div>
+            }
+          />
+        </Card>
+      )}
+
       {/* Pipeline Board */}
       {loading ? (
         <div className="loading-container">
@@ -441,6 +760,18 @@ const Pipeline = () => {
             />
           </Form.Item>
 
+          <Form.Item name="source" label="Source du lead">
+            <Input placeholder="Site web, referral, ads..." />
+          </Form.Item>
+
+          <Form.Item name="contactEmail" label="Email du contact">
+            <Input placeholder="contact@entreprise.com" />
+          </Form.Item>
+
+          <Form.Item name="contactPhone" label="Téléphone du contact">
+            <Input placeholder="+216 ..." />
+          </Form.Item>
+
           {modalMode === "create" && (
             <Form.Item
               name="stage"
@@ -458,15 +789,25 @@ const Pipeline = () => {
             </Form.Item>
           )}
 
-          <Form.Item
-            name={["assignedTo", "name"]}
-            label="Assigné à"
-            rules={[{ required: true, message: "Assignation requise" }]}
-          >
-            <Input placeholder="Nom de la personne" />
+          <Form.Item name="assignedToUser" label="Assigné à (utilisateur)">
+            <Select allowClear placeholder="Sélectionner un utilisateur">
+              {users.map((user) => (
+                <Option key={user._id} value={user._id}>
+                  {user.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item name={["assignedTo", "name"]} label="Assignation manuelle">
+            <Input placeholder="Nom affiché sur la carte" />
           </Form.Item>
 
           <Form.Item name="expectedCloseDate" label="Date de clôture prévue">
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+
+          <Form.Item name="nextFollowUpDate" label="Date de relance">
             <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
           </Form.Item>
 
@@ -481,7 +822,361 @@ const Pipeline = () => {
               <Option value="Basse">Basse</Option>
             </Select>
           </Form.Item>
+
+          <div style={{ marginBottom: 8, fontWeight: 600 }}>Scoring BANT</div>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
+            <Form.Item
+              name={["bant", "budget"]}
+              label="Budget"
+              initialValue={0}
+            >
+              <InputNumber min={0} max={5} style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              name={["bant", "authority"]}
+              label="Authority"
+              initialValue={0}
+            >
+              <InputNumber min={0} max={5} style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item name={["bant", "need"]} label="Need" initialValue={0}>
+              <InputNumber min={0} max={5} style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              name={["bant", "timeline"]}
+              label="Timeline"
+              initialValue={0}
+            >
+              <InputNumber min={0} max={5} style={{ width: "100%" }} />
+            </Form.Item>
+          </div>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          timelineDeal ? `Historique - ${timelineDeal.title}` : "Historique"
+        }
+        open={timelineVisible}
+        onCancel={() => setTimelineVisible(false)}
+        footer={null}
+        width={980}
+        className="deal-history-modal"
+      >
+        {timelineDeal
+          ? (() => {
+              const filteredEvents = getFilteredTimelineEvents(timelineDeal);
+              const lastActivity = filteredEvents[0]?.date;
+              const followUpDate = timelineDeal.nextFollowUpDate
+                ? dayjs(timelineDeal.nextFollowUpDate)
+                : null;
+
+              return (
+                <div className="deal-history-layout">
+                  <div className="deal-history-header">
+                    <div className="deal-history-kpis">
+                      <div className="history-kpi-item">
+                        <span className="history-kpi-label">Stage</span>
+                        <Tag color="blue">{timelineDeal.stage}</Tag>
+                      </div>
+                      <div className="history-kpi-item">
+                        <span className="history-kpi-label">Score BANT</span>
+                        <Tag color="purple">{timelineDeal.bantScore || 0}%</Tag>
+                      </div>
+                      <div className="history-kpi-item">
+                        <span className="history-kpi-label">
+                          Dernière activité
+                        </span>
+                        <span className="history-kpi-value">
+                          {lastActivity
+                            ? lastActivity.format("DD/MM/YYYY HH:mm")
+                            : "Aucune"}
+                        </span>
+                      </div>
+                      <div className="history-kpi-item">
+                        <span className="history-kpi-label">
+                          Prochaine relance
+                        </span>
+                        <span className="history-kpi-value">
+                          {followUpDate
+                            ? followUpDate.format("DD/MM/YYYY")
+                            : "Non planifiée"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="deal-history-content">
+                    <div className="deal-history-feed">
+                      <div className="deal-history-tools">
+                        <Select
+                          value={timelineTypeFilter}
+                          onChange={setTimelineTypeFilter}
+                          style={{ width: 170 }}
+                        >
+                          <Option value="all">Tous les types</Option>
+                          <Option value="Appel">Appels</Option>
+                          <Option value="Email">Emails</Option>
+                          <Option value="Réunion">Réunions</Option>
+                          <Option value="Note">Notes</Option>
+                          <Option value="Autre">Autres</Option>
+                        </Select>
+                        <Input
+                          value={timelineTextFilter}
+                          onChange={(e) =>
+                            setTimelineTextFilter(e.target.value)
+                          }
+                          placeholder="Rechercher une activité..."
+                        />
+                        <div className="timeline-important-toggle">
+                          <Switch
+                            checked={timelineImportantOnly}
+                            onChange={setTimelineImportantOnly}
+                            size="small"
+                          />
+                          <span>Important</span>
+                        </div>
+                      </div>
+
+                      {filteredEvents.length === 0 ? (
+                        <Empty
+                          description="Aucun événement pour ces filtres"
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        />
+                      ) : (
+                        <Timeline
+                          items={filteredEvents.map((event) => {
+                            const meta = getEventMeta(event.type);
+                            const isEditing =
+                              editingEvent &&
+                              editingEvent.rawId === event.rawId &&
+                              editingEvent.source === event.source;
+                            return {
+                              color: meta.color,
+                              dot: (
+                                <span className="timeline-dot-icon">
+                                  {meta.icon}
+                                </span>
+                              ),
+                              children: (
+                                <div className="timeline-event-card">
+                                  <div className="timeline-event-head">
+                                    <div className="timeline-event-head-left">
+                                      <Tag color="default">{event.label}</Tag>
+                                      <span className="timeline-event-date">
+                                        {event.date.format("DD/MM/YYYY HH:mm")}
+                                      </span>
+                                    </div>
+                                    <div className="timeline-event-actions">
+                                      <Button
+                                        size="small"
+                                        type="text"
+                                        onClick={() => startEditEvent(event)}
+                                      >
+                                        Modifier
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        type="text"
+                                        danger
+                                        onClick={() => handleDeleteEvent(event)}
+                                      >
+                                        Supprimer
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {isEditing ? (
+                                    <Form
+                                      form={eventEditForm}
+                                      layout="vertical"
+                                    >
+                                      {event.source === "note" ? (
+                                        <Form.Item
+                                          name="content"
+                                          rules={[
+                                            {
+                                              required: true,
+                                              message: "Contenu requis",
+                                            },
+                                          ]}
+                                        >
+                                          <Input.TextArea rows={3} />
+                                        </Form.Item>
+                                      ) : (
+                                        <>
+                                          <Form.Item
+                                            name="type"
+                                            rules={[
+                                              {
+                                                required: true,
+                                                message: "Type requis",
+                                              },
+                                            ]}
+                                          >
+                                            <Select>
+                                              <Option value="Appel">
+                                                Appel
+                                              </Option>
+                                              <Option value="Email">
+                                                Email
+                                              </Option>
+                                              <Option value="Réunion">
+                                                Réunion
+                                              </Option>
+                                              <Option value="Autre">
+                                                Autre
+                                              </Option>
+                                            </Select>
+                                          </Form.Item>
+                                          <Form.Item
+                                            name="description"
+                                            rules={[
+                                              {
+                                                required: true,
+                                                message: "Description requise",
+                                              },
+                                            ]}
+                                          >
+                                            <Input />
+                                          </Form.Item>
+                                          <Form.Item name="date">
+                                            <DatePicker
+                                              style={{ width: "100%" }}
+                                              format="DD/MM/YYYY HH:mm"
+                                              showTime={{ format: "HH:mm" }}
+                                            />
+                                          </Form.Item>
+                                        </>
+                                      )}
+                                      <div className="timeline-edit-actions">
+                                        <Button
+                                          size="small"
+                                          type="primary"
+                                          onClick={handleSaveEditedEvent}
+                                        >
+                                          Enregistrer
+                                        </Button>
+                                        <Button
+                                          size="small"
+                                          onClick={() => {
+                                            setEditingEvent(null);
+                                            eventEditForm.resetFields();
+                                          }}
+                                        >
+                                          Annuler
+                                        </Button>
+                                      </div>
+                                    </Form>
+                                  ) : (
+                                    <>
+                                      <p className="timeline-event-text">
+                                        {event.description}
+                                      </p>
+                                      <div className="timeline-event-author-row">
+                                        <Avatar
+                                          size="small"
+                                          icon={<UserOutlined />}
+                                        >
+                                          {event.createdBy
+                                            ?.charAt(0)
+                                            ?.toUpperCase()}
+                                        </Avatar>
+                                        <span className="timeline-event-author">
+                                          {event.createdBy}
+                                        </span>
+                                        {event.createdByEmail && (
+                                          <span className="timeline-event-author-email">
+                                            {event.createdByEmail}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              ),
+                            };
+                          })}
+                        />
+                      )}
+                    </div>
+
+                    <div className="deal-history-actions">
+                      <Card
+                        size="small"
+                        title="Ajouter une note"
+                        className="history-action-card"
+                      >
+                        <Form form={noteForm} layout="vertical">
+                          <Form.Item
+                            name="content"
+                            rules={[
+                              { required: true, message: "Note requise" },
+                            ]}
+                          >
+                            <Input.TextArea
+                              rows={3}
+                              placeholder="Résumé professionnel de la note..."
+                            />
+                          </Form.Item>
+                          <Button type="primary" block onClick={handleAddNote}>
+                            Enregistrer la note
+                          </Button>
+                        </Form>
+                      </Card>
+
+                      <Card
+                        size="small"
+                        title="Journaliser une activité"
+                        className="history-action-card"
+                      >
+                        <Form form={activityForm} layout="vertical">
+                          <Form.Item
+                            name="type"
+                            rules={[{ required: true, message: "Type requis" }]}
+                          >
+                            <Select placeholder="Type d'activité">
+                              <Option value="Appel">Appel</Option>
+                              <Option value="Email">Email</Option>
+                              <Option value="Réunion">Réunion</Option>
+                              <Option value="Autre">Autre</Option>
+                            </Select>
+                          </Form.Item>
+                          <Form.Item
+                            name="description"
+                            rules={[
+                              {
+                                required: true,
+                                message: "Description requise",
+                              },
+                            ]}
+                          >
+                            <Input placeholder="Description synthétique de l'activité" />
+                          </Form.Item>
+                          <Form.Item name="date">
+                            <DatePicker
+                              style={{ width: "100%" }}
+                              format="DD/MM/YYYY HH:mm"
+                              showTime={{ format: "HH:mm" }}
+                            />
+                          </Form.Item>
+                          <Button
+                            type="primary"
+                            block
+                            onClick={handleAddActivity}
+                          >
+                            Enregistrer l'activité
+                          </Button>
+                        </Form>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()
+          : null}
       </Modal>
     </div>
   );

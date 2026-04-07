@@ -258,6 +258,17 @@ export const getAllClients = async (params = {}) => {
   if (params.limit) queryParams.append("limit", params.limit);
   if (params.sortBy) queryParams.append("sortBy", params.sortBy);
   if (params.order) queryParams.append("order", params.order);
+  if (params.secteurActivite)
+    queryParams.append("secteurActivite", params.secteurActivite);
+  if (params.sourceLead) queryParams.append("sourceLead", params.sourceLead);
+  if (params.minCA !== undefined) queryParams.append("minCA", params.minCA);
+  if (params.maxCA !== undefined) queryParams.append("maxCA", params.maxCA);
+  if (params.minScore !== undefined)
+    queryParams.append("minScore", params.minScore);
+  if (params.maxScore !== undefined)
+    queryParams.append("maxScore", params.maxScore);
+  if (params.tags && params.tags.length > 0)
+    queryParams.append("tags", params.tags.join(","));
 
   const response = await fetch(
     `${API_URL}/api/clients?${queryParams.toString()}`,
@@ -420,6 +431,49 @@ export const updateLastContact = async (id) => {
 
   const data = await response.json();
   return data;
+};
+
+export const addClientInteraction = async (id, payload) => {
+  const response = await fetch(`${API_URL}/api/clients/${id}/interactions`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/signin";
+    }
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add interaction");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const exportClientsCsv = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.statut) queryParams.append("statut", params.statut);
+  if (params.search) queryParams.append("search", params.search);
+  const headers = getAuthHeaders();
+  delete headers["Content-Type"];
+
+  const response = await fetch(
+    `${API_URL}/api/clients/export/csv?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers,
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to export clients CSV");
+  }
+
+  return response.blob();
 };
 
 // =========== TWO-FACTOR AUTHENTICATION API ===========
@@ -638,6 +692,16 @@ export const getAllDeals = async (params = {}) => {
   if (params.stage) queryParams.append("stage", params.stage);
   if (params.assignedTo) queryParams.append("assignedTo", params.assignedTo);
   if (params.search) queryParams.append("search", params.search);
+  if (params.priority) queryParams.append("priority", params.priority);
+  if (params.source) queryParams.append("source", params.source);
+  if (params.minAmount !== undefined)
+    queryParams.append("minAmount", params.minAmount);
+  if (params.maxAmount !== undefined)
+    queryParams.append("maxAmount", params.maxAmount);
+  if (params.minBant !== undefined)
+    queryParams.append("minBant", params.minBant);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
 
   const response = await fetch(
     `${API_URL}/api/deals?${queryParams.toString()}`,
@@ -653,7 +717,8 @@ export const getAllDeals = async (params = {}) => {
   }
 
   const data = await response.json();
-  return data.data; // Returns array of deals
+  const payload = data.data || data;
+  return Array.isArray(payload) ? payload : payload.deals || [];
 };
 
 // Get pipeline statistics
@@ -666,6 +731,31 @@ export const getPipelineStats = async () => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to fetch pipeline stats");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+export const getDealAlerts = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.daysAhead !== undefined)
+    queryParams.append("daysAhead", params.daysAhead);
+  if (params.staleDays !== undefined)
+    queryParams.append("staleDays", params.staleDays);
+  if (params.limit !== undefined) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/deals/alerts?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch deal alerts");
   }
 
   const data = await response.json();
@@ -772,6 +862,37 @@ export const addDealNote = async (id, content) => {
   return data.data;
 };
 
+export const updateDealNote = async (id, noteId, content) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/notes/${noteId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update note");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+export const deleteDealNote = async (id, noteId) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/notes/${noteId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete note");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 // Add activity to deal
 export const addDealActivity = async (id, activityData) => {
   const response = await fetch(`${API_URL}/api/deals/${id}/activities`, {
@@ -787,6 +908,58 @@ export const addDealActivity = async (id, activityData) => {
 
   const data = await response.json();
   return data.data;
+};
+
+export const updateDealActivity = async (id, activityId, activityData) => {
+  const response = await fetch(
+    `${API_URL}/api/deals/${id}/activities/${activityId}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(activityData),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update activity");
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+export const deleteDealActivity = async (id, activityId) => {
+  const response = await fetch(
+    `${API_URL}/api/deals/${id}/activities/${activityId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete activity");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const convertDealToClient = async (id) => {
+  const response = await fetch(`${API_URL}/api/deals/${id}/convert-to-client`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to convert deal to client");
+  }
+
+  const data = await response.json();
+  return data.data || data;
 };
 
 // =========== TASK API ===========
@@ -1297,11 +1470,14 @@ export const getAllSupplierOrders = async (params = {}) => {
 };
 
 export const createSupplierOrder = async (payload) => {
-  const response = await fetch(`${API_URL}/api/finance/commandes-fournisseurs`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(payload),
-  });
+  const response = await fetch(
+    `${API_URL}/api/finance/commandes-fournisseurs`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1469,7 +1645,9 @@ export const createDecaissement = async (payload) => {
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 403) {
-      throw new Error("Vous n'avez pas les droits pour créer un paiement fournisseur");
+      throw new Error(
+        "Vous n'avez pas les droits pour créer un paiement fournisseur",
+      );
     }
     throw new Error(error.message || "Failed to create decaissement");
   }
@@ -1487,7 +1665,9 @@ export const updateDecaissement = async (id, payload) => {
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 403) {
-      throw new Error("Vous n'avez pas les droits pour modifier un paiement fournisseur");
+      throw new Error(
+        "Vous n'avez pas les droits pour modifier un paiement fournisseur",
+      );
     }
     throw new Error(error.message || "Failed to update decaissement");
   }
@@ -1504,7 +1684,9 @@ export const deleteDecaissement = async (id) => {
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 403) {
-      throw new Error("Vous n'avez pas les droits pour supprimer un paiement fournisseur");
+      throw new Error(
+        "Vous n'avez pas les droits pour supprimer un paiement fournisseur",
+      );
     }
     throw new Error(error.message || "Failed to delete decaissement");
   }

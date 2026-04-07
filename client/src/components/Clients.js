@@ -16,6 +16,8 @@ import {
   Dropdown,
   DatePicker,
   InputNumber,
+  Timeline,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
@@ -41,7 +43,10 @@ import {
   updateClient,
   deleteClient,
   getClientStats,
+  getClientById,
   updateLastContact,
+  addClientInteraction,
+  exportClientsCsv,
   getMe,
 } from "../utils/api";
 import dayjs from "dayjs";
@@ -74,6 +79,9 @@ function Clients() {
   const [editingClient, setEditingClient] = useState(null);
   const [stats, setStats] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [timelineVisible, setTimelineVisible] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [interactionForm] = Form.useForm();
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -160,6 +168,8 @@ function Clients() {
     setEditingClient(client);
     form.setFieldsValue({
       ...client,
+      tagsInput: (client.tags || []).join(", "),
+      contactPrincipal: client.contacts?.find((item) => item.isPrimary) || null,
       dernierContact: client.dernierContact
         ? dayjs(client.dernierContact)
         : null,
@@ -173,10 +183,18 @@ function Clients() {
 
       const clientData = {
         ...values,
+        tags: values.tagsInput
+          ? values.tagsInput
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+          : [],
         dernierContact: values.dernierContact
           ? values.dernierContact.toISOString()
           : undefined,
       };
+
+      delete clientData.tagsInput;
 
       if (editingClient) {
         await updateClient(editingClient._id, clientData);
@@ -199,6 +217,26 @@ function Clients() {
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      const blob = await exportClientsCsv({
+        statut: filters.statut,
+        search: searchText,
+      });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "clients-export.csv";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+      message.success("Export CSV lancé");
+    } catch (error) {
+      message.error(error.message || "Erreur lors de l'export CSV");
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       await deleteClient(id);
@@ -217,6 +255,42 @@ function Clients() {
       fetchClients(pagination.current, pagination.pageSize, filters);
     } catch (error) {
       message.error(error.message || "Erreur lors de la mise à jour");
+    }
+  };
+
+  const openTimeline = async (clientId) => {
+    try {
+      const clientData = await getClientById(clientId);
+      setSelectedClient(clientData);
+      interactionForm.resetFields();
+      setTimelineVisible(true);
+    } catch (error) {
+      message.error(
+        error.message || "Erreur lors du chargement de la fiche client",
+      );
+    }
+  };
+
+  const handleAddInteraction = async () => {
+    try {
+      const values = await interactionForm.validateFields();
+      await addClientInteraction(selectedClient._id, {
+        type: values.type,
+        summary: values.summary,
+        date: values.date ? values.date.toISOString() : undefined,
+      });
+
+      const refreshed = await getClientById(selectedClient._id);
+      setSelectedClient(refreshed);
+      interactionForm.resetFields();
+      fetchClients(pagination.current, pagination.pageSize, filters);
+      message.success("Interaction ajoutée");
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(
+          error.message || "Erreur lors de l'ajout de l'interaction",
+        );
+      }
     }
   };
 
@@ -329,6 +403,12 @@ function Clients() {
               label: "Marquer contact",
               onClick: () => handleUpdateContact(record._id),
             },
+            {
+              key: "timeline",
+              icon: <CalendarOutlined />,
+              label: "Historique",
+              onClick: () => openTimeline(record._id),
+            },
           );
         }
 
@@ -376,7 +456,7 @@ function Clients() {
       {/* Statistics Cards */}
       {stats && (
         <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24} sm={12} lg={8} xl={4}>
             <Card>
               <Statistic
                 title="Total Clients"
@@ -386,7 +466,7 @@ function Clients() {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24} sm={12} lg={8} xl={4}>
             <Card>
               <Statistic
                 title="Clients Actifs"
@@ -396,17 +476,27 @@ function Clients() {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24} sm={12} lg={8} xl={4}>
             <Card>
               <Statistic
-                title="Prospects"
+                title="Prospects (Clients)"
                 value={stats.prospectClients}
                 prefix={<QuestionCircleOutlined />}
                 valueStyle={{ color: "#faad14" }}
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24} sm={12} lg={8} xl={4}>
+            <Card>
+              <Statistic
+                title="Prospects Pipeline"
+                value={stats.pipelineProspects || 0}
+                prefix={<QuestionCircleOutlined />}
+                valueStyle={{ color: "#13c2c2" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={8} xl={4}>
             <Card>
               <Statistic
                 title="CA Total"
@@ -442,6 +532,7 @@ function Clients() {
             <Button icon={<ReloadOutlined />} onClick={handleReset}>
               Réinitialiser
             </Button>
+            <Button onClick={handleExportCsv}>Exporter CSV</Button>
           </Space>
           {currentUser &&
             [
@@ -581,6 +672,24 @@ function Clients() {
             </Col>
           </Row>
 
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Score Client (0-100)" name="score">
+                <InputNumber
+                  style={{ width: "100%" }}
+                  min={0}
+                  max={100}
+                  placeholder="Score de qualification"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Source Lead" name="sourceLead">
+                <Input placeholder="Site web, referral, publicité..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Form.Item label="Adresse" name="adresse">
             <Input.TextArea rows={2} placeholder="Adresse complète" />
           </Form.Item>
@@ -598,6 +707,48 @@ function Clients() {
             </Col>
           </Row>
 
+          <Form.Item label="Tags (séparés par virgule)" name="tagsInput">
+            <Input placeholder="VIP, SaaS, Grand compte..." />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Contact principal - Nom"
+                name={["contactPrincipal", "nom"]}
+              >
+                <Input placeholder="Nom du contact" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Contact principal - Poste"
+                name={["contactPrincipal", "poste"]}
+              >
+                <Input placeholder="Responsable marketing" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Contact principal - Email"
+                name={["contactPrincipal", "email"]}
+              >
+                <Input placeholder="contact@entreprise.com" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Contact principal - Téléphone"
+                name={["contactPrincipal", "telephone"]}
+              >
+                <Input placeholder="+216 ..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
           <Form.Item label="Dernier Contact" name="dernierContact">
             <DatePicker
               style={{ width: "100%" }}
@@ -610,6 +761,70 @@ function Clients() {
             <Input.TextArea rows={3} placeholder="Notes supplémentaires..." />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title={
+          selectedClient
+            ? `Historique - ${selectedClient.entreprise}`
+            : "Historique"
+        }
+        open={timelineVisible}
+        onCancel={() => setTimelineVisible(false)}
+        footer={null}
+        width={760}
+      >
+        {selectedClient ? (
+          <>
+            <Timeline
+              items={(selectedClient.interactions || []).map((interaction) => ({
+                color: "blue",
+                children: `${dayjs(interaction.date).format("DD/MM/YYYY HH:mm")} - [${interaction.type}] ${interaction.summary}`,
+              }))}
+            />
+
+            <Divider />
+
+            <Form form={interactionForm} layout="vertical">
+              <Row gutter={12}>
+                <Col span={8}>
+                  <Form.Item
+                    name="type"
+                    label="Type"
+                    rules={[{ required: true, message: "Type requis" }]}
+                  >
+                    <Select placeholder="Type d'interaction">
+                      <Option value="Appel">Appel</Option>
+                      <Option value="Email">Email</Option>
+                      <Option value="Réunion">Réunion</Option>
+                      <Option value="Message">Message</Option>
+                      <Option value="Autre">Autre</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item name="date" label="Date">
+                    <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item label=" " style={{ marginTop: 30 }}>
+                    <Button type="primary" onClick={handleAddInteraction} block>
+                      Ajouter interaction
+                    </Button>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item
+                name="summary"
+                label="Résumé"
+                rules={[{ required: true, message: "Résumé requis" }]}
+              >
+                <Input.TextArea rows={3} placeholder="Résumé de l'échange..." />
+              </Form.Item>
+            </Form>
+          </>
+        ) : null}
       </Modal>
     </div>
   );
