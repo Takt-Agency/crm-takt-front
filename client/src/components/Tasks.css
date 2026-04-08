@@ -54,6 +54,121 @@
   padding: 36px 0;
 }
 
+.tasks-page .task-subtext {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.tasks-page .tasks-kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.tasks-page .tasks-kanban-column {
+  min-height: 320px;
+}
+
+.tasks-page .kanban-column-drop-active {
+  border-color: #1677ff;
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+}
+
+.tasks-page .kanban-task-card {
+  cursor: pointer;
+  border: 1px solid #eef1f4;
+}
+
+.tasks-page .kanban-task-dragging {
+  opacity: 0.5;
+  transform: rotate(1deg);
+}
+
+.tasks-page .kanban-title {
+  font-weight: 700;
+}
+
+.tasks-page .task-project-badge-wrap {
+  margin-top: 6px;
+}
+
+.tasks-page .task-project-badge {
+  margin: 0;
+}
+
+.tasks-page .task-empty {
+  color: #9aa0a6;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+.tasks-page .calendar-task-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tasks-page .calendar-task-list li {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.tasks-page .gantt-row {
+  border: 1px solid #e7ecf2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.tasks-page .gantt-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tasks-page .task-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.tasks-page .task-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tasks-page .task-timeline-item {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+}
+
+.tasks-page .task-timeline-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #1677ff;
+}
+
+.tasks-page .task-timeline-content {
+  border: 1px solid #e6edf5;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fafcff;
+}
+
+.tasks-page .task-timeline-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 @media (max-width: 768px) {
   .tasks-page .content-header {
     flex-direction: column;
@@ -62,5 +177,9 @@
 
   .tasks-page .content-header .ant-btn {
     width: 100%;
+  }
+
+  .tasks-page .tasks-kanban-grid {
+    grid-template-columns: 1fr;
   }
 }

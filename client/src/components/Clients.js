@@ -18,6 +18,9 @@ import {
   InputNumber,
   Timeline,
   Divider,
+  Descriptions,
+  Empty,
+  Popconfirm,
 } from "antd";
 import {
   UserOutlined,
@@ -40,6 +43,9 @@ import {
 import {
   getAllClients,
   createClient,
+  createProject,
+  updateProjectById,
+  deleteProjectById,
   updateClient,
   deleteClient,
   getClientStats,
@@ -48,6 +54,7 @@ import {
   addClientInteraction,
   exportClientsCsv,
   getMe,
+  getAllProjects,
 } from "../utils/api";
 import dayjs from "dayjs";
 import "./Clients.css";
@@ -81,8 +88,17 @@ function Clients() {
   const [currentUser, setCurrentUser] = useState(null);
   const [timelineVisible, setTimelineVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [projectsManagerVisible, setProjectsManagerVisible] = useState(false);
+  const [selectedProjectsClient, setSelectedProjectsClient] = useState(null);
+  const [clientProjects, setClientProjects] = useState([]);
+  const [projectDetailsVisible, setProjectDetailsVisible] = useState(false);
+  const [selectedProjectDetails, setSelectedProjectDetails] = useState(null);
+  const [projectModalVisible, setProjectModalVisible] = useState(false);
+  const [projectClient, setProjectClient] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
   const [interactionForm] = Form.useForm();
   const [form] = Form.useForm();
+  const [projectForm] = Form.useForm();
 
   useEffect(() => {
     fetchCurrentUser();
@@ -248,6 +264,97 @@ function Clients() {
     }
   };
 
+  const openProjectModal = (client) => {
+    setProjectClient(client);
+    setEditingProject(null);
+    projectForm.resetFields();
+    projectForm.setFieldsValue({
+      clientName: client.entreprise,
+      status: "Planifie",
+    });
+    setProjectModalVisible(true);
+  };
+
+  const handleCreateProjectForClient = async () => {
+    try {
+      const values = await projectForm.validateFields();
+      if (!projectClient?._id) {
+        message.error("Client invalide");
+        return;
+      }
+
+      const payload = {
+        name: values.name,
+        client: projectClient._id,
+        status: values.status,
+        startDate: values.startDate ? values.startDate.toISOString() : undefined,
+        endDate: values.endDate ? values.endDate.toISOString() : undefined,
+        budget: values.budget,
+        description: values.description,
+      };
+
+      if (editingProject?._id) {
+        await updateProjectById(editingProject._id, payload);
+        message.success("Projet mis à jour");
+      } else {
+        await createProject(payload);
+        message.success("Projet créé depuis le client");
+      }
+
+      setProjectModalVisible(false);
+      setEditingProject(null);
+      projectForm.resetFields();
+      if (selectedProjectsClient?._id) {
+        const projectsData = await getAllProjects({ client: selectedProjectsClient._id, limit: 200 });
+        setClientProjects(projectsData.projects || []);
+      }
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de la création du projet");
+      }
+    }
+  };
+
+  const openProjectsManager = async (client) => {
+    try {
+      setSelectedProjectsClient(client);
+      const projectsData = await getAllProjects({ client: client._id, limit: 200 });
+      setClientProjects(projectsData.projects || []);
+      setProjectsManagerVisible(true);
+    } catch (error) {
+      message.error(error.message || "Erreur lors du chargement des projets");
+    }
+  };
+
+  const handleEditProject = (project) => {
+    if (!selectedProjectsClient) return;
+    setProjectClient(selectedProjectsClient);
+    setEditingProject(project);
+    projectForm.setFieldsValue({
+      clientName: selectedProjectsClient.entreprise,
+      name: project.name,
+      status: project.status,
+      startDate: project.startDate ? dayjs(project.startDate) : null,
+      endDate: project.endDate ? dayjs(project.endDate) : null,
+      budget: project.budget,
+      description: project.description,
+    });
+    setProjectModalVisible(true);
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await deleteProjectById(projectId);
+      message.success("Projet supprimé");
+      if (selectedProjectsClient?._id) {
+        const projectsData = await getAllProjects({ client: selectedProjectsClient._id, limit: 200 });
+        setClientProjects(projectsData.projects || []);
+      }
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la suppression");
+    }
+  };
+
   const handleUpdateContact = async (id) => {
     try {
       await updateLastContact(id);
@@ -269,6 +376,11 @@ function Clients() {
         error.message || "Erreur lors du chargement de la fiche client",
       );
     }
+  };
+
+  const openProjectDetails = (project) => {
+    setSelectedProjectDetails(project);
+    setProjectDetailsVisible(true);
   };
 
   const handleAddInteraction = async () => {
@@ -386,6 +498,11 @@ function Clients() {
           ["super_admin", "administrateur", "manager"].includes(
             currentUser.role,
           );
+        const canManageProjects =
+          currentUser &&
+          ["super_admin", "administrateur", "manager"].includes(
+            currentUser.role,
+          );
 
         const menuItems = [];
 
@@ -410,6 +527,22 @@ function Clients() {
               onClick: () => openTimeline(record._id),
             },
           );
+        }
+
+        if (canManageProjects) {
+          menuItems.push({
+            key: "projects",
+            icon: <ShopOutlined />,
+            label: "Projets",
+            onClick: () => openProjectsManager(record),
+          });
+
+          menuItems.push({
+            key: "create-project",
+            icon: <PlusOutlined />,
+            label: "Créer un projet",
+            onClick: () => openProjectModal(record),
+          });
         }
 
         if (canDelete) {
@@ -766,13 +899,14 @@ function Clients() {
       <Modal
         title={
           selectedClient
-            ? `Historique - ${selectedClient.entreprise}`
-            : "Historique"
+            ? `Fiche Client - ${selectedClient.entreprise}`
+            : "Fiche Client"
         }
         open={timelineVisible}
         onCancel={() => setTimelineVisible(false)}
         footer={null}
-        width={760}
+        width={920}
+        className="client-record-modal"
       >
         {selectedClient ? (
           <>
@@ -825,6 +959,195 @@ function Clients() {
             </Form>
           </>
         ) : null}
+      </Modal>
+
+      <Modal
+        title={
+          selectedProjectsClient
+            ? `Projets - ${selectedProjectsClient.entreprise}`
+            : "Projets"
+        }
+        open={projectsManagerVisible}
+        onCancel={() => setProjectsManagerVisible(false)}
+        footer={null}
+        width={920}
+        className="client-record-modal"
+      >
+        <div className="client-projects-summary">
+          <Tag color="blue">Total: {clientProjects.length}</Tag>
+          <Tag color="green">
+            En cours: {clientProjects.filter((project) => project.status === "En cours").length}
+          </Tag>
+          <Tag color="default">
+            Planifiés: {clientProjects.filter((project) => project.status === "Planifie").length}
+          </Tag>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => selectedProjectsClient && openProjectModal(selectedProjectsClient)}
+          >
+            Ajouter projet
+          </Button>
+        </div>
+
+        {clientProjects.length === 0 ? (
+          <Empty description="Aucun projet pour ce client" />
+        ) : (
+          <div className="client-projects-grid">
+            {clientProjects.map((project) => (
+              <Card
+                key={project._id}
+                size="small"
+                className="client-project-card"
+                title={
+                  <div className="client-project-title-row">
+                    <span>{project.name}</span>
+                    <Tag color="blue">{project.status}</Tag>
+                  </div>
+                }
+                extra={
+                  <Space>
+                    <Button type="link" onClick={() => openProjectDetails(project)}>
+                      Détails
+                    </Button>
+                    <Button type="link" onClick={() => handleEditProject(project)}>
+                      Modifier
+                    </Button>
+                    <Popconfirm
+                      title="Supprimer ce projet ?"
+                      onConfirm={() => handleDeleteProject(project._id)}
+                      okText="Supprimer"
+                      cancelText="Annuler"
+                    >
+                      <Button type="link" danger>
+                        Supprimer
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                }
+              >
+                <div className="client-project-meta">Code: {project.code || "-"}</div>
+                <div className="client-project-meta">Deal: {project.deal?.title || "-"}</div>
+                <div className="client-project-meta">
+                  Début: {project.startDate ? dayjs(project.startDate).format("DD/MM/YYYY") : "-"}
+                </div>
+                <div className="client-project-meta">
+                  Fin: {project.endDate ? dayjs(project.endDate).format("DD/MM/YYYY") : "-"}
+                </div>
+                <div className="client-project-meta">
+                  Budget: {project.budget ? `${project.budget.toLocaleString("fr-FR")} €` : "-"}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title={selectedProjectDetails ? `Projet - ${selectedProjectDetails.name}` : "Détails projet"}
+        open={projectDetailsVisible}
+        onCancel={() => setProjectDetailsVisible(false)}
+        footer={null}
+        width={700}
+      >
+        {selectedProjectDetails && (
+          <Descriptions bordered column={1} size="small">
+            <Descriptions.Item label="Nom">{selectedProjectDetails.name}</Descriptions.Item>
+            <Descriptions.Item label="Code">{selectedProjectDetails.code || "-"}</Descriptions.Item>
+            <Descriptions.Item label="Statut">
+              <Tag color="blue">{selectedProjectDetails.status}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Client">
+              {selectedProjectDetails.client?.entreprise || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Deal lié">
+              {selectedProjectDetails.deal?.title || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Période">
+              {selectedProjectDetails.startDate
+                ? dayjs(selectedProjectDetails.startDate).format("DD/MM/YYYY")
+                : "-"}
+              {" -> "}
+              {selectedProjectDetails.endDate
+                ? dayjs(selectedProjectDetails.endDate).format("DD/MM/YYYY")
+                : "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Budget">
+              {selectedProjectDetails.budget
+                ? `${selectedProjectDetails.budget.toLocaleString("fr-FR")} €`
+                : "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Description">
+              {selectedProjectDetails.description || "-"}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
+
+      <Modal
+        title={
+          projectClient
+            ? `${editingProject ? "Modifier" : "Nouveau"} projet - ${projectClient.entreprise}`
+            : `${editingProject ? "Modifier" : "Nouveau"} projet`
+        }
+        open={projectModalVisible}
+        onCancel={() => {
+          setProjectModalVisible(false);
+          setEditingProject(null);
+          projectForm.resetFields();
+        }}
+        onOk={handleCreateProjectForClient}
+        okText={editingProject ? "Mettre à jour" : "Créer"}
+        cancelText="Annuler"
+      >
+        <Form form={projectForm} layout="vertical">
+          <Form.Item name="clientName" label="Client">
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="name"
+            label="Nom du projet"
+            rules={[{ required: true, message: "Nom du projet requis" }]}
+          >
+            <Input placeholder="Ex: Déploiement CRM 2026" />
+          </Form.Item>
+
+          <Form.Item label="Code projet">
+            <Input value="Généré automatiquement" disabled />
+          </Form.Item>
+
+          <Form.Item name="status" label="Statut" initialValue="Planifie">
+            <Select>
+              <Option value="Planifie">Planifié</Option>
+              <Option value="En cours">En cours</Option>
+              <Option value="En pause">En pause</Option>
+              <Option value="Termine">Terminé</Option>
+              <Option value="Annule">Annulé</Option>
+            </Select>
+          </Form.Item>
+
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="startDate" label="Date de début">
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="endDate" label="Date de fin">
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="budget" label="Budget (€)">
+            <InputNumber style={{ width: "100%" }} min={0} />
+          </Form.Item>
+
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={3} placeholder="Objectifs du projet..." />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

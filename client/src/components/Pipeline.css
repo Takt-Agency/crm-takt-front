@@ -86,6 +86,11 @@
   color: var(--text-gray);
 }
 
+.pipeline-page .deal-project-tag {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
 .pipeline-page .deal-amount {
   color: #0d8dbe;
 }

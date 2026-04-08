@@ -329,7 +329,7 @@ export const createClient = async (clientData) => {
   }
 
   const data = await response.json();
-  return data;
+  return data.data?.client || data.client || data.data || data;
 };
 
 // Update client
@@ -964,6 +964,83 @@ export const convertDealToClient = async (id) => {
 
 // =========== TASK API ===========
 
+// =========== PROJECT API ===========
+
+export const getAllProjects = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.client) queryParams.append("client", params.client);
+  if (params.deal) queryParams.append("deal", params.deal);
+  if (params.status) queryParams.append("status", params.status);
+  if (params.search) queryParams.append("search", params.search);
+  if (params.page) queryParams.append("page", params.page);
+  if (params.limit) queryParams.append("limit", params.limit);
+  if (params.includeArchived) queryParams.append("includeArchived", params.includeArchived);
+
+  const response = await fetch(
+    `${API_URL}/api/projects?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch projects");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const createProject = async (projectData) => {
+  const response = await fetch(`${API_URL}/api/projects`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(projectData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create project");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const updateProjectById = async (projectId, projectData) => {
+  const response = await fetch(`${API_URL}/api/projects/${projectId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(projectData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update project");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteProjectById = async (projectId) => {
+  const response = await fetch(`${API_URL}/api/projects/${projectId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete project");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 // Get all tasks with filters
 export const getAllTasks = async (params = {}) => {
   const queryParams = new URLSearchParams();
@@ -973,6 +1050,7 @@ export const getAllTasks = async (params = {}) => {
   if (params.assignedTo) queryParams.append("assignedTo", params.assignedTo);
   if (params.client) queryParams.append("client", params.client);
   if (params.deal) queryParams.append("deal", params.deal);
+  if (params.project) queryParams.append("project", params.project);
   if (params.search) queryParams.append("search", params.search);
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
@@ -1110,6 +1188,199 @@ export const addChecklistItem = async (id, text) => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to add checklist item");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const updateChecklistItem = async (id, itemId, text) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/checklist/${itemId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update checklist item");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteChecklistItem = async (id, itemId) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/checklist/${itemId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete checklist item");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const getTaskStatuses = async () => {
+  const response = await fetch(`${API_URL}/api/tasks/statuses`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch task statuses");
+  }
+
+  const data = await response.json();
+  return data.statuses || [];
+};
+
+export const createTaskStatus = async (statusData) => {
+  const response = await fetch(`${API_URL}/api/tasks/statuses`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(statusData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create task status");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const updateTaskStatusDefinition = async (statusId, statusData) => {
+  const response = await fetch(`${API_URL}/api/tasks/statuses/${statusId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(statusData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update task status");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteTaskStatusDefinition = async (statusId) => {
+  const response = await fetch(`${API_URL}/api/tasks/statuses/${statusId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete task status");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const addTaskComment = async (id, content) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/comments`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add comment");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const updateTaskComment = async (id, commentId, content) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/comments/${commentId}`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ content }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update comment");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteTaskComment = async (id, commentId) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/comments/${commentId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete comment");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const addTaskAttachment = async (id, attachmentData) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/attachments`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(attachmentData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to add attachment");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteTaskAttachment = async (id, attachmentId) => {
+  const response = await fetch(`${API_URL}/api/tasks/${id}/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete attachment");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const getTaskAlerts = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.daysAhead) queryParams.append("daysAhead", params.daysAhead);
+  if (params.limit) queryParams.append("limit", params.limit);
+
+  const response = await fetch(
+    `${API_URL}/api/tasks/alerts?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch task alerts");
   }
 
   const data = await response.json();

@@ -10,6 +10,7 @@ import {
   message,
   Spin,
   Avatar,
+  Upload,
   Dropdown,
   Tag,
   Modal,
@@ -39,6 +40,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   CopyOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import {
   getMe,
@@ -71,6 +73,7 @@ function Profile() {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [profilePicture, setProfilePicture] = useState("");
 
   // 2FA states
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
@@ -89,6 +92,7 @@ function Profile() {
       try {
         const userData = await getMe();
         setUser(userData);
+        setProfilePicture(userData.profilePicture || "");
         form.setFieldsValue({
           name: userData.name,
           email: userData.email,
@@ -124,6 +128,7 @@ function Profile() {
       const updateData = {
         name: values.name,
         email: values.email,
+        profilePicture,
       };
 
       // Only include password if it's being changed
@@ -134,6 +139,7 @@ function Profile() {
 
       const updatedUser = await updateProfile(updateData);
       setUser(updatedUser);
+      setProfilePicture(updatedUser.profilePicture || "");
       message.success("Profil mis à jour avec succès");
 
       // Clear password fields
@@ -227,7 +233,7 @@ function Profile() {
       content: (
         <>
           <Alert
-            message="⚠️ Attention"
+            title="⚠️ Attention"
             description="Ceci va remplacer TOUS vos anciens codes de secours (utilisés ou non) par 6 nouveaux codes. Les anciens codes ne fonctionneront plus."
             type="warning"
             showIcon
@@ -277,6 +283,54 @@ function Profile() {
     const codesText = backupCodes.join("\\n");
     navigator.clipboard.writeText(codesText);
     message.success("Codes copiés dans le presse-papier");
+  };
+
+  const compressImageToBase64 = (file, maxSize = 512, quality = 0.82) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const output = canvas.toDataURL("image/jpeg", quality);
+          resolve(output);
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handleBeforeUploadProfile = async (file) => {
+    const isImage = file.type?.startsWith("image/");
+    if (!isImage) {
+      message.error("Veuillez choisir une image");
+      return Upload.LIST_IGNORE;
+    }
+
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      message.error("Image trop volumineuse (max 2MB)");
+      return Upload.LIST_IGNORE;
+    }
+
+    try {
+      const base64 = await compressImageToBase64(file);
+      setProfilePicture(base64);
+      message.success("Photo mise à jour. Enregistrez pour confirmer.");
+    } catch (error) {
+      message.error("Erreur lors de la lecture de l'image");
+    }
+
+    return false;
   };
 
   const handleLogout = () => {
@@ -397,19 +451,24 @@ function Profile() {
           className="dashboard-menu"
         />
         <div className="sidebar-footer">
-          <Menu mode="inline" className="dashboard-menu">
-            <Menu.Item key="params" icon={<SettingOutlined />}>
-              Paramètres
-            </Menu.Item>
-            <Menu.Item
-              key="logout"
-              icon={<LogoutOutlined />}
-              onClick={handleLogout}
-              danger
-            >
-              Déconnexion
-            </Menu.Item>
-          </Menu>
+          <Menu
+            mode="inline"
+            className="dashboard-menu"
+            items={[
+              {
+                key: "params",
+                icon: <SettingOutlined />,
+                label: "Paramètres",
+              },
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Déconnexion",
+                onClick: handleLogout,
+                danger: true,
+              },
+            ]}
+          />
         </div>
       </Sider>
 
@@ -427,7 +486,7 @@ function Profile() {
               placement="bottomRight"
             >
               <div className="user-info-wrapper">
-                <Avatar icon={<UserOutlined />} className="user-avatar" />
+                <Avatar src={profilePicture || user?.profilePicture} icon={<UserOutlined />} className="user-avatar" />
                 <div
                   style={{
                     display: "flex",
@@ -469,6 +528,7 @@ function Profile() {
               <div className="profile-avatar-section">
                 <Avatar
                   size={80}
+                  src={profilePicture || user?.profilePicture}
                   icon={<UserOutlined />}
                   className="profile-avatar-large"
                 />
@@ -483,6 +543,17 @@ function Profile() {
                       {ROLES[user.role]?.label || user.role}
                     </Tag>
                   )}
+                  <div style={{ marginTop: 12 }}>
+                    <Upload
+                      showUploadList={false}
+                      beforeUpload={handleBeforeUploadProfile}
+                      accept="image/*"
+                    >
+                      <Button icon={<UploadOutlined />} size="small">
+                        Changer la photo
+                      </Button>
+                    </Upload>
+                  </div>
                 </div>
               </div>
 
@@ -657,7 +728,7 @@ function Profile() {
 
                   {twoFactorEnabled && backupCodesRemaining <= 2 && (
                     <Alert
-                      message="Attention: Codes de secours faibles!"
+                      title="Attention: Codes de secours faibles!"
                       description="Il vous reste peu de codes de secours. Pensez à les régénérer."
                       type="warning"
                       showIcon
@@ -667,7 +738,7 @@ function Profile() {
 
                   {twoFactorEnabled && (
                     <Alert
-                      message="À propos des codes de secours"
+                      title="À propos des codes de secours"
                       description={
                         <div>
                           <p>
@@ -751,7 +822,7 @@ function Profile() {
       >
         <Space orientation="vertical" size="large" style={{ width: "100%" }}>
           <Alert
-            message="Étape 1: Scanner le code QR"
+            title="Étape 1: Scanner le code QR"
             description="Utilisez une application d'authentification comme Google Authenticator, Authy ou Microsoft Authenticator pour scanner ce code QR."
             type="info"
             showIcon
@@ -782,7 +853,7 @@ function Profile() {
           <Divider />
 
           <Alert
-            message="Étape 2: Vérifier le code"
+            title="Étape 2: Vérifier le code"
             description="Entrez le code à 6 chiffres généré par votre application d'authentification."
             type="info"
             showIcon
@@ -842,11 +913,11 @@ function Profile() {
         ]}
         width={600}
         closable={false}
-        maskClosable={false}
+        mask={{ closable: false }}
       >
         <Space orientation="vertical" size="large" style={{ width: "100%" }}>
           <Alert
-            message="Important: Sauvegardez ces codes en lieu sûr"
+            title="Important: Sauvegardez ces codes en lieu sûr"
             description={
               <div>
                 <p>
@@ -855,7 +926,7 @@ function Profile() {
                   à votre application d'authentification.
                 </p>
                 <p
-                  style={{ marginTop: 8, fontWeight: "bold", color: "#d46b08" }}
+                    title="⚠️ Attention"
                 >
                   Format: 8 caractères hexadécimaux (0-9, A-F) - Exemple:
                   A1B2C3D4

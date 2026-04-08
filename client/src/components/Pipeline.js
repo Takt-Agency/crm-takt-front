@@ -17,8 +17,6 @@ import {
   Empty,
   Tooltip,
   Timeline,
-  List,
-  Divider,
   Alert,
   Badge,
   Switch,
@@ -47,11 +45,15 @@ import {
   getDealAlerts,
   getDealById,
   createDeal,
+  createClient,
   updateDeal,
   updateDealStage,
   deleteDeal,
   convertDealToClient,
   getAllUsers,
+  getAllClients,
+  getAllProjects,
+  createProject,
   addDealNote,
   addDealActivity,
   updateDealNote,
@@ -62,7 +64,6 @@ import {
 
 dayjs.extend(relativeTime);
 dayjs.locale("fr");
-
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -73,8 +74,14 @@ const Pipeline = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // 'create' or 'edit'
   const [selectedDeal, setSelectedDeal] = useState(null);
+  const [projectModalVisible, setProjectModalVisible] = useState(false);
+  const [projectDeal, setProjectDeal] = useState(null);
+  const [convertClientModalVisible, setConvertClientModalVisible] = useState(false);
+  const [convertClientDeal, setConvertClientDeal] = useState(null);
+  const [projects, setProjects] = useState([]);
   const [draggedDeal, setDraggedDeal] = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
+  const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [alerts, setAlerts] = useState({
     dueSoon: [],
@@ -91,16 +98,29 @@ const Pipeline = () => {
   const [noteForm] = Form.useForm();
   const [activityForm] = Form.useForm();
   const [form] = Form.useForm();
+  const [projectForm] = Form.useForm();
+  const [convertClientForm] = Form.useForm();
 
   const stages = ["Prospect", "Qualification", "Proposition", "Négociation"];
 
   // Load deals on component mount
   useEffect(() => {
     loadDeals();
+    loadClients();
+    loadProjects();
     loadStats();
     loadUsers();
     loadAlerts();
   }, []);
+
+  const loadClients = async () => {
+    try {
+      const data = await getAllClients({ limit: 200 });
+      setClients(data.clients || []);
+    } catch (error) {
+      console.error("Error loading clients:", error);
+    }
+  };
 
   const loadDeals = async () => {
     try {
@@ -112,6 +132,15 @@ const Pipeline = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProjects = async () => {
+    try {
+      const data = await getAllProjects({ limit: 300 });
+      setProjects(data.projects || []);
+    } catch (error) {
+      console.error("Error loading projects:", error);
     }
   };
 
@@ -171,6 +200,7 @@ const Pipeline = () => {
     setSelectedDeal(deal);
     form.setFieldsValue({
       ...deal,
+      client: deal.client?._id,
       assignedToUser: deal.assignedToUser?._id,
       expectedCloseDate: deal.expectedCloseDate
         ? dayjs(deal.expectedCloseDate)
@@ -402,15 +432,22 @@ const Pipeline = () => {
   };
 
   const handleConvertToClient = async (deal) => {
+    if (!deal.client?._id) {
+      setConvertClientDeal(deal);
+      convertClientForm.resetFields();
+      setConvertClientModalVisible(true);
+      return;
+    }
+
     Modal.confirm({
       title: "Convertir ce prospect en client ?",
-      content: "Le deal sera lié à une fiche client et marqué comme gagné.",
+      content: "Le deal est déjà lié à un client, il sera marqué comme gagné.",
       okText: "Convertir",
       cancelText: "Annuler",
       onOk: async () => {
         try {
           await convertDealToClient(deal._id);
-          message.success("Prospect converti en client");
+          message.success("Deal converti et marqué comme gagné");
           loadDeals();
           loadStats();
           loadAlerts();
@@ -419,6 +456,121 @@ const Pipeline = () => {
         }
       },
     });
+  };
+
+  const handleCreateClientAndConvert = async () => {
+    try {
+      const values = await convertClientForm.validateFields();
+      if (!convertClientDeal?._id) return;
+
+      let clientId;
+      let newClient;
+
+      try {
+        newClient = await createClient({
+          entreprise: values.entreprise,
+          email: values.email,
+          telephone: values.telephone,
+          localite: values.localite,
+          statut: "Actif",
+          ca: values.ca,
+          sourceLead: values.sourceLead,
+          adresse: values.adresse,
+        });
+      } catch (createError) {
+        const duplicateEmail = /existe déjà|already exists/i.test(
+          String(createError?.message || ""),
+        );
+
+        if (!duplicateEmail) {
+          throw createError;
+        }
+
+        const existingClient = clients.find(
+          (client) =>
+            String(client?.email || "").toLowerCase() ===
+            String(values.email || "").toLowerCase(),
+        );
+
+        if (!existingClient?._id) {
+          throw new Error(
+            "Un client avec cet email existe déjà. Sélectionnez-le dans le deal puis relancez la conversion.",
+          );
+        }
+
+        clientId = existingClient._id;
+        message.info("Client existant détecté: liaison automatique au deal.");
+      }
+
+      if (!clientId) {
+        const createdClient =
+          newClient?.data?.client || newClient?.client || newClient?.data || newClient;
+        clientId = createdClient?._id || createdClient?.id;
+      }
+
+      if (!clientId) {
+        throw new Error("Client créé mais identifiant introuvable");
+      }
+
+      await updateDeal(convertClientDeal._id, { client: clientId });
+      await convertDealToClient(convertClientDeal._id);
+
+      message.success("Nouveau client créé puis deal converti");
+      setConvertClientModalVisible(false);
+      setConvertClientDeal(null);
+      convertClientForm.resetFields();
+      loadDeals();
+      loadStats();
+      loadAlerts();
+      loadClients();
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de la conversion");
+      }
+    }
+  };
+
+  const openCreateProjectFromDeal = (deal) => {
+    setProjectDeal(deal);
+    projectForm.resetFields();
+    projectForm.setFieldsValue({
+      name: `${deal.title} - Projet`,
+      status: "Planifie",
+      client: deal.client?._id,
+    });
+    setProjectModalVisible(true);
+  };
+
+  const handleCreateProjectFromDeal = async () => {
+    try {
+      const values = await projectForm.validateFields();
+
+      if (!projectDeal?._id) {
+        message.error("Deal invalide");
+        return;
+      }
+
+      await createProject({
+        name: values.name,
+        client: values.client,
+        deal: projectDeal._id,
+        status: values.status,
+        startDate: values.startDate ? values.startDate.toISOString() : undefined,
+        endDate: values.endDate ? values.endDate.toISOString() : undefined,
+        budget: values.budget,
+        description: values.description,
+      });
+
+      message.success("Projet créé depuis le deal");
+      setProjectModalVisible(false);
+      setProjectDeal(null);
+      projectForm.resetFields();
+      loadProjects();
+    } catch (error) {
+      if (!error.errorFields) {
+        message.error(error.message || "Erreur lors de la création du projet");
+      }
+    }
   };
 
   // Handle deal deletion
@@ -539,6 +691,12 @@ const Pipeline = () => {
           ]
         : []),
       {
+        key: "create-project",
+        label: "Créer projet",
+        icon: <PlusOutlined />,
+        onClick: () => openCreateProjectFromDeal(deal),
+      },
+      {
         key: "delete",
         label: "Supprimer",
         icon: <DeleteOutlined />,
@@ -550,6 +708,9 @@ const Pipeline = () => {
 
   // Render deal card
   const renderDealCard = (deal) => (
+    (() => {
+      const linkedProject = projects.find((project) => project.deal?._id === deal._id);
+      return (
     <Card
       key={deal._id}
       className="deal-card"
@@ -565,6 +726,11 @@ const Pipeline = () => {
         <div className="deal-title">
           <strong>{deal.title}</strong>
           <div className="deal-company">{deal.company}</div>
+          {linkedProject && (
+            <Tag color="cyan" className="deal-project-tag">
+              Projet: {linkedProject.name}
+            </Tag>
+          )}
         </div>
         <Dropdown menu={getDealMenu(deal)} trigger={["click"]}>
           <Button
@@ -606,6 +772,8 @@ const Pipeline = () => {
         </Tooltip>
       </div>
     </Card>
+      );
+    })()
   );
 
   // Render pipeline column
@@ -687,7 +855,7 @@ const Pipeline = () => {
           <Alert
             type="warning"
             showIcon
-            message="Rappels prospects"
+            title="Rappels prospects"
             description={
               <div>
                 <Badge count={alerts.counts?.dueSoon || 0} color="#faad14" />{" "}
@@ -770,6 +938,16 @@ const Pipeline = () => {
 
           <Form.Item name="contactPhone" label="Téléphone du contact">
             <Input placeholder="+216 ..." />
+          </Form.Item>
+
+          <Form.Item name="client" label="Client lié (optionnel)">
+            <Select allowClear placeholder="Sélectionner un client existant" showSearch optionFilterProp="label">
+              {clients.map((client) => (
+                <Option key={client._id} value={client._id} label={client.entreprise}>
+                  {client.entreprise}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {modalMode === "create" && (
@@ -1177,6 +1355,153 @@ const Pipeline = () => {
               );
             })()
           : null}
+      </Modal>
+
+      <Modal
+        title={
+          projectDeal
+            ? `Nouveau projet depuis deal - ${projectDeal.title}`
+            : "Nouveau projet"
+        }
+        open={projectModalVisible}
+        onCancel={() => {
+          setProjectModalVisible(false);
+          setProjectDeal(null);
+          projectForm.resetFields();
+        }}
+        onOk={handleCreateProjectFromDeal}
+        okText="Créer"
+        cancelText="Annuler"
+      >
+        <Form form={projectForm} layout="vertical">
+          <Form.Item label="Deal source">
+            <Input value={projectDeal?.title || ""} disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="client"
+            label="Client"
+            rules={[{ required: true, message: "Client requis" }]}
+          >
+            <Select
+              placeholder="Sélectionner un client"
+              showSearch
+              optionFilterProp="label"
+              disabled={!!projectDeal?.client?._id}
+            >
+              {clients.map((client) => (
+                <Option
+                  key={client._id}
+                  value={client._id}
+                  label={client.entreprise}
+                >
+                  {client.entreprise}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          {projectDeal?.client?._id && (
+            <Alert
+              type="info"
+              showIcon
+              title="Client verrouillé"
+              description="Le client est hérité du deal pour garantir une liaison cohérente."
+              style={{ marginBottom: 12 }}
+            />
+          )}
+
+          <Form.Item
+            name="name"
+            label="Nom du projet"
+            rules={[{ required: true, message: "Nom du projet requis" }]}
+          >
+            <Input placeholder="Ex: Déploiement solution" />
+          </Form.Item>
+
+          <Form.Item label="Code projet">
+            <Input value="Généré automatiquement" disabled />
+          </Form.Item>
+
+          <Form.Item name="status" label="Statut" initialValue="Planifie">
+            <Select>
+              <Option value="Planifie">Planifié</Option>
+              <Option value="En cours">En cours</Option>
+              <Option value="En pause">En pause</Option>
+              <Option value="Termine">Terminé</Option>
+              <Option value="Annule">Annulé</Option>
+            </Select>
+          </Form.Item>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Form.Item name="startDate" label="Date début">
+              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+            </Form.Item>
+            <Form.Item name="endDate" label="Date fin">
+              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+            </Form.Item>
+          </div>
+
+          <Form.Item name="budget" label="Budget (€)">
+            <InputNumber style={{ width: "100%" }} min={0} />
+          </Form.Item>
+
+          <Form.Item name="description" label="Description">
+            <TextArea rows={3} placeholder="Objectifs du projet..." />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={
+          convertClientDeal
+            ? `Créer client pour ${convertClientDeal.title}`
+            : "Créer client"
+        }
+        open={convertClientModalVisible}
+        onCancel={() => {
+          setConvertClientModalVisible(false);
+          setConvertClientDeal(null);
+          convertClientForm.resetFields();
+        }}
+        onOk={handleCreateClientAndConvert}
+        okText="Créer client et convertir"
+        cancelText="Annuler"
+      >
+        <Alert
+          type="info"
+          showIcon
+          title="Client requis"
+          description="Ce deal n'est lié à aucun client. Créez d'abord une fiche client pour continuer."
+          style={{ marginBottom: 12 }}
+        />
+        <Form form={convertClientForm} layout="vertical">
+          <Form.Item
+            name="entreprise"
+            label="Entreprise"
+            rules={[{ required: true, message: "Entreprise requise" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item name="email" label="Email" rules={[{ required: true, message: "Email requis" }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="telephone" label="Téléphone" rules={[{ required: true, message: "Téléphone requis" }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="localite" label="Localité" rules={[{ required: true, message: "Localité requise" }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="ca" label="CA (€)">
+            <InputNumber style={{ width: "100%" }} min={0} />
+          </Form.Item>
+          <Form.Item name="sourceLead" label="Source lead">
+            <Input />
+          </Form.Item>
+          <Form.Item name="adresse" label="Adresse">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

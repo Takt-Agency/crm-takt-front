@@ -226,7 +226,11 @@ const MainLayout = ({ children }) => {
               placement="bottomRight"
             >
               <div className="user-info-wrapper">
-                <Avatar icon={<UserOutlined />} className="user-avatar" />
+                <Avatar
+                  src={user?.profilePicture}
+                  icon={<UserOutlined />}
+                  className="user-avatar"
+                />
                 <div
                   style={{
                     display: "flex",
