@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Card,
   Button,
@@ -31,6 +31,7 @@ import "dayjs/locale/fr";
 import {
   getMe,
   getHRStats,
+  getLeaveBalances,
   getAllEmployees,
   createEmployee,
   updateEmployee,
@@ -76,10 +77,12 @@ function HRManagement() {
   const [employees, setEmployees] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [attendance, setAttendance] = useState([]);
+  const [leaveBalances, setLeaveBalances] = useState([]);
 
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [loadingLeaveBalances, setLoadingLeaveBalances] = useState(false);
 
   const [searchEmployee, setSearchEmployee] = useState("");
 
@@ -93,9 +96,19 @@ function HRManagement() {
   const [leaveForm] = Form.useForm();
   const [attendanceForm] = Form.useForm();
 
-  const canApproveLeave = ["super_admin", "administrateur", "admin"].includes(
+  const canApproveLeave = ["super_admin", "administrateur", "manager"].includes(
     currentUser?.role,
   );
+  const canManageEmployees = [
+    "super_admin",
+    "administrateur",
+    "manager",
+  ].includes(currentUser?.role);
+  const canViewAllLeaveBalances = [
+    "super_admin",
+    "administrateur",
+    "manager",
+  ].includes(currentUser?.role);
 
   useEffect(() => {
     const initialize = async () => {
@@ -111,6 +124,7 @@ function HRManagement() {
         loadEmployees(),
         loadLeaves(),
         loadAttendance(),
+        loadLeaveBalances(),
       ]);
     };
 
@@ -163,6 +177,20 @@ function HRManagement() {
     }
   };
 
+  const loadLeaveBalances = async () => {
+    try {
+      setLoadingLeaveBalances(true);
+      const data = await getLeaveBalances({ year: dayjs().year() });
+      setLeaveBalances(data.leaveBalances || []);
+    } catch (error) {
+      message.error(
+        error.message || "Erreur lors du chargement des soldes de congés",
+      );
+    } finally {
+      setLoadingLeaveBalances(false);
+    }
+  };
+
   const onSubmitEmployee = async (values) => {
     try {
       const payload = {
@@ -183,6 +211,7 @@ function HRManagement() {
       employeeForm.resetFields();
       await loadEmployees();
       await loadStats();
+      await loadLeaveBalances();
     } catch (error) {
       message.error(
         error.message || "Erreur lors de l'enregistrement de l'employé",
@@ -207,6 +236,7 @@ function HRManagement() {
       await loadLeaves();
       await loadAttendance();
       await loadStats();
+      await loadLeaveBalances();
     } catch (error) {
       message.error(error.message || "Erreur lors de la suppression");
     }
@@ -226,6 +256,7 @@ function HRManagement() {
       leaveForm.resetFields();
       await loadLeaves();
       await loadStats();
+      await loadLeaveBalances();
     } catch (error) {
       message.error(error.message || "Erreur lors de la création du congé");
     }
@@ -274,6 +305,7 @@ function HRManagement() {
       await loadLeaves();
       await loadEmployees();
       await loadStats();
+      await loadLeaveBalances();
     } catch (error) {
       message.error(error.message || "Erreur lors de la mise à jour du congé");
     }
@@ -316,6 +348,7 @@ function HRManagement() {
       attendanceForm.resetFields();
       await loadAttendance();
       await loadStats();
+      await loadLeaveBalances();
     } catch (error) {
       message.error(
         error.message || "Erreur lors de l'enregistrement du pointage",
@@ -360,31 +393,35 @@ function HRManagement() {
         </Tag>
       ),
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <div className="hr-actions">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => onEditEmployee(record)}
-          >
-            Modifier
-          </Button>
-          <Popconfirm
-            title="Supprimer cet employé ?"
-            okText="Supprimer"
-            cancelText="Annuler"
-            onConfirm={() => onDeleteEmployee(record._id)}
-          >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              Supprimer
-            </Button>
-          </Popconfirm>
-        </div>
-      ),
-    },
+    ...(canManageEmployees
+      ? [
+          {
+            title: "Actions",
+            key: "actions",
+            render: (_, record) => (
+              <div className="hr-actions">
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => onEditEmployee(record)}
+                >
+                  Modifier
+                </Button>
+                <Popconfirm
+                  title="Supprimer cet employé ?"
+                  okText="Supprimer"
+                  cancelText="Annuler"
+                  onConfirm={() => onDeleteEmployee(record._id)}
+                >
+                  <Button type="link" danger icon={<DeleteOutlined />}>
+                    Supprimer
+                  </Button>
+                </Popconfirm>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const leaveColumns = [
@@ -421,12 +458,24 @@ function HRManagement() {
     {
       title: "Actions",
       key: "actions",
-      render: (_, record) =>
-        canApproveLeave ? (
+      render: (_, record) => {
+        const balance = leaveBalanceByEmployeeId[record.employee?._id];
+        const remainingDays = balance?.remainingDays;
+        const requestedDays = getLeaveRequestDays(record);
+        const exceedsLimit =
+          record.type === "annuel" &&
+          typeof remainingDays === "number" &&
+          requestedDays > remainingDays;
+
+        return canApproveLeave ? (
           <div className="hr-actions">
+            <span style={{ marginRight: 8, color: "#4b5563" }}>
+              Restants:{" "}
+              {typeof remainingDays === "number" ? `${remainingDays} j` : "-"}
+            </span>
             <Button
               type="link"
-              disabled={record.status === "approuve"}
+              disabled={record.status === "approuve" || exceedsLimit}
               onClick={() => onLeaveDecision(record._id, "approuve")}
             >
               Approuver
@@ -442,7 +491,8 @@ function HRManagement() {
           </div>
         ) : (
           <span>-</span>
-        ),
+        );
+      },
     },
   ];
 
@@ -491,6 +541,66 @@ function HRManagement() {
     },
   ];
 
+  const leaveBalanceColumns = [
+    {
+      title: "Employé",
+      key: "employee",
+      render: (_, record) =>
+        record.employee
+          ? `${record.employee.firstName} ${record.employee.lastName}`
+          : "-",
+    },
+    {
+      title: "Département",
+      key: "department",
+      render: (_, record) => record.employee?.department || "-",
+    },
+    {
+      title: "Quota annuel",
+      dataIndex: "annualAllowance",
+      key: "annualAllowance",
+      render: (value) => `${value || 0} j`,
+    },
+    {
+      title: "Congés pris",
+      dataIndex: "approvedDays",
+      key: "approvedDays",
+      render: (value) => `${value || 0} j`,
+    },
+    {
+      title: "En attente",
+      dataIndex: "pendingDays",
+      key: "pendingDays",
+      render: (value) => `${value || 0} j`,
+    },
+    {
+      title: "Restants",
+      dataIndex: "remainingDays",
+      key: "remainingDays",
+      render: (value) => (
+        <Tag color={value < 0 ? "error" : "success"}>{`${value || 0} j`}</Tag>
+      ),
+    },
+  ];
+
+  const leaveBalanceByEmployeeId = useMemo(() => {
+    return leaveBalances.reduce((accumulator, entry) => {
+      const employeeId = entry?.employee?._id;
+      if (employeeId) {
+        accumulator[employeeId] = entry;
+      }
+      return accumulator;
+    }, {});
+  }, [leaveBalances]);
+
+  const getLeaveRequestDays = (record) => {
+    if (!record?.startDate || !record?.endDate) return 0;
+    const start = dayjs(record.startDate).startOf("day");
+    const end = dayjs(record.endDate).startOf("day");
+    if (!start.isValid() || !end.isValid() || end.isBefore(start)) return 0;
+    return end.diff(start, "day") + 1;
+  };
+
   const tabItems = [
     {
       key: "employees",
@@ -506,17 +616,19 @@ function HRManagement() {
               onChange={(e) => setSearchEmployee(e.target.value)}
               onSearch={loadEmployees}
             />
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingEmployee(null);
-                employeeForm.resetFields();
-                setEmployeeModalOpen(true);
-              }}
-            >
-              Nouvel employé
-            </Button>
+            {canManageEmployees ? (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setEditingEmployee(null);
+                  employeeForm.resetFields();
+                  setEmployeeModalOpen(true);
+                }}
+              >
+                Nouvel employé
+              </Button>
+            ) : null}
           </div>
           <Table
             rowKey="_id"
@@ -525,6 +637,24 @@ function HRManagement() {
             loading={loadingEmployees}
             pagination={{ pageSize: 10 }}
           />
+
+          {canViewAllLeaveBalances ? (
+            <Card
+              title="Soldes de congés (année en cours)"
+              style={{ marginTop: 16 }}
+            >
+              <Table
+                rowKey={(record) =>
+                  record.employee?._id ||
+                  `${record.year}-${record.employee?.email}`
+                }
+                dataSource={leaveBalances}
+                columns={leaveBalanceColumns}
+                loading={loadingLeaveBalances}
+                pagination={{ pageSize: 10 }}
+              />
+            </Card>
+          ) : null}
         </Card>
       ),
     },
@@ -751,6 +881,15 @@ function HRManagement() {
                 <Input type="number" min={0} />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="annualLeaveAllowance"
+                label="Quota congés annuel (jours)"
+                initialValue={22}
+              >
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
           </Row>
         </Form>
       </Modal>
@@ -840,19 +979,21 @@ function HRManagement() {
           layout="vertical"
           onFinish={onSubmitAttendance}
         >
-          <Form.Item
-            name="employee"
-            label="Employé"
-            rules={[{ required: true, message: "Employé requis" }]}
-          >
-            <Select showSearch optionFilterProp="children">
-              {employees.map((employee) => (
-                <Option key={employee._id} value={employee._id}>
-                  {employee.firstName} {employee.lastName}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          {!currentUser || currentUser.role !== "employe" ? (
+            <Form.Item
+              name="employee"
+              label="Employé"
+              rules={[{ required: true, message: "Employé requis" }]}
+            >
+              <Select showSearch optionFilterProp="children">
+                {employees.map((employee) => (
+                  <Option key={employee._id} value={employee._id}>
+                    {employee.firstName} {employee.lastName}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          ) : null}
 
           <Row gutter={12}>
             <Col span={12}>

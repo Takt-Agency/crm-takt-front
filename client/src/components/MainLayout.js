@@ -131,24 +131,40 @@ const MainLayout = ({ children }) => {
       label: "Tâches",
       onClick: () => navigate("/tasks"),
     },
-    {
-      key: "5",
-      icon: <FileTextOutlined />,
-      label: "Devis & Facturation",
-      onClick: () => navigate("/invoices"),
-    },
+    ...(user &&
+    [
+      "super_admin",
+      "administrateur",
+      "manager",
+      "commercial",
+      "comptable",
+    ].includes(user.role)
+      ? [
+          {
+            key: "5",
+            icon: <FileTextOutlined />,
+            label: "Devis & Facturation",
+            onClick: () => navigate("/invoices"),
+          },
+        ]
+      : []),
     {
       key: "6",
       icon: <EuroOutlined />,
       label: "Finances",
       onClick: () => navigate("/finances"),
     },
-    {
-      key: "7",
-      icon: <UserSwitchOutlined />,
-      label: "RH",
-      onClick: () => navigate("/hr"),
-    },
+    ...(user &&
+    ["super_admin", "administrateur", "manager", "employe"].includes(user.role)
+      ? [
+          {
+            key: "7",
+            icon: <UserSwitchOutlined />,
+            label: "RH",
+            onClick: () => navigate("/hr"),
+          },
+        ]
+      : []),
     {
       key: "8",
       icon: <RiseOutlined />,

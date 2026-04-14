@@ -1,0 +1,41 @@
+.quote-public-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(180deg, #f7fafc 0%, #eef3f8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quote-public-center {
+  align-items: center;
+}
+
+.quote-public-card {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 34, 56, 0.12);
+}
+
+.quote-totals {
+  display: grid;
+  gap: 8px;
+}
+
+.quote-totals > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.quote-total-final {
+  border-top: 1px solid #d9d9d9;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .quote-public-page {
+    padding: 12px;
+  }
+}

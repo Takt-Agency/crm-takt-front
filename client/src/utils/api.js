@@ -975,7 +975,8 @@ export const getAllProjects = async (params = {}) => {
   if (params.search) queryParams.append("search", params.search);
   if (params.page) queryParams.append("page", params.page);
   if (params.limit) queryParams.append("limit", params.limit);
-  if (params.includeArchived) queryParams.append("includeArchived", params.includeArchived);
+  if (params.includeArchived)
+    queryParams.append("includeArchived", params.includeArchived);
 
   const response = await fetch(
     `${API_URL}/api/projects?${queryParams.toString()}`,
@@ -1195,11 +1196,14 @@ export const addChecklistItem = async (id, text) => {
 };
 
 export const updateChecklistItem = async (id, itemId, text) => {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/checklist/${itemId}`, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ text }),
-  });
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/checklist/${itemId}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ text }),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1211,10 +1215,13 @@ export const updateChecklistItem = async (id, itemId, text) => {
 };
 
 export const deleteChecklistItem = async (id, itemId) => {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/checklist/${itemId}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/checklist/${itemId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1304,11 +1311,14 @@ export const addTaskComment = async (id, content) => {
 };
 
 export const updateTaskComment = async (id, commentId, content) => {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/comments/${commentId}`, {
-    method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ content }),
-  });
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/comments/${commentId}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content }),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1320,10 +1330,13 @@ export const updateTaskComment = async (id, commentId, content) => {
 };
 
 export const deleteTaskComment = async (id, commentId) => {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/comments/${commentId}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/comments/${commentId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1351,10 +1364,13 @@ export const addTaskAttachment = async (id, attachmentData) => {
 };
 
 export const deleteTaskAttachment = async (id, attachmentId) => {
-  const response = await fetch(`${API_URL}/api/tasks/${id}/attachments/${attachmentId}`, {
-    method: "DELETE",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/tasks/${id}/attachments/${attachmentId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1552,6 +1568,124 @@ export const downloadInvoicePDF = async (id) => {
   }
 
   // Create download link
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+export const convertQuoteToInvoice = async (id) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}/convert-to-invoice`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to convert quote to invoice");
+  }
+
+  return response.json();
+};
+
+export const sendQuoteToClient = async (id, payload = {}) => {
+  const response = await fetch(`${API_URL}/api/invoices/${id}/send-to-client`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to send quote to client");
+  }
+
+  return response.json();
+};
+
+export const getPublicQuoteByToken = async (token) => {
+  const response = await fetch(`${API_URL}/api/invoices/public/quote/${token}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch quote");
+  }
+
+  return response.json();
+};
+
+export const acceptPublicQuoteByToken = async (token, payload = {}) => {
+  const response = await fetch(
+    `${API_URL}/api/invoices/public/quote/${token}/accept`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to accept quote");
+  }
+
+  return response.json();
+};
+
+export const rejectPublicQuoteByToken = async (token, payload = {}) => {
+  const response = await fetch(
+    `${API_URL}/api/invoices/public/quote/${token}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to reject quote");
+  }
+
+  return response.json();
+};
+
+export const exportAccountingInvoicesCsv = async () => {
+  const response = await fetch(`${API_URL}/api/invoices/export/accounting`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export accounting CSV");
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("Content-Disposition");
+  let filename = "export-comptable-factures.csv";
+  if (contentDisposition) {
+    const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(
+      contentDisposition,
+    );
+    if (matches != null && matches[1]) {
+      filename = matches[1].replace(/['"]/g, "");
+    }
+  }
+
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -2043,6 +2177,28 @@ export const getHRStats = async () => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to fetch HR stats");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const getLeaveBalances = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.year) queryParams.append("year", params.year);
+
+  const response = await fetch(
+    `${API_URL}/api/hr/leave-balances?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch leave balances");
   }
 
   const data = await response.json();

@@ -24,6 +24,8 @@ import {
   DeleteOutlined,
   EyeOutlined,
   DownloadOutlined,
+  SwapOutlined,
+  SendOutlined,
   FileTextOutlined,
   EuroOutlined,
   ClockCircleOutlined,
@@ -41,6 +43,10 @@ import {
   updateInvoice,
   deleteInvoice,
   downloadInvoicePDF,
+  convertQuoteToInvoice,
+  sendQuoteToClient,
+  exportAccountingInvoicesCsv,
+  getMe,
   getAllClients,
   getAllDeals,
 } from "../utils/api";
@@ -55,7 +61,7 @@ const TYPES = {
   Facture: { label: "Facture", color: "green" },
 };
 
-const STATUSES = {
+const QUOTE_STATUSES = {
   Brouillon: {
     label: "Brouillon",
     color: "default",
@@ -66,6 +72,26 @@ const STATUSES = {
     color: "processing",
     icon: <ClockCircleOutlined />,
   },
+  "Accepté": { label: "Accepté", color: "success", icon: <CheckCircleOutlined /> },
+  "Refusé": { label: "Refusé", color: "error", icon: <WarningOutlined /> },
+};
+
+const INVOICE_STATUSES = {
+  Brouillon: {
+    label: "Brouillon",
+    color: "default",
+    icon: <FileTextOutlined />,
+  },
+  Envoyée: {
+    label: "Envoyée",
+    color: "processing",
+    icon: <ClockCircleOutlined />,
+  },
+  "Partiellement payée": {
+    label: "Partiellement payée",
+    color: "warning",
+    icon: <ClockCircleOutlined />,
+  },
   Payée: { label: "Payée", color: "success", icon: <CheckCircleOutlined /> },
   "En retard": {
     label: "En retard",
@@ -74,6 +100,14 @@ const STATUSES = {
   },
   Annulée: { label: "Annulée", color: "default", icon: <FileTextOutlined /> },
 };
+
+const getStatusConfig = (type, status) => {
+  const map = type === "Devis" ? QUOTE_STATUSES : INVOICE_STATUSES;
+  return map[status] || { label: status, color: "default", icon: <FileTextOutlined /> };
+};
+
+const getAllowedStatusesForType = (type) =>
+  Object.keys(type === "Devis" ? QUOTE_STATUSES : INVOICE_STATUSES);
 
 function Invoices() {
   const [invoices, setInvoices] = useState([]);
@@ -86,13 +120,16 @@ function Invoices() {
   const [filterStatus, setFilterStatus] = useState(null);
   const [clients, setClients] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [form] = Form.useForm();
+  const watchedType = Form.useWatch("type", form) || "Facture";
   const navigate = useNavigate();
 
   useEffect(() => {
     loadStats();
     loadClients();
     loadDeals();
+    loadCurrentUser();
   }, []);
 
   useEffect(() => {
@@ -144,6 +181,36 @@ function Invoices() {
     }
   };
 
+  const loadCurrentUser = async () => {
+    try {
+      const me = await getMe();
+      setCurrentUser(me);
+    } catch (error) {
+      console.error("Error loading current user:", error);
+    }
+  };
+
+  const canConvertQuote = [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "comptable",
+  ].includes(currentUser?.role);
+
+  const canSendQuote = [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "commercial",
+  ].includes(currentUser?.role);
+
+  const canExportAccounting = [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "comptable",
+  ].includes(currentUser?.role);
+
   const handleSearch = () => {
     loadInvoices();
   };
@@ -155,6 +222,7 @@ function Invoices() {
       type: "Facture",
       status: "Brouillon",
       taxRate: 20,
+      paidAmount: 0,
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
     });
     setModalVisible(true);
@@ -200,6 +268,38 @@ function Invoices() {
       loadStats();
     } catch (error) {
       message.error(error.message || "Erreur lors de l'enregistrement");
+    }
+  };
+
+  const handleConvertQuote = async (invoice) => {
+    try {
+      await convertQuoteToInvoice(invoice._id);
+      message.success("Devis converti en facture avec succès");
+      loadInvoices();
+      loadStats();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la conversion du devis");
+    }
+  };
+
+  const handleSendQuote = async (invoice) => {
+    try {
+      const result = await sendQuoteToClient(invoice._id);
+      message.success(
+        `Devis envoye a ${result.recipientEmail || "l'adresse client"}`,
+      );
+      loadInvoices();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de l'envoi du devis");
+    }
+  };
+
+  const handleExportAccounting = async () => {
+    try {
+      await exportAccountingInvoicesCsv();
+      message.success("Export comptable généré");
+    } catch (error) {
+      message.error(error.message || "Erreur lors de l'export comptable");
     }
   };
 
@@ -282,9 +382,12 @@ function Invoices() {
       dataIndex: "status",
       key: "status",
       width: 130,
-      render: (status) => (
-        <Tag icon={STATUSES[status].icon} color={STATUSES[status].color}>
-          {STATUSES[status].label}
+      render: (status, record) => (
+        <Tag
+          icon={getStatusConfig(record?.type, status).icon}
+          color={getStatusConfig(record?.type, status).color}
+        >
+          {getStatusConfig(record?.type, status).label}
         </Tag>
       ),
     },
@@ -310,6 +413,27 @@ function Invoices() {
           >
             PDF
           </Button>
+          {record.type === "Devis" && canConvertQuote ? (
+            <Button
+              type="link"
+              icon={<SwapOutlined />}
+              size="small"
+              disabled={record.status !== "Accepté" || !!record.convertedToInvoice}
+              onClick={() => handleConvertQuote(record)}
+            >
+              Convertir
+            </Button>
+          ) : null}
+          {record.type === "Devis" && canSendQuote ? (
+            <Button
+              type="link"
+              icon={<SendOutlined />}
+              size="small"
+              onClick={() => handleSendQuote(record)}
+            >
+              Envoyer
+            </Button>
+          ) : null}
           <Button
             type="link"
             icon={<EditOutlined />}
@@ -340,14 +464,21 @@ function Invoices() {
           <h2 className="page-title">Devis & Facturation</h2>
           <p className="page-subtitle">Gérez vos devis et factures</p>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={handleCreateInvoice}
-        >
-          Nouveau document
-        </Button>
+        <Space>
+          {canExportAccounting ? (
+            <Button icon={<DownloadOutlined />} onClick={handleExportAccounting}>
+              Export comptable
+            </Button>
+          ) : null}
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={handleCreateInvoice}
+          >
+            Nouveau document
+          </Button>
+        </Space>
       </div>
 
       {/* Statistics */}
@@ -419,11 +550,13 @@ function Invoices() {
             value={filterStatus}
             onChange={setFilterStatus}
           >
-            {Object.keys(STATUSES).map((status) => (
+            {Object.keys({ ...QUOTE_STATUSES, ...INVOICE_STATUSES }).map(
+              (status) => (
               <Option key={status} value={status}>
-                {STATUSES[status].label}
+                {getStatusConfig("Facture", status).label}
               </Option>
-            ))}
+              ),
+            )}
           </Select>
           <Button
             type="primary"
@@ -483,9 +616,9 @@ function Invoices() {
                 rules={[{ required: true }]}
               >
                 <Select>
-                  {Object.keys(STATUSES).map((status) => (
+                  {getAllowedStatusesForType(watchedType).map((status) => (
                     <Option key={status} value={status}>
-                      {STATUSES[status].label}
+                      {getStatusConfig(watchedType, status).label}
                     </Option>
                   ))}
                 </Select>

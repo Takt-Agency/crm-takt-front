@@ -20,6 +20,7 @@ import Invoices from "./components/Invoices";
 import InvoiceDetail from "./components/InvoiceDetail";
 import Finance from "./components/Finance";
 import HRManagement from "./components/HRManagement";
+import PublicQuoteAcceptance from "./components/PublicQuoteAcceptance";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
@@ -34,6 +35,10 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route
+            path="/quote/accept/:token"
+            element={<PublicQuoteAcceptance />}
+          />
           <Route
             path="/dashboard"
             element={
@@ -101,7 +106,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Invoices />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "commercial",
+                      "comptable",
+                    ]}
+                  >
+                    <Invoices />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -111,7 +126,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <InvoiceDetail />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "commercial",
+                      "comptable",
+                    ]}
+                  >
+                    <InvoiceDetail />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -131,7 +156,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <HRManagement />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "employe",
+                    ]}
+                  >
+                    <HRManagement />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }

@@ -38,6 +38,13 @@ const STATUSES = {
     color: "processing",
     icon: <ClockCircleOutlined />,
   },
+  "Accepté": { label: "Accepté", color: "success", icon: <CheckCircleOutlined /> },
+  "Refusé": { label: "Refusé", color: "error", icon: <WarningOutlined /> },
+  "Partiellement payée": {
+    label: "Partiellement payée",
+    color: "warning",
+    icon: <ClockCircleOutlined />,
+  },
   Payée: { label: "Payée", color: "success", icon: <CheckCircleOutlined /> },
   "En retard": {
     label: "En retard",
@@ -166,11 +173,11 @@ function InvoiceDetail() {
             <h1 className="invoice-type">{invoice.type}</h1>
             <h2 className="invoice-number">{invoice.number}</h2>
             <Tag
-              icon={STATUSES[invoice.status].icon}
-              color={STATUSES[invoice.status].color}
+              icon={(STATUSES[invoice.status] || STATUSES.Brouillon).icon}
+              color={(STATUSES[invoice.status] || STATUSES.Brouillon).color}
               style={{ fontSize: 14, padding: "4px 12px" }}
             >
-              {STATUSES[invoice.status].label}
+              {(STATUSES[invoice.status] || { label: invoice.status }).label}
             </Tag>
           </div>
         </div>
