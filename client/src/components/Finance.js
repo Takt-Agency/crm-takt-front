@@ -18,12 +18,19 @@ import {
   Select,
   Tag,
   Switch,
+  Upload,
 } from "antd";
 import {
   PlusOutlined,
   SearchOutlined,
   EditOutlined,
   DeleteOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  PaperClipOutlined,
+  LinkOutlined,
+  DisconnectOutlined,
+  UploadOutlined,
   ArrowDownOutlined,
   ArrowUpOutlined,
   WalletOutlined,
@@ -54,11 +61,19 @@ import {
   createDecaissement,
   updateDecaissement,
   deleteDecaissement,
+  validateDecaissement,
+  uploadDecaissementJustificatifs,
+  getBankStatementLines,
+  importBankStatementCsv,
+  importBankStatementOfx,
+  reconcileBankStatementLine,
+  clearBankStatementReconciliation,
   getAllTresorerieEntries,
   createTresorerieEntry,
   updateTresorerieEntry,
   deleteTresorerieEntry,
   getAllClients,
+  getAllInvoices,
   getMe,
 } from "../utils/api";
 
@@ -66,6 +81,13 @@ const { Option } = Select;
 
 const PAYMENT_MODES = ["Virement", "Espèces", "Chèque", "Carte", "Prélèvement", "Autre"];
 const TRESORERIE_TYPES = ["Entrée", "Sortie", "Ajustement"];
+const API_BASE_URL = process.env.REACT_APP_API_URL || "";
+
+const DEC_STATUS_CONFIG = {
+  en_attente: { label: "En attente", color: "warning" },
+  approuve: { label: "Approuvé", color: "success" },
+  refuse: { label: "Refusé", color: "error" },
+};
 
 function Finance() {
   const [loading, setLoading] = useState(false);
@@ -83,8 +105,10 @@ function Finance() {
   const [alertsNotified, setAlertsNotified] = useState(false);
   const [encaissements, setEncaissements] = useState([]);
   const [decaissements, setDecaissements] = useState([]);
+  const [bankStatementLines, setBankStatementLines] = useState([]);
   const [tresorerieEntries, setTresorerieEntries] = useState([]);
   const [clients, setClients] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   const [bankSearch, setBankSearch] = useState("");
   const [supplierSearch, setSupplierSearch] = useState("");
@@ -92,6 +116,10 @@ function Finance() {
   const [encSearch, setEncSearch] = useState("");
   const [decSearch, setDecSearch] = useState("");
   const [treSearch, setTreSearch] = useState("");
+  const [statementSearch, setStatementSearch] = useState("");
+  const [statementReconciledFilter, setStatementReconciledFilter] = useState("all");
+  const [statementUploadBankAccount, setStatementUploadBankAccount] = useState(null);
+  const [statementUploadFileList, setStatementUploadFileList] = useState([]);
 
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [supplierModalOpen, setSupplierModalOpen] = useState(false);
@@ -106,6 +134,11 @@ function Finance() {
   const [editingEnc, setEditingEnc] = useState(null);
   const [editingDec, setEditingDec] = useState(null);
   const [editingTre, setEditingTre] = useState(null);
+  const [decJustificatifFileList, setDecJustificatifFileList] = useState([]);
+  const [reconcileModalOpen, setReconcileModalOpen] = useState(false);
+  const [reconcileTargetType, setReconcileTargetType] = useState("Encaissement");
+  const [reconcileTargetId, setReconcileTargetId] = useState(null);
+  const [selectedStatementLine, setSelectedStatementLine] = useState(null);
 
   const [bankForm] = Form.useForm();
   const [supplierForm] = Form.useForm();
@@ -120,6 +153,31 @@ function Finance() {
       currentUser.role,
     );
 
+  const canValidateDecaissements =
+    !!currentUser &&
+    ["super_admin", "administrateur", "manager"].includes(currentUser.role);
+
+  const payableInvoices = invoices.filter((invoice) => {
+    if (editingEnc?.invoice?._id && invoice._id === editingEnc.invoice._id) {
+      return true;
+    }
+    return !["Payée", "Annulée"].includes(invoice.status);
+  });
+
+  const encaissementCandidates = encaissements.filter((item) =>
+    selectedStatementLine
+      ? Math.abs(Math.abs(Number(selectedStatementLine.amount || 0)) - Number(item.montant || 0)) <=
+          0.01
+      : true,
+  );
+
+  const decaissementCandidates = decaissements.filter((item) =>
+    selectedStatementLine
+      ? Math.abs(Math.abs(Number(selectedStatementLine.amount || 0)) - Number(item.montant || 0)) <=
+          0.01
+      : true,
+  );
+
   useEffect(() => {
     const initializeData = async () => {
       try {
@@ -133,8 +191,10 @@ function Finance() {
           orderData,
           encData,
           decData,
+          statementData,
           treData,
           clientsData,
+          invoicesData,
         ] =
           await Promise.all([
             getMe(),
@@ -144,8 +204,10 @@ function Finance() {
             getAllSupplierOrders({ search: "" }),
             getAllEncaissements({ search: "" }),
             getAllDecaissements({ search: "" }),
+            getBankStatementLines({}),
             getAllTresorerieEntries({ search: "" }),
             getAllClients({ limit: 200 }),
+            getAllInvoices({ type: "Facture", limit: 200 }),
           ]);
 
         setCurrentUser(userData);
@@ -155,8 +217,10 @@ function Finance() {
         setSupplierOrders(orderData.orders || []);
         setEncaissements(encData.encaissements || []);
         setDecaissements(decData.decaissements || []);
+        setBankStatementLines(statementData.lines || []);
         setTresorerieEntries(treData.entries || []);
         setClients(clientsData.clients || []);
+        setInvoices(invoicesData.invoices || []);
       } catch (error) {
         console.error(error);
       } finally {
@@ -226,6 +290,23 @@ function Finance() {
     setTresorerieEntries(data.entries || []);
   };
 
+  const loadBankStatementLines = async (
+    search = statementSearch,
+    reconciledFilter = statementReconciledFilter,
+  ) => {
+    const params = { search };
+    if (reconciledFilter !== "all") {
+      params.isReconciled = reconciledFilter === "reconciled";
+    }
+    const data = await getBankStatementLines(params);
+    setBankStatementLines(data.lines || []);
+  };
+
+  const loadInvoices = async () => {
+    const data = await getAllInvoices({ type: "Facture", limit: 200 });
+    setInvoices(data.invoices || []);
+  };
+
   const refreshFinancialData = async () => {
     await Promise.all([
       loadStats(),
@@ -235,7 +316,9 @@ function Finance() {
       loadSupplierPaymentAlerts(),
       loadEncaissements(),
       loadDecaissements(),
+      loadBankStatementLines(),
       loadTresorerieEntries(),
+      loadInvoices(),
     ]);
   };
 
@@ -340,6 +423,11 @@ function Finance() {
       render: (_, record) => record.client?.entreprise || "-",
     },
     {
+      title: "Facture",
+      key: "invoice",
+      render: (_, record) => record.invoice?.number || "-",
+    },
+    {
       title: "Référence",
       dataIndex: "reference",
       key: "reference",
@@ -411,6 +499,42 @@ function Finance() {
       render: (_, record) => record.commandeFournisseur?.orderNumber || "-",
     },
     {
+      title: "Statut",
+      dataIndex: "status",
+      key: "status",
+      render: (value) => {
+        const config = DEC_STATUS_CONFIG[value] || {
+          label: value || "En attente",
+          color: "default",
+        };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
+    },
+    {
+      title: "Justificatifs",
+      key: "justificatifs",
+      render: (_, record) => {
+        const files = record.justificatifs || [];
+        if (!files.length) return "-";
+
+        return (
+          <Space size={6} wrap>
+            {files.slice(0, 2).map((file) => (
+              <a
+                key={file._id || file.filePath}
+                href={`${API_BASE_URL}${file.filePath}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {file.fileName}
+              </a>
+            ))}
+            {files.length > 2 ? `+${files.length - 2}` : ""}
+          </Space>
+        );
+      },
+    },
+    {
       title: "Référence",
       dataIndex: "reference",
       key: "reference",
@@ -421,27 +545,143 @@ function Finance() {
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button type="link" icon={<EditOutlined />} onClick={() => openDecModal(record)}>
-            Modifier
-          </Button>
-          <Button
-            type="link"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() =>
-              confirmDelete("Supprimer ce décaissement ?", async () => {
-                try {
-                  await deleteDecaissement(record._id);
-                  message.success("Décaissement supprimé");
-                  await refreshFinancialData();
-                } catch (error) {
-                  message.error(error.message || "Erreur lors de la suppression");
-                }
-              })
-            }
-          >
-            Supprimer
-          </Button>
+          {canValidateDecaissements && record.status === "en_attente" ? (
+            <>
+              <Button
+                type="link"
+                icon={<CheckOutlined />}
+                onClick={() => handleValidateDec(record, "approuve")}
+              >
+                Approuver
+              </Button>
+              <Button
+                type="link"
+                danger
+                icon={<CloseOutlined />}
+                onClick={() => handleValidateDec(record, "refuse")}
+              >
+                Refuser
+              </Button>
+            </>
+          ) : null}
+          {canManageSupplierPayments ? (
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => openDecModal(record)}
+              disabled={record.status === "approuve"}
+            >
+              Modifier
+            </Button>
+          ) : null}
+          {canManageSupplierPayments ? (
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              disabled={record.status === "approuve"}
+              onClick={() =>
+                confirmDelete("Supprimer ce décaissement ?", async () => {
+                  try {
+                    await deleteDecaissement(record._id);
+                    message.success("Décaissement supprimé");
+                    await refreshFinancialData();
+                  } catch (error) {
+                    message.error(error.message || "Erreur lors de la suppression");
+                  }
+                })
+              }
+            >
+              Supprimer
+            </Button>
+          ) : null}
+        </Space>
+      ),
+    },
+  ];
+
+  const statementColumns = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (value) => dayjs(value).format("DD/MM/YYYY"),
+    },
+    {
+      title: "Compte",
+      key: "bankAccount",
+      render: (_, record) => record.bankAccount?.name || "-",
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (value) => value || "-",
+    },
+    {
+      title: "Référence",
+      dataIndex: "reference",
+      key: "reference",
+      render: (value) => value || "-",
+    },
+    {
+      title: "Montant",
+      dataIndex: "amount",
+      key: "amount",
+      render: (value) => {
+        const amount = Number(value || 0);
+        return (
+          <span style={{ color: amount >= 0 ? "#52c41a" : "#ff4d4f" }}>
+            {amount.toFixed(2)} €
+          </span>
+        );
+      },
+    },
+    {
+      title: "Rapprochement",
+      key: "status",
+      render: (_, record) => (
+        <Tag color={record.isReconciled ? "success" : "default"}>
+          {record.isReconciled
+            ? `Rapproché (${record.reconciledWithType || "N/A"})`
+            : "Non rapproché"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Space wrap>
+          {!record.isReconciled ? (
+            <>
+              <Button
+                type="link"
+                icon={<LinkOutlined />}
+                onClick={() => openReconcileModal(record, "Encaissement")}
+                disabled={Number(record.amount || 0) <= 0}
+              >
+                Rapprocher enc.
+              </Button>
+              <Button
+                type="link"
+                icon={<LinkOutlined />}
+                onClick={() => openReconcileModal(record, "Decaissement")}
+                disabled={Number(record.amount || 0) >= 0}
+              >
+                Rapprocher déc.
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="link"
+              danger
+              icon={<DisconnectOutlined />}
+              onClick={() => handleClearReconciliation(record)}
+            >
+              Dé-rapprocher
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -706,6 +946,7 @@ function Finance() {
         date: record.date ? dayjs(record.date) : dayjs(),
         compteBancaire: record.compteBancaire?._id,
         client: record.client?._id,
+        invoice: record.invoice?._id,
       });
     } else {
       encForm.resetFields();
@@ -747,6 +988,7 @@ function Finance() {
 
   const openDecModal = (record = null) => {
     setEditingDec(record);
+    setDecJustificatifFileList([]);
     if (record) {
       decForm.setFieldsValue({
         ...record,
@@ -760,6 +1002,106 @@ function Finance() {
       decForm.setFieldsValue({ date: dayjs(), modePaiement: "Virement", montant: 0 });
     }
     setDecModalOpen(true);
+  };
+
+  const handleValidateDec = (record, status) => {
+    const actionLabel = status === "approuve" ? "approuver" : "refuser";
+
+    Modal.confirm({
+      title: `Confirmer ${actionLabel}`,
+      content: `Voulez-vous ${actionLabel} ce décaissement ?`,
+      okText: status === "approuve" ? "Approuver" : "Refuser",
+      okType: status === "approuve" ? "primary" : "danger",
+      cancelText: "Annuler",
+      onOk: async () => {
+        try {
+          await validateDecaissement(record._id, {
+            status,
+          });
+          message.success(
+            status === "approuve"
+              ? "Décaissement approuvé"
+              : "Décaissement refusé",
+          );
+          await refreshFinancialData();
+        } catch (error) {
+          message.error(error.message || "Erreur lors de la validation");
+        }
+      },
+    });
+  };
+
+  const handleImportStatementCsv = async () => {
+    try {
+      const file = statementUploadFileList[0]?.originFileObj;
+      if (!statementUploadBankAccount || !file) {
+        message.error("Sélectionnez un compte bancaire et un fichier CSV ou OFX");
+        return;
+      }
+
+      const fileName = String(file.name || "").toLowerCase();
+      const isCsv = fileName.endsWith(".csv");
+      const isOfx = fileName.endsWith(".ofx") || fileName.endsWith(".qfx");
+
+      if (isCsv) {
+        await importBankStatementCsv({
+          bankAccount: statementUploadBankAccount,
+          file,
+        });
+      } else if (isOfx) {
+        await importBankStatementOfx({
+          bankAccount: statementUploadBankAccount,
+          file,
+        });
+      } else {
+        message.error("Format non supporté. Utilisez un fichier .csv, .ofx ou .qfx");
+        return;
+      }
+
+      setStatementUploadFileList([]);
+      message.success("Relevé importé avec succès");
+      await loadBankStatementLines();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de l'import du relevé");
+    }
+  };
+
+  const openReconcileModal = (line, targetType) => {
+    setSelectedStatementLine(line);
+    setReconcileTargetType(targetType);
+    setReconcileTargetId(null);
+    setReconcileModalOpen(true);
+  };
+
+  const submitReconciliation = async () => {
+    try {
+      if (!selectedStatementLine?._id || !reconcileTargetId) {
+        message.error("Sélectionnez la cible du rapprochement");
+        return;
+      }
+
+      await reconcileBankStatementLine(selectedStatementLine._id, {
+        targetType: reconcileTargetType,
+        targetId: reconcileTargetId,
+      });
+
+      message.success("Ligne rapprochée avec succès");
+      setReconcileModalOpen(false);
+      setSelectedStatementLine(null);
+      await loadBankStatementLines();
+    } catch (error) {
+      message.error(error.message || "Erreur lors du rapprochement");
+    }
+  };
+
+  const handleClearReconciliation = async (line) => {
+    try {
+      await clearBankStatementReconciliation(line._id);
+      message.success("Rapprochement supprimé");
+      await loadBankStatementLines();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la suppression du rapprochement");
+    }
   };
 
   const openTreModal = (record = null) => {
@@ -815,8 +1157,13 @@ function Finance() {
 
   const submitEnc = async (values) => {
     try {
+      const selectedInvoice = invoices.find(
+        (invoice) => invoice._id === values.invoice,
+      );
+
       const payload = {
         ...values,
+        client: values.client || selectedInvoice?.client?._id,
         date: values.date?.toISOString(),
       };
       if (editingEnc) {
@@ -874,13 +1221,30 @@ function Finance() {
       }
 
       if (editingDec) {
-        await updateDecaissement(editingDec._id, payload);
+        const updated = await updateDecaissement(editingDec._id, payload);
+        if (decJustificatifFileList.length) {
+          await uploadDecaissementJustificatifs(
+            updated._id,
+            decJustificatifFileList
+              .map((item) => item.originFileObj)
+              .filter(Boolean),
+          );
+        }
         message.success("Décaissement mis à jour");
       } else {
-        await createDecaissement(payload);
+        const created = await createDecaissement(payload);
+        if (decJustificatifFileList.length) {
+          await uploadDecaissementJustificatifs(
+            created._id,
+            decJustificatifFileList
+              .map((item) => item.originFileObj)
+              .filter(Boolean),
+          );
+        }
         message.success("Décaissement créé");
       }
       setDecModalOpen(false);
+      setDecJustificatifFileList([]);
       await refreshFinancialData();
     } catch (error) {
       message.error(error.message || "Erreur lors de l'enregistrement");
@@ -1039,6 +1403,78 @@ function Finance() {
       ),
     },
     ...(canManageSupplierPayments ? [paymentProcessingTab] : []),
+    {
+      key: "4b",
+      label: "Rapprochement bancaire",
+      children: (
+        <Card>
+          <Space
+            style={{ marginBottom: 16, width: "100%", justifyContent: "space-between" }}
+            wrap
+          >
+            <Space wrap>
+              <Select
+                placeholder="Compte bancaire"
+                style={{ width: 220 }}
+                value={statementUploadBankAccount}
+                onChange={setStatementUploadBankAccount}
+              >
+                {bankAccounts.map((account) => (
+                  <Option key={account._id} value={account._id}>
+                    {account.name}
+                  </Option>
+                ))}
+              </Select>
+              <Upload
+                accept=".csv,.ofx,.qfx"
+                beforeUpload={() => false}
+                fileList={statementUploadFileList}
+                onChange={({ fileList }) => setStatementUploadFileList(fileList.slice(-1))}
+                maxCount={1}
+              >
+                <Button icon={<UploadOutlined />}>Choisir fichier</Button>
+              </Upload>
+              <Button type="primary" onClick={handleImportStatementCsv}>
+                Importer relevé
+              </Button>
+            </Space>
+
+            <Space wrap>
+              <Input
+                placeholder="Rechercher ligne relevé..."
+                prefix={<SearchOutlined />}
+                style={{ width: 260 }}
+                value={statementSearch}
+                onChange={(e) => setStatementSearch(e.target.value)}
+                onPressEnter={() => loadBankStatementLines(statementSearch, statementReconciledFilter)}
+              />
+              <Select
+                style={{ width: 180 }}
+                value={statementReconciledFilter}
+                onChange={(value) => {
+                  setStatementReconciledFilter(value);
+                  loadBankStatementLines(statementSearch, value);
+                }}
+              >
+                <Option value="all">Tous</Option>
+                <Option value="reconciled">Rapprochés</Option>
+                <Option value="unreconciled">Non rapprochés</Option>
+              </Select>
+              <Button onClick={() => loadBankStatementLines(statementSearch, statementReconciledFilter)}>
+                Actualiser
+              </Button>
+            </Space>
+          </Space>
+
+          <Table
+            rowKey="_id"
+            columns={statementColumns}
+            dataSource={bankStatementLines}
+            loading={loading}
+          />
+        </Card>
+      ),
+    },
     {
       key: "5",
       label: "Encaissements",
@@ -1370,6 +1806,33 @@ function Finance() {
               ))}
             </Select>
           </Form.Item>
+          <Form.Item name="invoice" label="Facture liée">
+            <Select
+              allowClear
+              showSearch
+              optionFilterProp="children"
+              onChange={(invoiceId) => {
+                const selectedInvoice = invoices.find(
+                  (invoice) => invoice._id === invoiceId,
+                );
+                if (selectedInvoice?.client?._id) {
+                  encForm.setFieldValue("client", selectedInvoice.client._id);
+                }
+              }}
+            >
+              {payableInvoices.map((invoice) => {
+                const remaining = Math.max(
+                  Number(invoice.total || 0) - Number(invoice.paidAmount || 0),
+                  0,
+                );
+                return (
+                  <Option key={invoice._id} value={invoice._id}>
+                    {`${invoice.number} - ${invoice.client?.entreprise || "N/A"} (reste ${remaining.toFixed(2)} €)`}
+                  </Option>
+                );
+              })}
+            </Select>
+          </Form.Item>
           <Form.Item name="modePaiement" label="Mode de paiement">
             <Select>
               {PAYMENT_MODES.map((mode) => (
@@ -1387,6 +1850,33 @@ function Finance() {
           </Form.Item>
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={2} />
+          </Form.Item>
+
+          <Form.Item label="Justificatifs (PDF ou image)">
+            <Upload
+              multiple
+              accept=".pdf,image/*"
+              beforeUpload={() => false}
+              fileList={decJustificatifFileList}
+              onChange={({ fileList }) => setDecJustificatifFileList(fileList)}
+              maxCount={5}
+            >
+              <Button icon={<PaperClipOutlined />}>Ajouter des fichiers</Button>
+            </Upload>
+            {editingDec?.justificatifs?.length ? (
+              <Space direction="vertical" style={{ marginTop: 8 }}>
+                {editingDec.justificatifs.map((file) => (
+                  <a
+                    key={file._id || file.filePath}
+                    href={`${API_BASE_URL}${file.filePath}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {file.fileName}
+                  </a>
+                ))}
+              </Space>
+            ) : null}
           </Form.Item>
         </Form>
       </Modal>
@@ -1520,6 +2010,56 @@ function Finance() {
             <Input.TextArea rows={2} />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        open={reconcileModalOpen}
+        title="Rapprocher la ligne de relevé"
+        onCancel={() => {
+          setReconcileModalOpen(false);
+          setSelectedStatementLine(null);
+          setReconcileTargetId(null);
+        }}
+        onOk={submitReconciliation}
+        okText="Rapprocher"
+        cancelText="Annuler"
+      >
+        <Space direction="vertical" style={{ width: "100%" }}>
+          {selectedStatementLine ? (
+            <Card size="small">
+              <strong>{dayjs(selectedStatementLine.date).format("DD/MM/YYYY")}</strong>
+              <div>{selectedStatementLine.description || "-"}</div>
+              <div style={{ color: "#8c8c8c" }}>{selectedStatementLine.reference || "-"}</div>
+              <div style={{ marginTop: 4 }}>
+                Montant: {Number(selectedStatementLine.amount || 0).toFixed(2)} €
+              </div>
+            </Card>
+          ) : null}
+
+          <Select value={reconcileTargetType} onChange={setReconcileTargetType}>
+            <Option value="Encaissement">Encaissement</Option>
+            <Option value="Decaissement">Décaissement</Option>
+          </Select>
+
+          <Select
+            placeholder="Sélectionner le mouvement"
+            value={reconcileTargetId}
+            onChange={setReconcileTargetId}
+            showSearch
+            optionFilterProp="children"
+          >
+            {(reconcileTargetType === "Encaissement"
+              ? encaissementCandidates
+              : decaissementCandidates
+            ).map((item) => (
+              <Option key={item._id} value={item._id}>
+                {`${dayjs(item.date).format("DD/MM/YYYY")} - ${Number(item.montant || 0).toFixed(2)} € - ${
+                  item.reference || item.description || item._id
+                }`}
+              </Option>
+            ))}
+          </Select>
+        </Space>
       </Modal>
     </div>
   );

@@ -2099,6 +2099,152 @@ export const deleteDecaissement = async (id) => {
   return response.json();
 };
 
+export const validateDecaissement = async (id, payload) => {
+  const response = await fetch(
+    `${API_URL}/api/finance/decaissements/${id}/validation`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to validate decaissement");
+  }
+
+  return response.json();
+};
+
+export const uploadDecaissementJustificatifs = async (id, files) => {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  (files || []).forEach((file) => {
+    formData.append("files", file);
+  });
+
+  const response = await fetch(
+    `${API_URL}/api/finance/decaissements/${id}/justificatifs`,
+    {
+      method: "POST",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to upload justificatifs");
+  }
+
+  return response.json();
+};
+
+export const getBankStatementLines = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.search) queryParams.append("search", params.search);
+  if (params.bankAccount) queryParams.append("bankAccount", params.bankAccount);
+  if (params.isReconciled !== undefined)
+    queryParams.append("isReconciled", params.isReconciled);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/rapprochement/lignes?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch bank statement lines");
+  }
+
+  return response.json();
+};
+
+export const importBankStatementCsv = async ({ bankAccount, file }) => {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  formData.append("bankAccount", bankAccount);
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/api/finance/rapprochement/import/csv`, {
+    method: "POST",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to import bank statement CSV");
+  }
+
+  return response.json();
+};
+
+export const importBankStatementOfx = async ({ bankAccount, file }) => {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  formData.append("bankAccount", bankAccount);
+  formData.append("file", file);
+
+  const response = await fetch(`${API_URL}/api/finance/rapprochement/import/ofx`, {
+    method: "POST",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to import bank statement OFX");
+  }
+
+  return response.json();
+};
+
+export const reconcileBankStatementLine = async (id, payload) => {
+  const response = await fetch(
+    `${API_URL}/api/finance/rapprochement/lignes/${id}/reconcile`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to reconcile bank statement line");
+  }
+
+  return response.json();
+};
+
+export const clearBankStatementReconciliation = async (id) => {
+  const response = await fetch(
+    `${API_URL}/api/finance/rapprochement/lignes/${id}/clear`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to clear reconciliation");
+  }
+
+  return response.json();
+};
+
 export const getAllTresorerieEntries = async (params = {}) => {
   const queryParams = new URLSearchParams();
   if (params.search) queryParams.append("search", params.search);
