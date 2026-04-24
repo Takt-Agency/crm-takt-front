@@ -15,6 +15,9 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { getMe, logout } from "../utils/api";
+import {
+  BRAND_LOGO_LIGHT,
+} from "../utils/brandAssets";
 import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
@@ -22,11 +25,18 @@ const { Header, Sider, Content } = Layout;
 const ROLES = {
   super_admin: { label: "Super Admin", color: "red" },
   administrateur: { label: "Administrateur", color: "orange" },
-  manager: { label: "Manager", color: "blue" },
+  manager: { label: "Chef de projet (Manager)", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
   employe: { label: "Employé", color: "default" },
 };
+
+const normalizeRole = (role) =>
+  String(role || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -96,20 +106,28 @@ const MainLayout = ({ children }) => {
   };
 
   const menuItems = [
+    // Use normalized role checks to handle legacy values like "Commercial".
     {
       key: "1",
       icon: <DashboardOutlined />,
       label: "Tableau de bord",
       onClick: () => navigate("/dashboard"),
     },
-    {
-      key: "2",
-      icon: <UserOutlined />,
-      label: "Clients",
-      onClick: () => navigate("/clients"),
-    },
+    ...(user &&
+    ["super_admin", "administrateur", "manager", "commercial", "comptable"].includes(
+      normalizeRole(user.role),
+    )
+      ? [
+          {
+            key: "2",
+            icon: <UserOutlined />,
+            label: "Clients",
+            onClick: () => navigate("/clients"),
+          },
+        ]
+      : []),
     // Show user management for super admin, administrateur, and manager
-    ...(user && ["super_admin", "administrateur", "manager"].includes(user.role)
+    ...(user && ["super_admin", "administrateur", "manager"].includes(normalizeRole(user.role))
       ? [
           {
             key: "9",
@@ -119,12 +137,19 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    {
-      key: "3",
-      icon: <TeamOutlined />,
-      label: "Prospects",
-      onClick: () => navigate("/prospects"),
-    },
+    ...(user &&
+    ["super_admin", "administrateur", "manager", "commercial", "comptable"].includes(
+      normalizeRole(user.role),
+    )
+      ? [
+          {
+            key: "3",
+            icon: <TeamOutlined />,
+            label: "Prospects",
+            onClick: () => navigate("/prospects"),
+          },
+        ]
+      : []),
     {
       key: "4",
       icon: <CheckSquareOutlined />,
@@ -138,7 +163,7 @@ const MainLayout = ({ children }) => {
       "manager",
       "commercial",
       "comptable",
-    ].includes(user.role)
+    ].includes(normalizeRole(user.role))
       ? [
           {
             key: "5",
@@ -148,14 +173,21 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    {
-      key: "6",
-      icon: <EuroOutlined />,
-      label: "Finances",
-      onClick: () => navigate("/finances"),
-    },
     ...(user &&
-    ["super_admin", "administrateur", "manager", "employe"].includes(user.role)
+    ["super_admin", "administrateur", "manager", "comptable"].includes(
+      normalizeRole(user.role),
+    )
+      ? [
+          {
+            key: "6",
+            icon: <EuroOutlined />,
+            label: "Finances",
+            onClick: () => navigate("/finances"),
+          },
+        ]
+      : []),
+    ...(user &&
+    ["super_admin", "administrateur", "manager", "employe"].includes(normalizeRole(user.role))
       ? [
           {
             key: "7",
@@ -182,8 +214,11 @@ const MainLayout = ({ children }) => {
         width={240}
       >
         <div className="logo-container">
-          <div className="logo-icon">N</div>
-          {!collapsed && <span className="logo-text">Nexia Digital</span>}
+          <img
+            src={BRAND_LOGO_LIGHT}
+            alt="Nexia Digital"
+            className="logo-corner-img"
+          />
         </div>
         <div style={{ marginBottom: 60 }}>
           <div className="menu-section-title">
@@ -259,10 +294,10 @@ const MainLayout = ({ children }) => {
                   </span>
                   {user?.role && (
                     <Tag
-                      color={ROLES[user.role]?.color || "default"}
+                      color={ROLES[normalizeRole(user.role)]?.color || "default"}
                       style={{ fontSize: "10px", padding: "0 4px", margin: 0 }}
                     >
-                      {ROLES[user.role]?.label || user.role}
+                      {ROLES[normalizeRole(user.role)]?.label || user.role}
                     </Tag>
                   )}
                 </div>

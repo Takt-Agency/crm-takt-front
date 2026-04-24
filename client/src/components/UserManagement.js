@@ -45,7 +45,7 @@ const { Option } = Select;
 const ROLES = {
   super_admin: { label: "Super Admin", color: "red" },
   administrateur: { label: "Administrateur", color: "orange" },
-  manager: { label: "Manager", color: "blue" },
+  manager: { label: "Chef de projet (Manager)", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
   employe: { label: "Employé", color: "default" },
@@ -512,9 +512,9 @@ function UserManagement() {
           >
             <Select>
               {Object.keys(ROLES).map((role) => {
-                // Only super admin can create/assign super admin role
+                // Only super admin can create/assign privileged admin roles.
                 if (
-                  role === "super_admin" &&
+                  ["super_admin", "administrateur"].includes(role) &&
                   currentUser?.role !== "super_admin"
                 ) {
                   return null;

@@ -1,15 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Form, Input, Button, Checkbox, Alert, message, Select } from "antd";
-import {
-  UserOutlined,
-  LockOutlined,
-  MailOutlined,
-  TeamOutlined,
-} from "@ant-design/icons";
+import { Form, Input, Button, Checkbox, Alert, message } from "antd";
+import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
+import { BRAND_LOGO_DARK, BRAND_LOGO_MARK } from "../utils/brandAssets";
 import "./Auth.css";
-
-const { Option } = Select;
 
 function SignUp() {
   const [loading, setLoading] = useState(false);
@@ -30,7 +24,7 @@ function SignUp() {
           name: values.name,
           email: values.email,
           password: values.password,
-          role: values.role || "employe",
+          role: "employe",
         }),
       });
 
@@ -63,8 +57,16 @@ function SignUp() {
         <div className="auth-card">
           <div className="auth-header">
             <div className="logo">
-              <div className="logo-icon">N</div>
-              <span className="logo-text">Nexia Digital CRM</span>
+              <img
+                src={BRAND_LOGO_MARK}
+                alt="Nexia Digital"
+                className="auth-logo-mark"
+              />
+              <img
+                src={BRAND_LOGO_DARK}
+                alt="Nexia Digital CRM"
+                className="auth-logo-wordmark"
+              />
             </div>
             <h2>Creer un compte</h2>
             <p className="auth-subtitle">Configurez votre acces en quelques etapes</p>
@@ -99,18 +101,6 @@ function SignUp() {
             ]}
           >
             <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
-          </Form.Item>
-
-          <Form.Item name="role" label="Rôle" initialValue="employe">
-            <Select
-              prefix={<TeamOutlined />}
-              placeholder="Sélectionnez votre rôle"
-            >
-              <Option value="employe">Employé</Option>
-              <Option value="commercial">Commercial</Option>
-              <Option value="comptable">Comptable</Option>
-              <Option value="manager">Manager</Option>
-            </Select>
           </Form.Item>
 
           <Form.Item

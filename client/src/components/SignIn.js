@@ -8,6 +8,7 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { verifyTwoFactorLogin, completeTwoFactorLogin } from "../utils/api";
+import { BRAND_LOGO_DARK, BRAND_LOGO_MARK } from "../utils/brandAssets";
 import "./Auth.css";
 
 function SignIn() {
@@ -122,8 +123,16 @@ function SignIn() {
         <div className="auth-card">
           <div className="auth-header">
             <div className="logo">
-              <div className="logo-icon">N</div>
-              <span className="logo-text">Nexia Digital CRM</span>
+              <img
+                src={BRAND_LOGO_MARK}
+                alt="Nexia Digital"
+                className="auth-logo-mark"
+              />
+              <img
+                src={BRAND_LOGO_DARK}
+                alt="Nexia Digital CRM"
+                className="auth-logo-wordmark"
+              />
             </div>
             <h2>{requiresTwoFactor ? "Verification 2FA" : "Connexion"}</h2>
             <p className="auth-subtitle">

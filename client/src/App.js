@@ -76,7 +76,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Clients />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "commercial",
+                      "comptable",
+                    ]}
+                  >
+                    <Clients />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -86,7 +96,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Pipeline />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "commercial",
+                      "comptable",
+                    ]}
+                  >
+                    <Pipeline />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -146,7 +166,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Finance />
+                  <RoleBasedRoute
+                    allowedRoles={[
+                      "super_admin",
+                      "administrateur",
+                      "manager",
+                      "comptable",
+                    ]}
+                  >
+                    <Finance />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }

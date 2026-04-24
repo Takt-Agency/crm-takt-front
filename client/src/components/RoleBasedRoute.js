@@ -3,6 +3,13 @@ import { Navigate } from "react-router-dom";
 import { Spin } from "antd";
 import { getMe } from "../utils/api";
 
+const normalizeRole = (role) =>
+  String(role || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
 function RoleBasedRoute({ children, allowedRoles }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -47,7 +54,12 @@ function RoleBasedRoute({ children, allowedRoles }) {
     return <Navigate to="/signin" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  const userRole = normalizeRole(user.role);
+  const normalizedAllowedRoles = (allowedRoles || []).map((role) =>
+    normalizeRole(role),
+  );
+
+  if (allowedRoles && !normalizedAllowedRoles.includes(userRole)) {
     return <Navigate to="/dashboard" replace />;
   }
 

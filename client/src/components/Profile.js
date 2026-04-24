@@ -52,6 +52,9 @@ import {
   getTwoFactorStatus,
   regenerateBackupCodes,
 } from "../utils/api";
+import {
+  BRAND_LOGO_LIGHT,
+} from "../utils/brandAssets";
 import "./Profile.css";
 import "./Dashboard.css";
 
@@ -61,7 +64,7 @@ const { Text, Paragraph } = Typography;
 const ROLES = {
   super_admin: { label: "Super Admin", color: "red" },
   administrateur: { label: "Administrateur", color: "orange" },
-  manager: { label: "Manager", color: "blue" },
+  manager: { label: "Chef de projet (Manager)", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
   employe: { label: "Employé", color: "default" },
@@ -440,8 +443,11 @@ function Profile() {
         width={240}
       >
         <div className="logo-container">
-          <div className="logo-icon">N</div>
-          {!collapsed && <span className="logo-text">Nexia Digital</span>}
+          <img
+            src={BRAND_LOGO_LIGHT}
+            alt="Nexia Digital"
+            className="logo-corner-img"
+          />
         </div>
         <Menu
           theme="light"
