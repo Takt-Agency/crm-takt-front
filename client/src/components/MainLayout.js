@@ -18,6 +18,8 @@ import { getMe, logout } from "../utils/api";
 import {
   BRAND_LOGO_LIGHT,
 } from "../utils/brandAssets";
+import { canAccessModule, normalizeRole } from "../utils/accessControl";
+import ChatWidget from "./ChatWidget";
 import "./Dashboard.css";
 
 const { Header, Sider, Content } = Layout;
@@ -30,13 +32,6 @@ const ROLES = {
   comptable: { label: "Comptable", color: "purple" },
   employe: { label: "Employé", color: "default" },
 };
-
-const normalizeRole = (role) =>
-  String(role || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -64,6 +59,8 @@ const MainLayout = ({ children }) => {
   const handleMenuClick = ({ key }) => {
     if (key === "profile") {
       navigate("/profile");
+    } else if (key === "settings") {
+      navigate("/settings");
     } else if (key === "logout") {
       handleLogout();
     }
@@ -101,6 +98,7 @@ const MainLayout = ({ children }) => {
     if (path.startsWith("/invoices")) return "5";
     if (path.startsWith("/finances")) return "6";
     if (path.startsWith("/hr")) return "7";
+    if (path.startsWith("/settings")) return "10";
     if (path === "/users") return "9";
     return "1";
   };
@@ -113,10 +111,7 @@ const MainLayout = ({ children }) => {
       label: "Tableau de bord",
       onClick: () => navigate("/dashboard"),
     },
-    ...(user &&
-    ["super_admin", "administrateur", "manager", "commercial", "comptable"].includes(
-      normalizeRole(user.role),
-    )
+    ...(user && canAccessModule(user, "clients")
       ? [
           {
             key: "2",
@@ -126,8 +121,7 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    // Show user management for super admin, administrateur, and manager
-    ...(user && ["super_admin", "administrateur", "manager"].includes(normalizeRole(user.role))
+    ...(user && normalizeRole(user.role) === "super_admin"
       ? [
           {
             key: "9",
@@ -137,10 +131,7 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    ...(user &&
-    ["super_admin", "administrateur", "manager", "commercial", "comptable"].includes(
-      normalizeRole(user.role),
-    )
+    ...(user && canAccessModule(user, "prospects")
       ? [
           {
             key: "3",
@@ -150,20 +141,17 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    {
-      key: "4",
-      icon: <CheckSquareOutlined />,
-      label: "Tâches",
-      onClick: () => navigate("/tasks"),
-    },
-    ...(user &&
-    [
-      "super_admin",
-      "administrateur",
-      "manager",
-      "commercial",
-      "comptable",
-    ].includes(normalizeRole(user.role))
+    ...(user && canAccessModule(user, "tasks")
+      ? [
+          {
+            key: "4",
+            icon: <CheckSquareOutlined />,
+            label: "Tâches",
+            onClick: () => navigate("/tasks"),
+          },
+        ]
+      : []),
+    ...(user && canAccessModule(user, "invoices")
       ? [
           {
             key: "5",
@@ -173,10 +161,7 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    ...(user &&
-    ["super_admin", "administrateur", "manager", "comptable"].includes(
-      normalizeRole(user.role),
-    )
+    ...(user && canAccessModule(user, "finances")
       ? [
           {
             key: "6",
@@ -186,14 +171,23 @@ const MainLayout = ({ children }) => {
           },
         ]
       : []),
-    ...(user &&
-    ["super_admin", "administrateur", "manager", "employe"].includes(normalizeRole(user.role))
+    ...(user && canAccessModule(user, "hr")
       ? [
           {
             key: "7",
             icon: <UserSwitchOutlined />,
             label: "RH",
             onClick: () => navigate("/hr"),
+          },
+        ]
+      : []),
+    ...(user && normalizeRole(user.role) === "super_admin"
+      ? [
+          {
+            key: "10",
+            icon: <SettingOutlined />,
+            label: "Parametres",
+            onClick: () => navigate("/settings"),
           },
         ]
       : []),
@@ -241,6 +235,7 @@ const MainLayout = ({ children }) => {
                 key: "params",
                 icon: <SettingOutlined />,
                 label: "Paramètres",
+                onClick: () => navigate("/settings"),
               },
               {
                 key: "logout",
@@ -307,6 +302,7 @@ const MainLayout = ({ children }) => {
         </Header>
 
         <Content style={{ margin: 0, overflow: "initial" }}>{children}</Content>
+        <ChatWidget />
       </Layout>
     </Layout>
   );

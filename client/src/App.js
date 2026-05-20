@@ -20,6 +20,7 @@ import Invoices from "./components/Invoices";
 import InvoiceDetail from "./components/InvoiceDetail";
 import Finance from "./components/Finance";
 import HRManagement from "./components/HRManagement";
+import SettingsPermissions from "./components/SettingsPermissions";
 import PublicQuoteAcceptance from "./components/PublicQuoteAcceptance";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -63,9 +64,34 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={["super_admin", "administrateur", "manager"]}
+                    allowedRoles={["super_admin"]}
+                    requiredPermission="users"
                   >
                     <UserManagement />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute allowedRoles={["super_admin"]}>
+                    <SettingsPermissions />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parametres"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute allowedRoles={["super_admin"]}>
+                    <SettingsPermissions />
                   </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
@@ -77,13 +103,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "commercial",
-                      "comptable",
-                    ]}
+                    requiredPermission="clients"
                   >
                     <Clients />
                   </RoleBasedRoute>
@@ -97,13 +117,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "commercial",
-                      "comptable",
-                    ]}
+                    requiredPermission="prospects"
                   >
                     <Pipeline />
                   </RoleBasedRoute>
@@ -116,7 +130,9 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Tasks />
+                  <RoleBasedRoute requiredPermission="tasks">
+                    <Tasks />
+                  </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -127,13 +143,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "commercial",
-                      "comptable",
-                    ]}
+                    requiredPermission="invoices"
                   >
                     <Invoices />
                   </RoleBasedRoute>
@@ -147,13 +157,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "commercial",
-                      "comptable",
-                    ]}
+                    requiredPermission="invoices"
                   >
                     <InvoiceDetail />
                   </RoleBasedRoute>
@@ -167,12 +171,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "comptable",
-                    ]}
+                    requiredPermission="finances"
                   >
                     <Finance />
                   </RoleBasedRoute>
@@ -186,12 +185,7 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <RoleBasedRoute
-                    allowedRoles={[
-                      "super_admin",
-                      "administrateur",
-                      "manager",
-                      "employe",
-                    ]}
+                    requiredPermission="hr"
                   >
                     <HRManagement />
                   </RoleBasedRoute>

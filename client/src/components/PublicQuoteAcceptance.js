@@ -6,20 +6,20 @@ import {
   Card,
   Divider,
   Input,
-  message,
   Space,
   Spin,
   Table,
   Tag,
   Typography,
+  message,
 } from "antd";
 import dayjs from "dayjs";
-import "./PublicQuoteAcceptance.css";
 import {
   acceptPublicQuoteByToken,
   getPublicQuoteByToken,
   rejectPublicQuoteByToken,
 } from "../utils/api";
+import "./PublicQuoteAcceptance.css";
 
 const { Title, Text } = Typography;
 
@@ -108,7 +108,7 @@ function PublicQuoteAcceptance() {
           <Alert
             type="error"
             showIcon
-            message="Lien indisponible"
+            title="Lien indisponible"
             description={errorMessage || "Le devis est introuvable."}
           />
         </Card>
@@ -150,7 +150,7 @@ function PublicQuoteAcceptance() {
   return (
     <div className="quote-public-page">
       <Card className="quote-public-card" bordered>
-        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+        <Space orientation="vertical" size={8} style={{ width: "100%" }}>
           <Text type="secondary">CRM TAKT</Text>
           <Title level={3} style={{ margin: 0 }}>
             Validation du devis
@@ -204,7 +204,7 @@ function PublicQuoteAcceptance() {
         <Divider />
 
         {canAccept ? (
-          <Space direction="vertical" style={{ width: "100%" }}>
+          <Space orientation="vertical" style={{ width: "100%" }}>
             <Input
               placeholder="Votre nom (optionnel)"
               value={clientName}
@@ -229,7 +229,7 @@ function PublicQuoteAcceptance() {
           <Alert
             type={quote.status === "Refusé" ? "warning" : "success"}
             showIcon
-            message={
+            title={
               quote.status === "Refusé"
                 ? "Ce devis est refuse"
                 : "Ce devis est deja accepte"

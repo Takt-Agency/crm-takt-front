@@ -1,0 +1,113 @@
+.settings-page {
+  padding: 24px;
+}
+
+.settings-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(55, 198, 245, 0.14), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f3f9fd 100%);
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 10px 24px rgba(12, 65, 84, 0.08);
+}
+
+.settings-kicker {
+  margin: 0 0 8px;
+  color: var(--pink-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.settings-hero .ant-typography {
+  max-width: 72ch;
+}
+
+.settings-hero-icon {
+  font-size: 34px;
+  color: var(--primary-blue);
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(55, 198, 245, 0.12);
+}
+
+.settings-toolbar,
+.settings-table-card {
+  border-radius: 18px;
+  border: 1px solid var(--border-gray);
+  box-shadow: 0 10px 24px rgba(12, 65, 84, 0.08);
+}
+
+.settings-toolbar {
+  margin-bottom: 16px;
+}
+
+.settings-table-card {
+  overflow: hidden;
+}
+
+.settings-table-wrap {
+  width: 100%;
+}
+
+.settings-table .ant-table {
+  font-size: 13px;
+}
+
+.settings-table .ant-table-thead > tr > th {
+  background: #edf7fc;
+  color: #315d6d;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.settings-table .ant-table-tbody > tr > td {
+  vertical-align: middle;
+}
+
+.settings-table .ant-table-tbody > tr:hover > td {
+  background: #f5fbff;
+}
+
+.settings-table .ant-tag {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 700;
+}
+
+.settings-table .ant-checkbox-wrapper {
+  transform: scale(1.05);
+}
+
+.settings-table .ant-table-cell-fix-left,
+.settings-table .ant-table-cell-fix-right {
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 12px;
+  }
+
+  .settings-hero {
+    padding: 18px;
+    flex-direction: column;
+  }
+
+  .settings-toolbar .ant-space {
+    width: 100%;
+  }
+
+  .settings-toolbar .ant-input,
+  .settings-toolbar .ant-select,
+  .settings-toolbar .ant-btn {
+    width: 100% !important;
+  }
+}

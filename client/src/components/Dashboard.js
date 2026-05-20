@@ -49,6 +49,7 @@ import {
   getTaskAlerts,
   getTaskStats,
 } from "../utils/api";
+import { canAccessModule, normalizeRole } from "../utils/accessControl";
 import "./Dashboard.css";
 
 const DEFAULT_WIDGETS = {
@@ -83,13 +84,6 @@ const ROLE_GROUPS = {
   finance: ["super_admin", "administrateur", "manager", "comptable"],
   hr: ["super_admin", "administrateur", "manager", "employe"],
 };
-
-const normalizeRole = (role) =>
-  String(role || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 
 const getWidgetsStorageKey = (role) => `dashboard.widgets.v2.${role || "default"}`;
 
@@ -145,11 +139,11 @@ const computeAveragePaymentDelay = (invoices = []) => {
   return Math.round(totalDays / paidInvoices.length);
 };
 
-const dashboardRequestsByRole = (role) => {
-  const canAccessSales = ROLE_GROUPS.sales.includes(role);
-  const canAccessInvoice = ROLE_GROUPS.invoice.includes(role);
-  const canAccessFinance = ROLE_GROUPS.finance.includes(role);
-  const canAccessHR = ROLE_GROUPS.hr.includes(role);
+const dashboardRequestsByUser = (user) => {
+  const canAccessSales = canAccessModule(user, "clients") || canAccessModule(user, "prospects");
+  const canAccessInvoice = canAccessModule(user, "invoices");
+  const canAccessFinance = canAccessModule(user, "finances");
+  const canAccessHR = canAccessModule(user, "hr");
 
   return {
     clientStats: canAccessSales ? getClientStats() : Promise.resolve(null),
@@ -233,7 +227,7 @@ function Dashboard() {
       const normalizedRole = normalizeRole(me.role);
       setRole(normalizedRole);
 
-      const requests = dashboardRequestsByRole(normalizedRole);
+      const requests = dashboardRequestsByUser(me);
       const entries = Object.entries(requests);
       const settled = await Promise.allSettled(entries.map(([, promise]) => promise));
 
@@ -582,7 +576,7 @@ function Dashboard() {
         </Space>
       </div>
 
-      {error && <Alert style={{ marginBottom: 16 }} type="warning" showIcon message={error} />}
+      {error && <Alert style={{ marginBottom: 16 }} type="warning" showIcon title={error} />}
 
       <Card className="dashboard-widget-config-card">
         <Space wrap>
@@ -679,9 +673,9 @@ function Dashboard() {
                 {alertItems.length === 0 ? (
                   <p className="task-subtext">Aucune alerte critique actuellement.</p>
                 ) : (
-                  <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <Space orientation="vertical" size={8} style={{ width: "100%" }}>
                     {alertItems.map((item) => (
-                      <Alert key={item.key} type={item.type} message={item.text} showIcon />
+                      <Alert key={item.key} type={item.type} title={item.text} showIcon />
                     ))}
                   </Space>
                 )}

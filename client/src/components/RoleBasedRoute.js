@@ -2,15 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Spin } from "antd";
 import { getMe } from "../utils/api";
+import { canAccessModule, normalizeRole } from "../utils/accessControl";
 
-const normalizeRole = (role) =>
-  String(role || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-function RoleBasedRoute({ children, allowedRoles }) {
+function RoleBasedRoute({ children, allowedRoles, requiredPermission }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
 
@@ -55,11 +49,15 @@ function RoleBasedRoute({ children, allowedRoles }) {
   }
 
   const userRole = normalizeRole(user.role);
-  const normalizedAllowedRoles = (allowedRoles || []).map((role) =>
-    normalizeRole(role),
-  );
+  const normalizedAllowedRoles = (allowedRoles || []).map((role) => normalizeRole(role));
 
-  if (allowedRoles && !normalizedAllowedRoles.includes(userRole)) {
+  const hasRoleAccess =
+    !allowedRoles || normalizedAllowedRoles.includes(userRole);
+  const hasPermissionAccess = requiredPermission
+    ? canAccessModule(user, requiredPermission)
+    : true;
+
+  if (!hasRoleAccess || !hasPermissionAccess) {
     return <Navigate to="/dashboard" replace />;
   }
 

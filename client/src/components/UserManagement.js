@@ -15,6 +15,7 @@ import {
   Col,
   Statistic,
   Avatar,
+  Checkbox,
 } from "antd";
 import {
   UserOutlined,
@@ -38,6 +39,11 @@ import {
   getUserStats,
   getMe,
 } from "../utils/api";
+import {
+  MODULE_PERMISSIONS,
+  getDefaultPermissionsForRole,
+  sanitizePermissions,
+} from "../utils/accessControl";
 import "./UserManagement.css";
 
 const { Option } = Select;
@@ -50,6 +56,16 @@ const ROLES = {
   comptable: { label: "Comptable", color: "purple" },
   employe: { label: "Employé", color: "default" },
 };
+
+const PERMISSION_OPTIONS = [
+  { value: "clients", label: "Clients" },
+  { value: "prospects", label: "Prospects" },
+  { value: "tasks", label: "Tâches" },
+  { value: "invoices", label: "Devis & Facturation" },
+  { value: "finances", label: "Finances" },
+  { value: "hr", label: "RH" },
+  { value: "users", label: "Utilisateurs" },
+].filter((option) => MODULE_PERMISSIONS.includes(option.value));
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -145,6 +161,12 @@ function UserManagement() {
       phone: user.phone,
       department: user.department,
       isActive: user.isActive,
+      permissions:
+        sanitizePermissions(user.permissions).length > 0
+          ? sanitizePermissions(user.permissions)
+          : getDefaultPermissionsForRole(user.role).filter(
+              (permission) => permission !== "dashboard",
+            ),
     });
     setModalVisible(true);
   };
@@ -201,6 +223,8 @@ function UserManagement() {
     form.resetFields();
     setEditingUser(null);
   };
+
+  const canManagePermissions = currentUser?.role === "super_admin";
 
   const columns = [
     {
@@ -547,6 +571,19 @@ function UserManagement() {
               <Option value={false}>Inactif</Option>
             </Select>
           </Form.Item>
+
+          {canManagePermissions && (
+            <Form.Item
+              name="permissions"
+              label="Accès aux fonctionnalités"
+              extra="Laisser vide applique les accès par défaut du rôle."
+            >
+              <Checkbox.Group
+                options={PERMISSION_OPTIONS}
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>

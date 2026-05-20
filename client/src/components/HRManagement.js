@@ -45,6 +45,14 @@ import {
   exportLeavesPDF,
   exportAttendanceExcel,
   exportAttendancePDF,
+  getPayrollPeriods,
+  createPayrollPeriod,
+  generatePayrollSlips,
+  getPayrollSlips,
+  approvePayrollPeriod,
+  markPayrollPeriodPaid,
+  exportPayrollExcel,
+  exportPayrollPDF,
 } from "../utils/api";
 import "./HRManagement.css";
 
@@ -78,23 +86,29 @@ function HRManagement() {
   const [leaves, setLeaves] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [leaveBalances, setLeaveBalances] = useState([]);
+  const [payrollPeriods, setPayrollPeriods] = useState([]);
+  const [payrollSlips, setPayrollSlips] = useState([]);
+  const [activePayrollPeriodId, setActivePayrollPeriodId] = useState(null);
 
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [loadingLeaves, setLoadingLeaves] = useState(false);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [loadingLeaveBalances, setLoadingLeaveBalances] = useState(false);
+  const [loadingPayroll, setLoadingPayroll] = useState(false);
 
   const [searchEmployee, setSearchEmployee] = useState("");
 
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [payrollPeriodModalOpen, setPayrollPeriodModalOpen] = useState(false);
 
   const [editingEmployee, setEditingEmployee] = useState(null);
 
   const [employeeForm] = Form.useForm();
   const [leaveForm] = Form.useForm();
   const [attendanceForm] = Form.useForm();
+  const [payrollPeriodForm] = Form.useForm();
 
   const canApproveLeave = ["super_admin", "administrateur", "manager"].includes(
     currentUser?.role,
@@ -108,6 +122,12 @@ function HRManagement() {
     "super_admin",
     "administrateur",
     "manager",
+  ].includes(currentUser?.role);
+  const canManagePayroll = [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "comptable",
   ].includes(currentUser?.role);
 
   useEffect(() => {
@@ -125,6 +145,7 @@ function HRManagement() {
         loadLeaves(),
         loadAttendance(),
         loadLeaveBalances(),
+        loadPayrollPeriods(),
       ]);
     };
 
@@ -191,11 +212,108 @@ function HRManagement() {
     }
   };
 
+  const loadPayrollPeriods = async () => {
+    try {
+      setLoadingPayroll(true);
+      const data = await getPayrollPeriods();
+      const periods = data.periods || [];
+      setPayrollPeriods(periods);
+
+      if (!activePayrollPeriodId && periods.length > 0) {
+        setActivePayrollPeriodId(periods[0]._id);
+        await loadPayrollSlips(periods[0]._id);
+      } else if (activePayrollPeriodId) {
+        await loadPayrollSlips(activePayrollPeriodId);
+      }
+    } catch (error) {
+      message.error(error.message || "Erreur lors du chargement de la paie");
+    } finally {
+      setLoadingPayroll(false);
+    }
+  };
+
+  const loadPayrollSlips = async (periodId) => {
+    if (!periodId) return;
+    try {
+      setLoadingPayroll(true);
+      const data = await getPayrollSlips({ periodId });
+      setPayrollSlips(data.slips || []);
+    } catch (error) {
+      message.error(error.message || "Erreur lors du chargement des fiches");
+    } finally {
+      setLoadingPayroll(false);
+    }
+  };
+
+  const onCreatePayrollPeriod = async (values) => {
+    try {
+      await createPayrollPeriod(values);
+      message.success("Période créée");
+      setPayrollPeriodModalOpen(false);
+      payrollPeriodForm.resetFields();
+      await loadPayrollPeriods();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la création de la période");
+    }
+  };
+
+  const onGeneratePayroll = async () => {
+    let periodId = activePayrollPeriodId;
+
+    if (!periodId && payrollPeriods.length > 0) {
+      periodId = payrollPeriods[0]._id;
+      setActivePayrollPeriodId(periodId);
+    }
+
+    if (!periodId) {
+      message.warning("Veuillez sélectionner une période");
+      return;
+    }
+
+    try {
+      await generatePayrollSlips({ periodId });
+      message.success("Paie générée");
+      await loadPayrollSlips(periodId);
+      await loadPayrollPeriods();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de la génération");
+    }
+  };
+
+  const onApprovePayroll = async () => {
+    if (!activePayrollPeriodId) return;
+    try {
+      await approvePayrollPeriod(activePayrollPeriodId);
+      message.success("Période approuvée");
+      await loadPayrollPeriods();
+    } catch (error) {
+      message.error(error.message || "Erreur lors de l'approbation");
+    }
+  };
+
+  const onMarkPayrollPaid = async () => {
+    if (!activePayrollPeriodId) return;
+    try {
+      await markPayrollPeriodPaid(activePayrollPeriodId);
+      message.success("Période marquée payée");
+      await loadPayrollPeriods();
+      await loadPayrollSlips(activePayrollPeriodId);
+    } catch (error) {
+      message.error(error.message || "Erreur lors du paiement");
+    }
+  };
+
   const onSubmitEmployee = async (values) => {
     try {
       const payload = {
         ...values,
         hireDate: values.hireDate ? values.hireDate.toISOString() : undefined,
+        salaryEffectiveFrom: values.salaryEffectiveFrom
+          ? values.salaryEffectiveFrom.toISOString()
+          : undefined,
+        salaryEffectiveTo: values.salaryEffectiveTo
+          ? values.salaryEffectiveTo.toISOString()
+          : undefined,
       };
 
       if (editingEmployee) {
@@ -224,6 +342,12 @@ function HRManagement() {
     employeeForm.setFieldsValue({
       ...employee,
       hireDate: employee.hireDate ? dayjs(employee.hireDate) : null,
+      salaryEffectiveFrom: employee.salaryEffectiveFrom
+        ? dayjs(employee.salaryEffectiveFrom)
+        : null,
+      salaryEffectiveTo: employee.salaryEffectiveTo
+        ? dayjs(employee.salaryEffectiveTo)
+        : null,
     });
     setEmployeeModalOpen(true);
   };
@@ -295,6 +419,34 @@ function HRManagement() {
       message.success("Export PDF des présences lancé");
     } catch (error) {
       message.error(error.message || "Erreur export PDF des présences");
+    }
+  };
+
+  const onExportPayrollExcel = async () => {
+    if (!activePayrollPeriodId) {
+      message.warning("Veuillez sélectionner une période");
+      return;
+    }
+
+    try {
+      await exportPayrollExcel({ periodId: activePayrollPeriodId });
+      message.success("Export Excel de la paie lancé");
+    } catch (error) {
+      message.error(error.message || "Erreur export Excel de la paie");
+    }
+  };
+
+  const onExportPayrollPDF = async () => {
+    if (!activePayrollPeriodId) {
+      message.warning("Veuillez sélectionner une période");
+      return;
+    }
+
+    try {
+      await exportPayrollPDF({ periodId: activePayrollPeriodId });
+      message.success("Export PDF de la paie lancé");
+    } catch (error) {
+      message.error(error.message || "Erreur export PDF de la paie");
     }
   };
 
@@ -601,6 +753,107 @@ function HRManagement() {
     return end.diff(start, "day") + 1;
   };
 
+  const payrollPeriodColumns = [
+    {
+      title: "Période",
+      key: "period",
+      render: (_, record) => `${String(record.month).padStart(2, "0")}/${record.year}`,
+    },
+    {
+      title: "Dates",
+      key: "dates",
+      render: (_, record) =>
+        `${dayjs(record.startDate).format("DD/MM/YYYY")} - ${dayjs(record.endDate).format("DD/MM/YYYY")}`,
+    },
+    {
+      title: "Statut",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "paid" ? "success" : status === "approved" ? "processing" : "default"}>
+          {status}
+        </Tag>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <div className="hr-actions">
+          <Button type="link" onClick={() => {
+            setActivePayrollPeriodId(record._id);
+            loadPayrollSlips(record._id);
+          }}>
+            Ouvrir
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const payrollSlipColumns = [
+    {
+      title: "Employé",
+      key: "employee",
+      render: (_, record) =>
+        record.employee
+          ? `${record.employee.firstName} ${record.employee.lastName}`
+          : "-",
+    },
+    {
+      title: "Salaire base",
+      dataIndex: "baseSalary",
+      key: "baseSalary",
+      render: (value) => `${value || 0}`,
+    },
+    {
+      title: "Heures sup",
+      dataIndex: "overtimeHours",
+      key: "overtimeHours",
+      render: (value) => `${value || 0} h`,
+    },
+    {
+      title: "Bonus",
+      dataIndex: "bonusAmount",
+      key: "bonusAmount",
+      render: (value) => `${value || 0}`,
+    },
+    {
+      title: "Absences",
+      dataIndex: "absentDays",
+      key: "absentDays",
+      render: (value) => `${value || 0} j`,
+    },
+    {
+      title: "Congés sans solde",
+      dataIndex: "leaveDaysUnpaid",
+      key: "leaveDaysUnpaid",
+      render: (value) => `${value || 0} j`,
+    },
+    {
+      title: "Brut",
+      dataIndex: "grossSalary",
+      key: "grossSalary",
+      render: (value) => `${value || 0}`,
+    },
+    {
+      title: "Net",
+      dataIndex: "netSalary",
+      key: "netSalary",
+      render: (value) => `${value || 0}`,
+    },
+    {
+      title: "Statut",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={status === "paid" ? "success" : status === "approved" ? "processing" : "default"}>
+          {status}
+        </Tag>
+      ),
+    },
+  ];
+
   const tabItems = [
     {
       key: "employees",
@@ -731,6 +984,75 @@ function HRManagement() {
             loading={loadingAttendance}
             pagination={{ pageSize: 10 }}
           />
+        </Card>
+      ),
+    },
+    {
+      key: "payroll",
+      label: "Paie",
+      children: (
+        <Card>
+          <div className="hr-toolbar">
+            <div className="hr-actions">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  payrollPeriodForm.resetFields();
+                  setPayrollPeriodModalOpen(true);
+                }}
+                disabled={!canManagePayroll}
+              >
+                Nouvelle période
+              </Button>
+              <Button onClick={onGeneratePayroll} disabled={!canManagePayroll}>
+                Générer la paie
+              </Button>
+              <Button onClick={onApprovePayroll} disabled={!canManagePayroll}>
+                Approuver
+              </Button>
+              <Button onClick={onMarkPayrollPaid} disabled={!canManagePayroll}>
+                Marquer payée
+              </Button>
+              <Button onClick={onExportPayrollExcel}>
+                Export Excel
+              </Button>
+              <Button onClick={onExportPayrollPDF}>
+                Export PDF
+              </Button>
+            </div>
+          </div>
+
+          <Row gutter={12}>
+            <Col xs={24} md={10}>
+              <Card title="Périodes de paie">
+                <Table
+                  rowKey="_id"
+                  dataSource={payrollPeriods}
+                  columns={payrollPeriodColumns}
+                  loading={loadingPayroll}
+                  pagination={{ pageSize: 6 }}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} md={14}>
+              <Card
+                title={
+                  activePayrollPeriodId
+                    ? "Fiches de paie"
+                    : "Sélectionnez une période"
+                }
+              >
+                <Table
+                  rowKey="_id"
+                  dataSource={payrollSlips}
+                  columns={payrollSlipColumns}
+                  loading={loadingPayroll}
+                  pagination={{ pageSize: 8 }}
+                />
+              </Card>
+            </Col>
+          </Row>
         </Card>
       ),
     },
@@ -882,6 +1204,32 @@ function HRManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
+              <Form.Item name="salaryType" label="Type de salaire" initialValue="monthly">
+                <Select>
+                  <Option value="monthly">Mensuel</Option>
+                  <Option value="hourly">Horaire</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="paymentFrequency"
+                label="Fréquence de paiement"
+                initialValue="monthly"
+              >
+                <Select>
+                  <Option value="monthly">Mensuel</Option>
+                  <Option value="biweekly">Bi-hebdomadaire</Option>
+                  <Option value="weekly">Hebdomadaire</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="currency" label="Devise" initialValue="MAD">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
               <Form.Item
                 name="annualLeaveAllowance"
                 label="Quota congés annuel (jours)"
@@ -891,6 +1239,79 @@ function HRManagement() {
               </Form.Item>
             </Col>
           </Row>
+
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="bankName" label="Banque">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="bankAccountName" label="Titulaire du compte">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="iban" label="IBAN">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="rib" label="RIB">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="salaryEffectiveFrom" label="Salaire effectif du">
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="salaryEffectiveTo" label="Salaire effectif au">
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="overtimeRate" label="Taux heures sup">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="bonusAmount" label="Bonus mensuel">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="allowanceAmount" label="Prime mensuelle">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="advanceAmount" label="Avance mensuelle">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="taxRate" label="Taux d'impot (%)">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="socialChargesRate" label="Charges sociales (%)">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="payrollNotes" label="Notes paie">
+            <Input.TextArea rows={2} />
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -1032,6 +1453,63 @@ function HRManagement() {
 
           <Form.Item name="notes" label="Notes">
             <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Nouvelle période de paie"
+        open={payrollPeriodModalOpen}
+        onCancel={() => {
+          setPayrollPeriodModalOpen(false);
+          payrollPeriodForm.resetFields();
+        }}
+        onOk={() => payrollPeriodForm.submit()}
+        okText="Créer"
+        cancelText="Annuler"
+      >
+        <Form
+          form={payrollPeriodForm}
+          layout="vertical"
+          onFinish={onCreatePayrollPeriod}
+        >
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item
+                name="month"
+                label="Mois"
+                rules={[{ required: true, message: "Mois requis" }]}
+              >
+                <Select>
+                  {Array.from({ length: 12 }).map((_, index) => (
+                    <Option key={index + 1} value={index + 1}>
+                      {dayjs().month(index).format("MMMM")}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="year"
+                label="Année"
+                rules={[{ required: true, message: "Année requise" }]}
+              >
+                <Select>
+                  {Array.from({ length: 5 }).map((_, offset) => {
+                    const year = dayjs().year() - 2 + offset;
+                    return (
+                      <Option key={year} value={year}>
+                        {year}
+                      </Option>
+                    );
+                  })}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="notes" label="Notes">
+            <Input.TextArea rows={2} />
           </Form.Item>
         </Form>
       </Modal>

@@ -70,6 +70,23 @@ export const logout = () => {
   window.location.href = "/signin";
 };
 
+// Chatbot
+export const sendChatMessage = async (payload) => {
+  const response = await fetch(`${API_URL}/api/chatbot/message`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Failed to send chatbot message");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
 // =========== USER MANAGEMENT API ===========
 
 // Get all users with filters and pagination
@@ -2492,6 +2509,161 @@ export const getAllAttendance = async (params = {}) => {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.message || "Failed to fetch attendance");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+// ========================================
+// Payroll API Functions
+// ========================================
+
+export const getPayrollPeriods = async () => {
+  const response = await fetch(`${API_URL}/api/payroll/periods`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch payroll periods");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const createPayrollPeriod = async (payload) => {
+  const response = await fetch(`${API_URL}/api/payroll/periods`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create payroll period");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const generatePayrollSlips = async (payload) => {
+  const response = await fetch(`${API_URL}/api/payroll/slips/generate`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to generate payroll slips");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const getPayrollSlips = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.periodId) queryParams.append("periodId", params.periodId);
+  if (params.employeeId) queryParams.append("employeeId", params.employeeId);
+
+  const response = await fetch(
+    `${API_URL}/api/payroll/slips?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to fetch payroll slips");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const exportPayrollExcel = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.periodId) queryParams.append("periodId", params.periodId);
+  if (params.employeeId) queryParams.append("employeeId", params.employeeId);
+
+  const response = await fetch(
+    `${API_URL}/api/payroll/slips/export/excel?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export payroll (Excel)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "paie.xlsx",
+  );
+  triggerBlobDownload(blob, filename);
+};
+
+export const exportPayrollPDF = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.periodId) queryParams.append("periodId", params.periodId);
+  if (params.employeeId) queryParams.append("employeeId", params.employeeId);
+
+  const response = await fetch(
+    `${API_URL}/api/payroll/slips/export/pdf?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to export payroll (PDF)");
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(
+    response.headers.get("Content-Disposition"),
+    "paie.pdf",
+  );
+  triggerBlobDownload(blob, filename);
+};
+
+export const approvePayrollPeriod = async (id) => {
+  const response = await fetch(`${API_URL}/api/payroll/periods/${id}/approve`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to approve payroll period");
+  }
+
+  const data = await response.json();
+  return data.data || data;
+};
+
+export const markPayrollPeriodPaid = async (id) => {
+  const response = await fetch(`${API_URL}/api/payroll/periods/${id}/mark-paid`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to mark payroll period paid");
   }
 
   const data = await response.json();
