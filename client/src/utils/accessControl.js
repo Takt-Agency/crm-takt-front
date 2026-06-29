@@ -1,5 +1,9 @@
 const FUNCTIONALITY_DEFINITIONS = [
-  { key: "dashboard.view", label: "Voir le tableau de bord", group: "dashboard" },
+  {
+    key: "dashboard.view",
+    label: "Voir le tableau de bord",
+    group: "dashboard",
+  },
   { key: "clients.view", label: "Voir les clients", group: "clients" },
   { key: "clients.create", label: "Creer les clients", group: "clients" },
   { key: "clients.update", label: "Modifier les clients", group: "clients" },
@@ -7,24 +11,60 @@ const FUNCTIONALITY_DEFINITIONS = [
   { key: "clients.export", label: "Exporter les clients", group: "clients" },
   { key: "prospects.view", label: "Voir les prospects", group: "prospects" },
   { key: "prospects.create", label: "Creer les prospects", group: "prospects" },
-  { key: "prospects.update", label: "Modifier les prospects", group: "prospects" },
-  { key: "prospects.delete", label: "Supprimer les prospects", group: "prospects" },
+  {
+    key: "prospects.update",
+    label: "Modifier les prospects",
+    group: "prospects",
+  },
+  {
+    key: "prospects.delete",
+    label: "Supprimer les prospects",
+    group: "prospects",
+  },
   { key: "tasks.view", label: "Voir les taches", group: "tasks" },
   { key: "tasks.create", label: "Creer les taches", group: "tasks" },
   { key: "tasks.update", label: "Modifier les taches", group: "tasks" },
   { key: "tasks.delete", label: "Supprimer les taches", group: "tasks" },
   { key: "tasks.assign", label: "Affecter les taches", group: "tasks" },
-  { key: "tasks.status", label: "Changer le statut des taches", group: "tasks" },
-  { key: "invoices.view", label: "Voir les devis et factures", group: "invoices" },
-  { key: "invoices.create", label: "Creer les devis et factures", group: "invoices" },
-  { key: "invoices.update", label: "Modifier les devis et factures", group: "invoices" },
-  { key: "invoices.delete", label: "Supprimer les devis et factures", group: "invoices" },
+  {
+    key: "tasks.status",
+    label: "Changer le statut des taches",
+    group: "tasks",
+  },
+  {
+    key: "invoices.view",
+    label: "Voir les devis et factures",
+    group: "invoices",
+  },
+  {
+    key: "invoices.create",
+    label: "Creer les devis et factures",
+    group: "invoices",
+  },
+  {
+    key: "invoices.update",
+    label: "Modifier les devis et factures",
+    group: "invoices",
+  },
+  {
+    key: "invoices.delete",
+    label: "Supprimer les devis et factures",
+    group: "invoices",
+  },
   { key: "invoices.send", label: "Envoyer les devis", group: "invoices" },
   { key: "invoices.pdf", label: "Generer les PDF", group: "invoices" },
   { key: "finances.view", label: "Voir les finances", group: "finances" },
-  { key: "finances.reconcile", label: "Rapprochement bancaire", group: "finances" },
+  {
+    key: "finances.reconcile",
+    label: "Rapprochement bancaire",
+    group: "finances",
+  },
   { key: "finances.import", label: "Importer les releves", group: "finances" },
-  { key: "finances.decaissements", label: "Gerer les decaissements", group: "finances" },
+  {
+    key: "finances.decaissements",
+    label: "Gerer les decaissements",
+    group: "finances",
+  },
   { key: "hr.view", label: "Voir RH", group: "hr" },
   { key: "hr.create", label: "Creer les employes", group: "hr" },
   { key: "hr.update", label: "Modifier les employes", group: "hr" },
@@ -45,7 +85,9 @@ const FUNCTIONALITY_DEFINITIONS = [
   { key: "payroll.rules", label: "Gerer les regles de paie", group: "payroll" },
 ];
 
-const MODULE_PERMISSIONS = FUNCTIONALITY_DEFINITIONS.map((definition) => definition.key);
+const MODULE_PERMISSIONS = FUNCTIONALITY_DEFINITIONS.map(
+  (definition) => definition.key,
+);
 
 const ROLE_DEFAULT_PERMISSIONS = {
   super_admin: [...MODULE_PERMISSIONS],
@@ -155,7 +197,14 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "payroll.pay",
     "payroll.export",
   ],
-  employe: ["dashboard.view", "tasks.view", "tasks.status", "hr.view", "hr.leaves", "hr.attendance"],
+  employe: [
+    "dashboard.view",
+    "tasks.view",
+    "tasks.status",
+    "hr.view",
+    "hr.leaves",
+    "hr.attendance",
+  ],
 };
 
 const DEFAULT_PERMISSION_MODE = "role";
@@ -167,17 +216,27 @@ const normalizeRole = (role) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const normalizePermission = (permission) => String(permission || "").trim().toLowerCase();
+const normalizePermission = (permission) =>
+  String(permission || "")
+    .trim()
+    .toLowerCase();
 
 const sanitizePermissions = (permissions = []) => {
   if (!Array.isArray(permissions)) {
     return [];
   }
 
-  return [...new Set(permissions.map(normalizePermission).filter((permission) => MODULE_PERMISSIONS.includes(permission)))];
+  return [
+    ...new Set(
+      permissions
+        .map(normalizePermission)
+        .filter((permission) => MODULE_PERMISSIONS.includes(permission)),
+    ),
+  ];
 };
 
-const getDefaultPermissionsForRole = (role) => ROLE_DEFAULT_PERMISSIONS[normalizeRole(role)] || [];
+const getDefaultPermissionsForRole = (role) =>
+  ROLE_DEFAULT_PERMISSIONS[normalizeRole(role)] || [];
 
 const matchesPermissionGroup = (permission, group) =>
   permission === group || permission.startsWith(`${group}.`);

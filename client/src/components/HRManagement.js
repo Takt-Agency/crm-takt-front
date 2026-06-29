@@ -253,7 +253,9 @@ function HRManagement() {
       payrollPeriodForm.resetFields();
       await loadPayrollPeriods();
     } catch (error) {
-      message.error(error.message || "Erreur lors de la création de la période");
+      message.error(
+        error.message || "Erreur lors de la création de la période",
+      );
     }
   };
 
@@ -757,7 +759,8 @@ function HRManagement() {
     {
       title: "Période",
       key: "period",
-      render: (_, record) => `${String(record.month).padStart(2, "0")}/${record.year}`,
+      render: (_, record) =>
+        `${String(record.month).padStart(2, "0")}/${record.year}`,
     },
     {
       title: "Dates",
@@ -770,7 +773,15 @@ function HRManagement() {
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Tag color={status === "paid" ? "success" : status === "approved" ? "processing" : "default"}>
+        <Tag
+          color={
+            status === "paid"
+              ? "success"
+              : status === "approved"
+                ? "processing"
+                : "default"
+          }
+        >
           {status}
         </Tag>
       ),
@@ -780,10 +791,13 @@ function HRManagement() {
       key: "actions",
       render: (_, record) => (
         <div className="hr-actions">
-          <Button type="link" onClick={() => {
-            setActivePayrollPeriodId(record._id);
-            loadPayrollSlips(record._id);
-          }}>
+          <Button
+            type="link"
+            onClick={() => {
+              setActivePayrollPeriodId(record._id);
+              loadPayrollSlips(record._id);
+            }}
+          >
             Ouvrir
           </Button>
         </div>
@@ -847,7 +861,15 @@ function HRManagement() {
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Tag color={status === "paid" ? "success" : status === "approved" ? "processing" : "default"}>
+        <Tag
+          color={
+            status === "paid"
+              ? "success"
+              : status === "approved"
+                ? "processing"
+                : "default"
+          }
+        >
           {status}
         </Tag>
       ),
@@ -1014,12 +1036,8 @@ function HRManagement() {
               <Button onClick={onMarkPayrollPaid} disabled={!canManagePayroll}>
                 Marquer payée
               </Button>
-              <Button onClick={onExportPayrollExcel}>
-                Export Excel
-              </Button>
-              <Button onClick={onExportPayrollPDF}>
-                Export PDF
-              </Button>
+              <Button onClick={onExportPayrollExcel}>Export Excel</Button>
+              <Button onClick={onExportPayrollPDF}>Export PDF</Button>
             </div>
           </div>
 
@@ -1204,7 +1222,11 @@ function HRManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="salaryType" label="Type de salaire" initialValue="monthly">
+              <Form.Item
+                name="salaryType"
+                label="Type de salaire"
+                initialValue="monthly"
+              >
                 <Select>
                   <Option value="monthly">Mensuel</Option>
                   <Option value="hourly">Horaire</Option>

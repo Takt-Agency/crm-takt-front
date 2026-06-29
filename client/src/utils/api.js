@@ -1596,10 +1596,13 @@ export const downloadInvoicePDF = async (id) => {
 };
 
 export const convertQuoteToInvoice = async (id) => {
-  const response = await fetch(`${API_URL}/api/invoices/${id}/convert-to-invoice`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/invoices/${id}/convert-to-invoice`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -1625,12 +1628,15 @@ export const sendQuoteToClient = async (id, payload = {}) => {
 };
 
 export const getPublicQuoteByToken = async (token) => {
-  const response = await fetch(`${API_URL}/api/invoices/public/quote/${token}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${API_URL}/api/invoices/public/quote/${token}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -2189,13 +2195,16 @@ export const importBankStatementCsv = async ({ bankAccount, file }) => {
   formData.append("bankAccount", bankAccount);
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/api/finance/rapprochement/import/csv`, {
-    method: "POST",
-    headers: {
-      ...(token && { Authorization: `Bearer ${token}` }),
+  const response = await fetch(
+    `${API_URL}/api/finance/rapprochement/import/csv`,
+    {
+      method: "POST",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
     },
-    body: formData,
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -2211,13 +2220,16 @@ export const importBankStatementOfx = async ({ bankAccount, file }) => {
   formData.append("bankAccount", bankAccount);
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/api/finance/rapprochement/import/ofx`, {
-    method: "POST",
-    headers: {
-      ...(token && { Authorization: `Bearer ${token}` }),
+  const response = await fetch(
+    `${API_URL}/api/finance/rapprochement/import/ofx`,
+    {
+      method: "POST",
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
     },
-    body: formData,
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -2656,10 +2668,13 @@ export const approvePayrollPeriod = async (id) => {
 };
 
 export const markPayrollPeriodPaid = async (id) => {
-  const response = await fetch(`${API_URL}/api/payroll/periods/${id}/mark-paid`, {
-    method: "PATCH",
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/api/payroll/periods/${id}/mark-paid`,
+    {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();

@@ -15,9 +15,7 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { getMe, logout } from "../utils/api";
-import {
-  BRAND_LOGO_LIGHT,
-} from "../utils/brandAssets";
+import { BRAND_LOGO_LIGHT } from "../utils/brandAssets";
 import { canAccessModule, normalizeRole } from "../utils/accessControl";
 import ChatWidget from "./ChatWidget";
 import "./Dashboard.css";
@@ -289,7 +287,9 @@ const MainLayout = ({ children }) => {
                   </span>
                   {user?.role && (
                     <Tag
-                      color={ROLES[normalizeRole(user.role)]?.color || "default"}
+                      color={
+                        ROLES[normalizeRole(user.role)]?.color || "default"
+                      }
                       style={{ fontSize: "10px", padding: "0 4px", margin: 0 }}
                     >
                       {ROLES[normalizeRole(user.role)]?.label || user.role}

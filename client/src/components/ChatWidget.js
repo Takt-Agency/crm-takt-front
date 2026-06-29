@@ -6,7 +6,8 @@ import "./ChatWidget.css";
 
 const INITIAL_MESSAGE = {
   role: "assistant",
-  content: "Bonjour. Je suis votre assistant CRM. Posez vos questions sur la plateforme.",
+  content:
+    "Bonjour. Je suis votre assistant CRM. Posez vos questions sur la plateforme.",
 };
 
 const ChatWidget = () => {
@@ -32,7 +33,10 @@ const ChatWidget = () => {
       });
 
       const reply = data?.reply || "Je ne peux pas repondre pour le moment.";
-      setMessages((current) => [...current, { role: "assistant", content: reply }]);
+      setMessages((current) => [
+        ...current,
+        { role: "assistant", content: reply },
+      ]);
     } catch (error) {
       const errorMessage =
         error?.message || "Erreur lors de la reponse. Veuillez reessayer.";

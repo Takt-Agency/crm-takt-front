@@ -79,13 +79,26 @@ const ROLE_WIDGET_PRESETS = {
 };
 
 const ROLE_GROUPS = {
-  sales: ["super_admin", "administrateur", "manager", "commercial", "comptable"],
-  invoice: ["super_admin", "administrateur", "manager", "commercial", "comptable"],
+  sales: [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "commercial",
+    "comptable",
+  ],
+  invoice: [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "commercial",
+    "comptable",
+  ],
   finance: ["super_admin", "administrateur", "manager", "comptable"],
   hr: ["super_admin", "administrateur", "manager", "employe"],
 };
 
-const getWidgetsStorageKey = (role) => `dashboard.widgets.v2.${role || "default"}`;
+const getWidgetsStorageKey = (role) =>
+  `dashboard.widgets.v2.${role || "default"}`;
 
 const formatCurrency = (amount) =>
   new Intl.NumberFormat("fr-FR", {
@@ -98,7 +111,9 @@ const toNumber = (value) => Number(value || 0);
 
 const buildRevenueSeries = (invoices = []) => {
   const months = Array.from({ length: 6 }).map((_, index) =>
-    dayjs().subtract(5 - index, "month").startOf("month"),
+    dayjs()
+      .subtract(5 - index, "month")
+      .startOf("month"),
   );
 
   const paidInvoices = invoices.filter(
@@ -108,8 +123,10 @@ const buildRevenueSeries = (invoices = []) => {
   return months.map((month) => {
     const monthKey = month.format("YYYY-MM");
     const value = paidInvoices
-      .filter((invoice) =>
-        dayjs(invoice.paidDate || invoice.date).format("YYYY-MM") === monthKey,
+      .filter(
+        (invoice) =>
+          dayjs(invoice.paidDate || invoice.date).format("YYYY-MM") ===
+          monthKey,
       )
       .reduce((sum, invoice) => sum + toNumber(invoice.total), 0);
 
@@ -140,7 +157,8 @@ const computeAveragePaymentDelay = (invoices = []) => {
 };
 
 const dashboardRequestsByUser = (user) => {
-  const canAccessSales = canAccessModule(user, "clients") || canAccessModule(user, "prospects");
+  const canAccessSales =
+    canAccessModule(user, "clients") || canAccessModule(user, "prospects");
   const canAccessInvoice = canAccessModule(user, "invoices");
   const canAccessFinance = canAccessModule(user, "finances");
   const canAccessHR = canAccessModule(user, "hr");
@@ -229,7 +247,9 @@ function Dashboard() {
 
       const requests = dashboardRequestsByUser(me);
       const entries = Object.entries(requests);
-      const settled = await Promise.allSettled(entries.map(([, promise]) => promise));
+      const settled = await Promise.allSettled(
+        entries.map(([, promise]) => promise),
+      );
 
       const nextData = {
         clientStats: null,
@@ -279,7 +299,8 @@ function Dashboard() {
         (invoice) =>
           invoice?.type === "Facture" &&
           invoice?.status === "Payée" &&
-          dayjs(invoice.paidDate || invoice.date).format("YYYY-MM") === monthKey,
+          dayjs(invoice.paidDate || invoice.date).format("YYYY-MM") ===
+            monthKey,
       )
       .reduce((sum, invoice) => sum + toNumber(invoice.total), 0);
   }, [data.invoices]);
@@ -300,7 +321,8 @@ function Dashboard() {
     () =>
       data.projects.filter(
         (project) =>
-          !project.isArchived && !["Termine", "Annule"].includes(project.status),
+          !project.isArchived &&
+          !["Termine", "Annule"].includes(project.status),
       ).length,
     [data.projects],
   );
@@ -325,7 +347,10 @@ function Dashboard() {
     [data.invoices],
   );
 
-  const revenueSeries = useMemo(() => buildRevenueSeries(data.invoices), [data.invoices]);
+  const revenueSeries = useMemo(
+    () => buildRevenueSeries(data.invoices),
+    [data.invoices],
+  );
 
   const pipelineSeries = useMemo(() => {
     const stages = data.pipelineStats?.stages || [];
@@ -554,7 +579,9 @@ function Dashboard() {
           </h2>
           <p className="page-subtitle">
             KPIs consolidés: clients, pipeline, opérations, finances et RH.
-            {lastUpdated ? ` Dernière MAJ: ${dayjs(lastUpdated).format("HH:mm:ss")}` : ""}
+            {lastUpdated
+              ? ` Dernière MAJ: ${dayjs(lastUpdated).format("HH:mm:ss")}`
+              : ""}
           </p>
         </div>
         <Space wrap>
@@ -576,7 +603,14 @@ function Dashboard() {
         </Space>
       </div>
 
-      {error && <Alert style={{ marginBottom: 16 }} type="warning" showIcon title={error} />}
+      {error && (
+        <Alert
+          style={{ marginBottom: 16 }}
+          type="warning"
+          showIcon
+          title={error}
+        />
+      )}
 
       <Card className="dashboard-widget-config-card">
         <Space wrap>
@@ -619,7 +653,10 @@ function Dashboard() {
       {widgets.charts && (
         <Row gutter={[20, 20]} style={{ marginTop: "8px" }}>
           <Col xs={24} lg={12}>
-            <Card className="highlight-card" title="Revenus mensuels (6 derniers mois)">
+            <Card
+              className="highlight-card"
+              title="Revenus mensuels (6 derniers mois)"
+            >
               <div className="chart-box">
                 <ResponsiveContainer width="100%" height={260}>
                   <LineChart data={revenueSeries}>
@@ -650,13 +687,24 @@ function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="stage" />
                     <YAxis />
-                    <Tooltip formatter={(value, name) =>
-                      name === "value" ? formatCurrency(value) : value
-                    }
+                    <Tooltip
+                      formatter={(value, name) =>
+                        name === "value" ? formatCurrency(value) : value
+                      }
                     />
                     <Legend />
-                    <Bar dataKey="deals" name="Deals" fill="#37c6f5" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="value" name="Valeur" fill="#7082ff" radius={[6, 6, 0, 0]} />
+                    <Bar
+                      dataKey="deals"
+                      name="Deals"
+                      fill="#37c6f5"
+                      radius={[6, 6, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="value"
+                      name="Valeur"
+                      fill="#7082ff"
+                      radius={[6, 6, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -669,13 +717,28 @@ function Dashboard() {
         <Row gutter={[24, 24]} style={{ marginTop: "8px" }}>
           {widgets.alerts && (
             <Col xs={24} lg={8}>
-              <Card className="highlight-card" title="Alertes en temps réel" extra={<WarningOutlined />}>
+              <Card
+                className="highlight-card"
+                title="Alertes en temps réel"
+                extra={<WarningOutlined />}
+              >
                 {alertItems.length === 0 ? (
-                  <p className="task-subtext">Aucune alerte critique actuellement.</p>
+                  <p className="task-subtext">
+                    Aucune alerte critique actuellement.
+                  </p>
                 ) : (
-                  <Space orientation="vertical" size={8} style={{ width: "100%" }}>
+                  <Space
+                    orientation="vertical"
+                    size={8}
+                    style={{ width: "100%" }}
+                  >
                     {alertItems.map((item) => (
-                      <Alert key={item.key} type={item.type} title={item.text} showIcon />
+                      <Alert
+                        key={item.key}
+                        type={item.type}
+                        title={item.text}
+                        showIcon
+                      />
                     ))}
                   </Space>
                 )}
@@ -689,7 +752,9 @@ function Dashboard() {
                 <div className="summary-grid">
                   <div>
                     <p className="summary-label">Trésorerie globale</p>
-                    <h4>{formatCurrency(data.financeStats?.tresorerieGlobale)}</h4>
+                    <h4>
+                      {formatCurrency(data.financeStats?.tresorerieGlobale)}
+                    </h4>
                   </div>
                   <div>
                     <p className="summary-label">Factures en attente</p>
@@ -710,7 +775,11 @@ function Dashboard() {
 
           {widgets.tasks && (
             <Col xs={24} lg={8}>
-              <Card className="highlight-card" title="Tâches urgentes" extra={<FireOutlined />}>
+              <Card
+                className="highlight-card"
+                title="Tâches urgentes"
+                extra={<FireOutlined />}
+              >
                 <div className="summary-grid compact">
                   <div>
                     <p className="summary-label">En retard</p>

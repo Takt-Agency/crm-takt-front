@@ -25,9 +25,9 @@ const { Title, Text } = Typography;
 
 const STATUS_COLORS = {
   Brouillon: "default",
-  "Envoyée": "processing",
-  "Accepté": "success",
-  "Refusé": "error",
+  Envoyée: "processing",
+  Accepté: "success",
+  Refusé: "error",
 };
 
 function PublicQuoteAcceptance() {
@@ -157,13 +157,16 @@ function PublicQuoteAcceptance() {
           </Title>
           <Space>
             <Text strong>{quote.number}</Text>
-            <Tag color={STATUS_COLORS[quote.status] || "default"}>{quote.status}</Tag>
+            <Tag color={STATUS_COLORS[quote.status] || "default"}>
+              {quote.status}
+            </Tag>
           </Space>
           <Text>
             Date: {quote.date ? dayjs(quote.date).format("DD/MM/YYYY") : "-"}
           </Text>
           <Text>
-            Echeance: {quote.dueDate ? dayjs(quote.dueDate).format("DD/MM/YYYY") : "-"}
+            Echeance:{" "}
+            {quote.dueDate ? dayjs(quote.dueDate).format("DD/MM/YYYY") : "-"}
           </Text>
         </Space>
 
@@ -217,7 +220,11 @@ function PublicQuoteAcceptance() {
               onChange={(event) => setRejectionReason(event.target.value)}
             />
             <Space wrap>
-              <Button type="primary" loading={submitting} onClick={handleAccept}>
+              <Button
+                type="primary"
+                loading={submitting}
+                onClick={handleAccept}
+              >
                 Accepter le devis
               </Button>
               <Button danger loading={submitting} onClick={handleReject}>

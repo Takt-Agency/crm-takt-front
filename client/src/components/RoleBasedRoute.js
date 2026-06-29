@@ -49,7 +49,9 @@ function RoleBasedRoute({ children, allowedRoles, requiredPermission }) {
   }
 
   const userRole = normalizeRole(user.role);
-  const normalizedAllowedRoles = (allowedRoles || []).map((role) => normalizeRole(role));
+  const normalizedAllowedRoles = (allowedRoles || []).map((role) =>
+    normalizeRole(role),
+  );
 
   const hasRoleAccess =
     !allowedRoles || normalizedAllowedRoles.includes(userRole);

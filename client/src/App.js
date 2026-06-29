@@ -102,9 +102,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="clients"
-                  >
+                  <RoleBasedRoute requiredPermission="clients">
                     <Clients />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -116,9 +114,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="prospects"
-                  >
+                  <RoleBasedRoute requiredPermission="prospects">
                     <Pipeline />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -142,9 +138,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="invoices"
-                  >
+                  <RoleBasedRoute requiredPermission="invoices">
                     <Invoices />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -156,9 +150,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="invoices"
-                  >
+                  <RoleBasedRoute requiredPermission="invoices">
                     <InvoiceDetail />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -170,9 +162,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="finances"
-                  >
+                  <RoleBasedRoute requiredPermission="finances">
                     <Finance />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -184,9 +174,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    requiredPermission="hr"
-                  >
+                  <RoleBasedRoute requiredPermission="hr">
                     <HRManagement />
                   </RoleBasedRoute>
                 </MainLayout>

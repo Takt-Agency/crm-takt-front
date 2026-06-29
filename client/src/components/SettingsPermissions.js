@@ -65,7 +65,9 @@ function SettingsPermissions() {
       const data = await getAllUsers(params);
       setUsers(data.users || []);
     } catch (error) {
-      message.error(error.message || "Erreur lors du chargement des parametres");
+      message.error(
+        error.message || "Erreur lors du chargement des parametres",
+      );
     } finally {
       setLoading(false);
     }
@@ -135,7 +137,10 @@ function SettingsPermissions() {
       width: 150,
       render: (role) => {
         const normalizedRole = normalizeRole(role);
-        const roleInfo = ROLE_LABELS[normalizedRole] || { label: role, color: "default" };
+        const roleInfo = ROLE_LABELS[normalizedRole] || {
+          label: role,
+          color: "default",
+        };
         return <Tag color={roleInfo.color}>{roleInfo.label}</Tag>;
       },
     },
@@ -218,7 +223,11 @@ function SettingsPermissions() {
                   </Select.Option>
                 ))}
               </Select>
-              <Button type="primary" icon={<SearchOutlined />} onClick={loadUsers}>
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={loadUsers}
+              >
                 Chercher
               </Button>
               <Button
