@@ -24,7 +24,7 @@ function SignIn() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/signin", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || ""}/api/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

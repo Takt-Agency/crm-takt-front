@@ -15,6 +15,7 @@ import Profile from "./components/Profile";
 import UserManagement from "./components/UserManagement";
 import Clients from "./components/Clients";
 import Pipeline from "./components/Pipeline";
+import Projects from "./components/Projects";
 import Tasks from "./components/Tasks";
 import Invoices from "./components/Invoices";
 import InvoiceDetail from "./components/InvoiceDetail";
@@ -128,6 +129,18 @@ function App() {
                 <MainLayout>
                   <RoleBasedRoute requiredPermission="tasks">
                     <Tasks />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="projects">
+                    <Projects />
                   </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>

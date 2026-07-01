@@ -13,6 +13,7 @@ import {
   BellOutlined,
   SettingOutlined,
   LogoutOutlined,
+  ProjectOutlined,
 } from "@ant-design/icons";
 import { getMe, logout } from "../utils/api";
 import { BRAND_LOGO_LIGHT } from "../utils/brandAssets";
@@ -93,6 +94,7 @@ const MainLayout = ({ children }) => {
     if (path === "/clients") return "2";
     if (path === "/prospects") return "3";
     if (path === "/tasks") return "4";
+    if (path.startsWith("/projects")) return "11";
     if (path.startsWith("/invoices")) return "5";
     if (path.startsWith("/finances")) return "6";
     if (path.startsWith("/hr")) return "7";
@@ -146,6 +148,16 @@ const MainLayout = ({ children }) => {
             icon: <CheckSquareOutlined />,
             label: "Tâches",
             onClick: () => navigate("/tasks"),
+          },
+        ]
+      : []),
+    ...(user && canAccessModule(user, "projects")
+      ? [
+          {
+            key: "11",
+            icon: <ProjectOutlined />,
+            label: "Projets",
+            onClick: () => navigate("/projects"),
           },
         ]
       : []),
@@ -253,13 +265,6 @@ const MainLayout = ({ children }) => {
             <h1 className="header-title">Nexia Digital CRM</h1>
           </div>
           <div className="header-actions">
-            <Button
-              type="primary"
-              className="header-cta"
-              onClick={() => navigate("/invoices")}
-            >
-              Demander un devis
-            </Button>
             <Button
               type="text"
               icon={<BellOutlined />}

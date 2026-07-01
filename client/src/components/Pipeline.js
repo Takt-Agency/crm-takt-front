@@ -692,7 +692,7 @@ const Pipeline = () => {
         : []),
       {
         key: "create-project",
-        label: "Créer projet",
+        label: "Convertir en projet",
         icon: <PlusOutlined />,
         onClick: () => openCreateProjectFromDeal(deal),
       },
