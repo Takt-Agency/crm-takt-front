@@ -1,0 +1,129 @@
+/* Bilan comptable.
+   Aucune couleur en dur : tout passe par les jetons de styles/theme.css,
+   donc le module suit le mode clair et le mode sombre sans regle dediee. */
+
+.bilan-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bilan-barre {
+  width: 100%;
+}
+
+.bilan-avertissement {
+  margin-bottom: 0;
+}
+
+.bilan-carte {
+  height: 100%;
+}
+
+.bilan-section {
+  margin-top: 0;
+}
+
+/* Totaux : plus lourds que les postes qui les composent. */
+.bilan-ligne-forte {
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.85rem;
+}
+
+.bilan-montant-fort {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.bilan-montant-negatif {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+
+.bilan-montant-positif {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+/* Lignes d'appoint sous le compte de resultat (TVA, marge). */
+.bilan-complement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.bilan-flux {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bilan-flux-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bilan-flux-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.bilan-flux-valeur {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.bilan-icone-positive,
+.bilan-icone-negative,
+.bilan-icone-neutre {
+  font-size: 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bilan-icone-positive {
+  color: var(--accent-green);
+  background: var(--tint-green);
+}
+
+.bilan-icone-negative {
+  color: var(--accent-red);
+  background: var(--tint-red);
+}
+
+.bilan-icone-neutre {
+  color: var(--brand-cyan);
+  background: var(--tint-cyan);
+}
+
+.bilan-chargement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+@media (max-width: 768px) {
+  .bilan-flux {
+    gap: 14px;
+  }
+
+  .bilan-flux-valeur {
+    font-size: 1.1rem;
+  }
+}

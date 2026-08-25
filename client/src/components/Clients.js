@@ -21,6 +21,7 @@ import {
   Descriptions,
   Empty,
   Popconfirm,
+  Tabs,
 } from "antd";
 import {
   UserOutlined,
@@ -39,6 +40,8 @@ import {
   CloseCircleOutlined,
   QuestionCircleOutlined,
   MoreOutlined,
+  FolderOpenOutlined,
+  SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import {
   getAllClients,
@@ -56,9 +59,15 @@ import {
   getMe,
   getAllProjects,
 } from "../utils/api";
+import { useOngletUrl } from "../hooks/useOngletUrl";
 import dayjs from "dayjs";
 import "./Clients.css";
 import "./Dashboard.css";
+import { canAccessModule } from "../utils/accessControl";
+import {
+  ClientDocumentsDrawer,
+  ClientRgpdModal,
+} from "./ClientDocuments";
 
 const { Option } = Select;
 
@@ -72,6 +81,21 @@ const STATUTS = {
   },
 };
 
+// Un onglet par statut de client. Les compteurs affiches au-dessus
+// reprennent les memes categories.
+const ONGLETS = [
+  { key: "tous", label: "Tous" },
+  { key: "actifs", label: "Actifs" },
+  { key: "prospects", label: "Prospects" },
+  { key: "inactifs", label: "Inactifs" },
+];
+const STATUT_PAR_ONGLET = {
+  tous: undefined,
+  actifs: "Actif",
+  prospects: "Prospect",
+  inactifs: "Inactif",
+};
+
 function Clients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -81,11 +105,15 @@ function Clients() {
     total: 0,
   });
   const [filters, setFilters] = useState({});
+
+  const [ongletActif, choisirOnglet] = useOngletUrl(ONGLETS);
   const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [stats, setStats] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [documentsClient, setDocumentsClient] = useState(null);
+  const [rgpdClient, setRgpdClient] = useState(null);
   const [timelineVisible, setTimelineVisible] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [projectsManagerVisible, setProjectsManagerVisible] = useState(false);
@@ -102,9 +130,18 @@ function Clients() {
 
   useEffect(() => {
     fetchCurrentUser();
-    fetchClients();
     fetchStats();
   }, []);
+
+  // Le statut vient de l'onglet : tout changement recharge depuis la
+  // premiere page, une pagination heritee n'aurait plus de sens.
+  useEffect(() => {
+    const statut = STATUT_PAR_ONGLET[ongletActif];
+    const parametres = { ...filters, statut };
+    setFilters(parametres);
+    fetchClients(1, pagination.pageSize, parametres);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ongletActif]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -529,6 +566,24 @@ function Clients() {
           );
         }
 
+        if (currentUser && canAccessModule(currentUser, "clients.documents")) {
+          menuItems.push({
+            key: "documents",
+            icon: <FolderOpenOutlined />,
+            label: "Documents",
+            onClick: () => setDocumentsClient(record),
+          });
+        }
+
+        if (currentUser && canAccessModule(currentUser, "clients.rgpd")) {
+          menuItems.push({
+            key: "rgpd",
+            icon: <SafetyCertificateOutlined />,
+            label: "Données personnelles",
+            onClick: () => setRgpdClient(record),
+          });
+        }
+
         if (canManageProjects) {
           menuItems.push({
             key: "projects",
@@ -595,7 +650,7 @@ function Clients() {
                 title="Total Clients"
                 value={stats.totalClients}
                 prefix={<ShopOutlined />}
-                valueStyle={{ color: "#1890ff" }}
+                valueStyle={{ color: "var(--brand-cyan)" }}
               />
             </Card>
           </Col>
@@ -605,7 +660,7 @@ function Clients() {
                 title="Clients Actifs"
                 value={stats.actifClients}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: "#52c41a" }}
+                valueStyle={{ color: "var(--accent-green)" }}
               />
             </Card>
           </Col>
@@ -615,7 +670,7 @@ function Clients() {
                 title="Prospects (Clients)"
                 value={stats.prospectClients}
                 prefix={<QuestionCircleOutlined />}
-                valueStyle={{ color: "#faad14" }}
+                valueStyle={{ color: "var(--accent-yellow)" }}
               />
             </Card>
           </Col>
@@ -625,7 +680,7 @@ function Clients() {
                 title="Prospects Pipeline"
                 value={stats.pipelineProspects || 0}
                 prefix={<QuestionCircleOutlined />}
-                valueStyle={{ color: "#13c2c2" }}
+                valueStyle={{ color: "var(--accent-teal)" }}
               />
             </Card>
           </Col>
@@ -635,13 +690,20 @@ function Clients() {
                 title="CA Total"
                 value={stats.totalCA}
                 prefix={<EuroOutlined />}
-                valueStyle={{ color: "#722ed1" }}
+                valueStyle={{ color: "var(--accent-purple)" }}
                 suffix="€"
               />
             </Card>
           </Col>
         </Row>
       )}
+
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={ONGLETS}
+        className="module-tabs"
+      />
 
       {/* Search and Filter Bar */}
       <Card style={{ marginBottom: 16 }}>
@@ -1149,6 +1211,21 @@ function Clients() {
           </Form.Item>
         </Form>
       </Modal>
+
+      <ClientDocumentsDrawer
+        client={documentsClient}
+        ouvert={Boolean(documentsClient)}
+        onFermer={() => setDocumentsClient(null)}
+      />
+
+      <ClientRgpdModal
+        client={rgpdClient}
+        ouvert={Boolean(rgpdClient)}
+        onFermer={() => setRgpdClient(null)}
+        // L'effacement change la raison sociale affichee : la liste doit
+        // refleter le dossier anonymise immediatement.
+        onEfface={() => fetchClients()}
+      />
     </div>
   );
 }

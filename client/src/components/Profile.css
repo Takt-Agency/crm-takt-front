@@ -16,12 +16,12 @@
 
 .back-button {
   margin-bottom: 16px;
-  color: #0d7ca2;
+  color: var(--brand-cyan-strong);
   font-weight: 700;
 }
 
 .back-button:hover {
-  color: #0b91bf;
+  color: var(--brand-cyan);
 }
 
 .profile-header h2 {
@@ -40,7 +40,7 @@
 .profile-card {
   border-radius: 16px;
   border: 1px solid var(--border-gray);
-  box-shadow: 0 12px 24px rgba(12, 65, 84, 0.09);
+  box-shadow: var(--shadow-lg);
 }
 
 .profile-avatar-section {
@@ -87,13 +87,13 @@
 .profile-form .ant-input-password,
 .profile-form .ant-select-selector {
   border-radius: 10px !important;
-  border-color: #cfdee8 !important;
+  border-color: var(--border) !important;
 }
 
 .profile-form .ant-input-affix-wrapper-focused,
 .profile-form .ant-input:focus {
   border-color: var(--primary-blue) !important;
-  box-shadow: 0 0 0 4px rgba(55, 198, 245, 0.14) !important;
+  box-shadow: 0 0 0 4px var(--tint-cyan) !important;
 }
 
 .profile-submit-btn.ant-btn-primary {

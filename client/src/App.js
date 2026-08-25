@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import "./App.css";
 import SignIn from "./components/SignIn";
-import SignUp from "./components/SignUp";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
@@ -21,11 +20,21 @@ import Invoices from "./components/Invoices";
 import InvoiceDetail from "./components/InvoiceDetail";
 import Finance from "./components/Finance";
 import HRManagement from "./components/HRManagement";
+import Marketing from "./components/Marketing";
+import ServiceCatalog from "./components/ServiceCatalog";
+import Subscriptions from "./components/Subscriptions";
+import Purchases from "./components/Purchases";
+import Departments from "./components/Departments";
 import SettingsPermissions from "./components/SettingsPermissions";
 import PublicQuoteAcceptance from "./components/PublicQuoteAcceptance";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
+
+function RedirectionParDefaut() {
+  const connecte = Boolean(localStorage.getItem("token"));
+  return <Navigate to={connecte ? "/dashboard" : "/signin"} replace />;
+}
 
 function App() {
   return (
@@ -34,7 +43,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/signin" replace />} />
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
@@ -64,10 +72,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute
-                    allowedRoles={["super_admin"]}
-                    requiredPermission="users"
-                  >
+                  <RoleBasedRoute requiredPermission="users">
                     <UserManagement />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -79,7 +84,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute allowedRoles={["super_admin"]}>
+                  <RoleBasedRoute requiredPermission="users.permissions">
                     <SettingsPermissions />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -91,7 +96,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <RoleBasedRoute allowedRoles={["super_admin"]}>
+                  <RoleBasedRoute requiredPermission="users.permissions">
                     <SettingsPermissions />
                   </RoleBasedRoute>
                 </MainLayout>
@@ -194,6 +199,69 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/marketing"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="marketing">
+                    <Marketing />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/catalog"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="catalog">
+                    <ServiceCatalog />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscriptions"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="subscriptions">
+                    <Subscriptions />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/purchases"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="purchases">
+                    <Purchases />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/departments"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="departments">
+                    <Departments />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          {/* Toute adresse inconnue (dont l'ancien /signup) revient a un
+              ecran valide plutot qu'a une page blanche. */}
+          <Route path="*" element={<RedirectionParDefaut />} />
         </Routes>
       </div>
     </Router>

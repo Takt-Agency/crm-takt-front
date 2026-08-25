@@ -7,7 +7,7 @@
   border-radius: 50%;
   background: #25d366;
   border: none;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-lg);
   z-index: 1200;
 }
 
@@ -46,13 +46,13 @@
   border-radius: 14px;
   font-size: 13px;
   line-height: 1.4;
-  background: #f0f2f5;
-  color: #1f2933;
+  background: var(--surface-sunken);
+  color: var(--text);
 }
 
 .chat-message.user .chat-bubble {
-  background: #1677ff;
-  color: #ffffff;
+  background: var(--brand-cyan);
+  color: var(--text-on-brand);
 }
 
 .chat-input {

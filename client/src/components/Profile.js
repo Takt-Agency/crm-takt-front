@@ -41,7 +41,10 @@ import {
   CloseCircleOutlined,
   CopyOutlined,
   UploadOutlined,
+  BgColorsOutlined,
 } from "@ant-design/icons";
+import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "../theme/ThemeContext";
 import {
   getMe,
   updateProfile,
@@ -67,6 +70,24 @@ const ROLES = {
   manager: { label: "Chef de projet (Manager)", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
+  rh: { label: "Responsable RH", color: "cyan" },
+  directeur_general: { label: "Directeur général", color: "magenta" },
+  directeur_administratif_financier: {
+    label: "Directeur administratif et financier (DAF)",
+    color: "gold",
+  },
+  directeur_ressources_humaines: {
+    label: "Directeur des ressources humaines (DRH)",
+    color: "cyan",
+  },
+  directeur_commercial: { label: "Directeur commercial", color: "green" },
+  directeur_systemes_information: {
+    label: "Directeur des systèmes d'information (DSI)",
+    color: "blue",
+  },
+  directeur_production: { label: "Directeur de production", color: "purple" },
+  directeur_marketing: { label: "Directeur marketing", color: "magenta" },
+  gestionnaire_achat: { label: "Gestionnaire achat", color: "geekblue" },
   employe: { label: "Employé", color: "default" },
 };
 
@@ -76,6 +97,7 @@ function Profile() {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const { isDark } = useTheme();
   const [profilePicture, setProfilePicture] = useState("");
 
   // 2FA states
@@ -232,7 +254,7 @@ function Profile() {
   const handleRegenerateBackupCodes = () => {
     Modal.confirm({
       title: "Régénérer les codes de secours",
-      icon: <KeyOutlined style={{ color: "#faad14" }} />,
+      icon: <KeyOutlined style={{ color: "var(--accent-yellow)" }} />,
       content: (
         <>
           <Alert
@@ -450,7 +472,7 @@ function Profile() {
           />
         </div>
         <Menu
-          theme="light"
+          theme={isDark ? "dark" : "light"}
           mode="inline"
           selectedKeys={[]}
           items={menuItems}
@@ -677,6 +699,24 @@ function Profile() {
               </Form>
             </Card>
 
+            {/* Apparence */}
+            <Card
+              title={
+                <Space>
+                  <BgColorsOutlined />
+                  <span>Apparence</span>
+                </Space>
+              }
+              className="profile-card"
+              style={{ marginTop: 24 }}
+            >
+              <Text type="secondary" style={{ display: "block", marginBottom: 12 }}>
+                Choisissez le theme de l'interface. « Auto » suit le reglage de
+                votre systeme d'exploitation.
+              </Text>
+              <ThemeToggle variant="segmented" />
+            </Card>
+
             {/* 2FA Card */}
             <Card
               title={
@@ -844,7 +884,7 @@ function Profile() {
             <Text strong>Ou entrez manuellement cette clé:</Text>
             <div
               style={{
-                background: "#f5f5f5",
+                background: "var(--surface-sunken)",
                 padding: "12px",
                 borderRadius: "4px",
                 marginTop: "8px",
@@ -938,7 +978,7 @@ function Profile() {
                   A1B2C3D4
                 </p>
                 <p
-                  style={{ marginTop: 8, fontWeight: "bold", color: "#cf1322" }}
+                  style={{ marginTop: 8, fontWeight: "bold", color: "var(--accent-red)" }}
                 >
                   ⚠️ Ces codes ne seront affichés qu'une seule fois! Une fois
                   fermé, vous ne pourrez plus les voir.
@@ -951,7 +991,7 @@ function Profile() {
 
           <div
             style={{
-              background: "#f5f5f5",
+              background: "var(--surface-sunken)",
               padding: "20px",
               borderRadius: "8px",
             }}
@@ -967,7 +1007,7 @@ function Profile() {
                   background: "white",
                   marginBottom: index < backupCodes.length - 1 ? "8px" : "0",
                   borderRadius: "4px",
-                  border: "1px solid #d9d9d9",
+                  border: "1px solid var(--border)",
                 }}
               >
                 <span

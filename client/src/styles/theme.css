@@ -1,0 +1,208 @@
+/* ==========================================================================
+   Nexia Digital CRM — jetons de theme (source unique de verite)
+   --------------------------------------------------------------------------
+   Deux couches :
+
+   1. Jetons semantiques (--app-bg, --surface, --text, ...) : ce sont eux
+      qui changent entre le mode clair et le mode sombre. C'est ce qu'il
+      faut utiliser dans tout nouveau CSS.
+
+   2. Alias historiques (--nexia-*, --text-dark, --card-white, ...) : les
+      anciens noms definis autrefois dans Auth.css et Dashboard.css. Ils
+      pointent desormais vers les jetons semantiques, ce qui rend les 106
+      usages var() deja presents dans le projet compatibles avec le mode
+      sombre sans les modifier un par un.
+
+   Le mode est pilote par l'attribut data-theme sur <html>, pose par
+   ThemeContext.js. Il vaut toujours "light" ou "dark" (le mode "system"
+   est resolu en JS), donc le CSS n'a que deux etats a gerer.
+   ========================================================================== */
+
+:root {
+  /* --- Marque (identiques dans les deux themes sauf ajustement contraste) - */
+  --brand-pink: #ff1f8f;
+  --brand-pink-strong: #e5147d;
+  --brand-cyan: #37c6f5;
+  --brand-cyan-strong: #20b6e8;
+  --brand-indigo: #7082ff;
+  --accent-yellow: #fdb022;
+  --accent-green: #24b47e;
+  --accent-red: #e5484d;
+  --accent-teal: #13c2c2;
+  --accent-purple: #722ed1;
+
+  /* --- Surfaces --- */
+  --app-bg: #f4f9fc;
+  --app-bg-gradient: linear-gradient(180deg, #f8fcff 0%, #f2f8fc 100%);
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f3f9fc;
+  --surface-hover: #eef6fb;
+
+  /* --- Bordures --- */
+  --border: #d7e4ec;
+  --border-strong: #bed2de;
+
+  /* --- Texte --- */
+  --text: #0e3444;
+  --text-muted: #5f7986;
+  --text-subtle: #8ba3b0;
+  --text-on-brand: #ffffff;
+
+  /* --- Ombres --- */
+  --shadow-sm: 0 1px 2px rgba(12, 65, 84, 0.06);
+  --shadow-md: 0 4px 16px rgba(12, 65, 84, 0.08);
+  --shadow-lg: 0 12px 32px rgba(12, 65, 84, 0.12);
+
+  /* --- Teintes translucides (badges, survols, halos) --- */
+  --tint-pink: rgba(255, 31, 143, 0.1);
+  --tint-cyan: rgba(55, 198, 245, 0.12);
+  --tint-indigo: rgba(112, 130, 255, 0.12);
+  --tint-green: rgba(36, 180, 126, 0.12);
+  --tint-yellow: rgba(253, 176, 34, 0.14);
+  --tint-red: rgba(229, 72, 77, 0.12);
+
+  /* --- Barre laterale --- */
+  --sidebar-bg: rgba(255, 255, 255, 0.94);
+  --header-bg: rgba(255, 255, 255, 0.82);
+  --sidebar-border: #e4eef5;
+  --sidebar-item-active-bg: linear-gradient(135deg, #ff1f8f 0%, #ff5fae 100%);
+  --sidebar-item-active-text: #ffffff;
+  --sidebar-item-hover-bg: #f3f9fc;
+
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   Mode sombre
+   ========================================================================== */
+
+:root[data-theme="dark"] {
+  /* Marque legerement eclaircie : sur fond sombre, les teintes d'origine
+     tombent juste sous le seuil AA quand elles servent de couleur de texte. */
+  --brand-pink: #ff4da3;
+  --brand-pink-strong: #ff1f8f;
+  --brand-cyan: #4fd2ff;
+  --brand-cyan-strong: #37c6f5;
+  --brand-indigo: #8b9bff;
+  --accent-yellow: #ffc44d;
+  --accent-green: #34d399;
+  --accent-red: #ff6369;
+  --accent-teal: #36cfc9;
+  --accent-purple: #b37feb;
+
+  --app-bg: #0a1620;
+  --app-bg-gradient: linear-gradient(180deg, #0a1620 0%, #071119 100%);
+  --surface: #10222e;
+  --surface-raised: #162c3a;
+  --surface-sunken: #0c1b25;
+  --surface-hover: #1b3344;
+
+  --border: #223d4e;
+  --border-strong: #2e5468;
+
+  --text: #e8f3f9;
+  --text-muted: #93aebd;
+  --text-subtle: #6d8695;
+  --text-on-brand: #ffffff;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  --tint-pink: rgba(255, 77, 163, 0.16);
+  --tint-cyan: rgba(79, 210, 255, 0.16);
+  --tint-indigo: rgba(139, 155, 255, 0.16);
+  --tint-green: rgba(52, 211, 153, 0.16);
+  --tint-yellow: rgba(255, 196, 77, 0.18);
+  --tint-red: rgba(255, 99, 105, 0.16);
+
+  --sidebar-bg: rgba(12, 27, 37, 0.95);
+  --header-bg: rgba(16, 34, 46, 0.85);
+  --sidebar-border: #1c3242;
+  --sidebar-item-active-bg: linear-gradient(135deg, #ff1f8f 0%, #ff5fae 100%);
+  --sidebar-item-active-text: #ffffff;
+  --sidebar-item-hover-bg: #1b3344;
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   Alias historiques — ne pas utiliser dans du nouveau code.
+   Ils existent pour que le CSS deja ecrit suive le theme sans reecriture.
+   ========================================================================== */
+
+:root {
+  /* ex-Auth.css */
+  --nexia-pink: var(--brand-pink);
+  --nexia-cyan: var(--brand-cyan);
+  --nexia-indigo: var(--brand-indigo);
+  --nexia-ink: var(--text);
+  --nexia-muted: var(--text-muted);
+  --nexia-line: var(--border);
+  --nexia-soft: var(--surface-sunken);
+  --nexia-white: var(--surface);
+
+  /* ex-Dashboard.css */
+  --primary-blue: var(--brand-cyan);
+  --blue-hover: var(--brand-cyan-strong);
+  --pink-accent: var(--brand-pink);
+  --indigo-accent: var(--brand-indigo);
+  --yellow-accent: var(--accent-yellow);
+  --green-accent: var(--accent-green);
+  --cyan-accent: var(--brand-cyan);
+  --background-gray: var(--app-bg);
+  --card-white: var(--surface);
+  --text-dark: var(--text);
+  --text-gray: var(--text-muted);
+  --border-gray: var(--border);
+}
+
+/* ==========================================================================
+   Pas de transition sur le changement de theme
+   --------------------------------------------------------------------------
+   Choix deliberé : le theme bascule d'un bloc, sans fondu.
+   Ant Design ne transitionne pas ses propres surfaces au changement
+   d'algorithme (il regenere ses feuilles de style, ce qui applique les
+   nouvelles couleurs instantanement). Animer uniquement le CSS maison
+   donnerait un basculement incoherent : les tableaux, modales et cartes
+   antd changeraient d'un coup pendant que le fond de page et la barre
+   laterale fondraient sur 200 ms.
+   ========================================================================== */
+
+/* ==========================================================================
+   Impression
+   Une facture ou un devis imprime en mode sombre sortirait en page noire.
+   On reforce donc les jetons clairs a l'impression, quel que soit le theme
+   actif a l'ecran. Cela couvre toute l'application, pas seulement les devis.
+   ========================================================================== */
+
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --app-bg: #ffffff;
+    --app-bg-gradient: none;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-sunken: #f8f9fa;
+    --surface-hover: #f8f9fa;
+    --border: #d9d9d9;
+    --border-strong: #bfbfbf;
+    --text: #2c3e50;
+    --text-muted: #495057;
+    --text-subtle: #7f8c8d;
+    --brand-pink: #ff1f8f;
+    --brand-cyan: #3498db;
+    --brand-cyan-strong: #2980b9;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    color-scheme: light;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #2c3e50 !important;
+  }
+}

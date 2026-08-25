@@ -1,0 +1,40 @@
+/* Documents clients et conformite RGPD — jetons semantiques du theme. */
+
+.documents-resume {
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-subtle);
+  border-bottom: 1px solid var(--border);
+}
+
+.documents-icone {
+  font-size: 20px;
+  color: var(--brand-cyan-strong);
+}
+
+.documents-nom {
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.documents-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.rgpd-attente {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.rgpd-obstacles {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.rgpd-obstacles li {
+  margin-bottom: 3px;
+}

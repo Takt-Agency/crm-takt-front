@@ -1,31 +1,16 @@
-/* Shared CRM Theme - Nexia inspired, light mode only */
-
-:root {
-  --primary-blue: #37c6f5;
-  --blue-hover: #20b6e8;
-  --pink-accent: #ff1f8f;
-  --indigo-accent: #7082ff;
-  --yellow-accent: #fdb022;
-  --green-accent: #24b47e;
-  --cyan-accent: #37c6f5;
-  --background-gray: #f4f9fc;
-  --card-white: #ffffff;
-  --text-dark: #103b4c;
-  --text-gray: #5f7986;
-  --border-gray: #d7e4ec;
-}
+/* Theme partage du CRM - Nexia. Couleurs pilotees par styles/theme.css */
 
 .dashboard-layout {
   min-height: 100vh;
   text-align: left;
-  background: radial-gradient(circle at 0% 0%, rgba(55, 198, 245, 0.13), transparent 40%),
-    linear-gradient(180deg, #f9fdff 0%, #f2f8fc 100%);
+  background: radial-gradient(circle at 0% 0%, var(--tint-cyan), transparent 40%),
+    var(--app-bg-gradient);
 }
 
 .dashboard-sider {
-  background: rgba(255, 255, 255, 0.94) !important;
+  background: var(--sidebar-bg) !important;
   border-right: 1px solid var(--border-gray);
-  box-shadow: 0 14px 30px rgba(11, 60, 78, 0.08);
+  box-shadow: var(--shadow-lg);
 }
 
 .dashboard-sider .ant-layout-sider-children {
@@ -54,7 +39,7 @@
   height: 40px;
   border-radius: 11px;
   background: linear-gradient(130deg, var(--pink-accent), var(--indigo-accent) 55%, var(--primary-blue));
-  color: #fff;
+  color: var(--text-on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,7 +58,7 @@
 
 .menu-section-title {
   padding: 12px 16px;
-  color: #819aa7;
+  color: var(--text-subtle);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -89,22 +74,22 @@
   margin: 5px 10px;
   border-radius: 10px;
   font-weight: 600;
-  color: #355b69;
+  color: var(--text-muted);
 }
 
 .dashboard-menu .ant-menu-item:hover {
   color: var(--text-dark);
-  background: #ecf6fb;
+  background: var(--sidebar-item-hover-bg);
 }
 
 .dashboard-menu .ant-menu-item-selected {
   background: linear-gradient(95deg, var(--pink-accent), #ff44aa 54%, #ff6cc7) !important;
-  color: #fff !important;
+  color: var(--text-on-brand) !important;
   box-shadow: 0 10px 20px rgba(255, 31, 143, 0.24);
 }
 
 .dashboard-menu .ant-menu-item-selected .anticon {
-  color: #fff !important;
+  color: var(--text-on-brand) !important;
 }
 
 .sidebar-footer {
@@ -114,14 +99,14 @@
 }
 
 .dashboard-header {
-  background: rgba(255, 255, 255, 0.82) !important;
+  background: var(--header-bg) !important;
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border-gray);
   padding: 0 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 8px 20px rgba(10, 47, 61, 0.06);
+  box-shadow: var(--shadow-sm);
   min-height: 68px;
 }
 
@@ -178,12 +163,12 @@
 }
 
 .header-icon-btn {
-  color: #5d7a87;
+  color: var(--text-muted);
   border-radius: 10px;
 }
 
 .header-icon-btn:hover {
-  background: #ecf6fb !important;
+  background: var(--surface-hover) !important;
   color: var(--text-dark) !important;
 }
 
@@ -198,7 +183,7 @@
 }
 
 .user-info-wrapper:hover {
-  background: #eef6fb;
+  background: var(--surface-hover);
 }
 
 .user-avatar {
@@ -298,7 +283,7 @@
 .mini-chart-bar-track {
   height: 11px;
   border-radius: 999px;
-  background: #e8f2f8;
+  background: var(--surface-sunken);
   overflow: hidden;
 }
 
@@ -351,9 +336,9 @@
 
 .tech-pill.ant-tag {
   border-radius: 999px;
-  border: 1px solid #cbe1ec;
-  background: #fff;
-  color: #355b69;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
   margin-inline-end: 0;
   padding: 6px 13px;
   font-weight: 700;
@@ -361,8 +346,8 @@
 
 .kpi-card {
   border-radius: 14px;
-  border: 1px solid #deebf2;
-  box-shadow: 0 8px 20px rgba(12, 65, 84, 0.08);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
 }
 
 .kpi-card .ant-card-body {
@@ -379,7 +364,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text-on-brand);
   font-size: 1.2rem;
   background: linear-gradient(132deg, var(--pink-accent), var(--indigo-accent) 55%, var(--primary-blue));
   box-shadow: 0 10px 18px rgba(111, 130, 255, 0.22);
@@ -411,9 +396,9 @@
 
 .highlight-card {
   border-radius: 16px;
-  border: 1px solid #deebf2;
-  box-shadow: 0 8px 22px rgba(12, 65, 84, 0.08);
-  background: linear-gradient(180deg, #ffffff, #f4fbff);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(180deg, var(--surface), var(--surface-sunken));
 }
 
 .highlight-card h3 {
@@ -433,7 +418,7 @@
   margin-top: 16px;
   border-radius: 12px;
   height: 40px;
-  border-color: #c8dbe6;
+  border-color: var(--border-strong);
   color: var(--text-dark);
   font-weight: 700;
 }
@@ -458,8 +443,8 @@
 /* Shared controls for all pages under MainLayout */
 .dashboard-layout .ant-card {
   border-radius: 14px;
-  border-color: #deebf2;
-  box-shadow: 0 8px 20px rgba(12, 65, 84, 0.08);
+  border-color: var(--border);
+  box-shadow: var(--shadow-md);
 }
 
 .dashboard-layout .ant-card-head-title {
@@ -476,8 +461,8 @@
 
 .dashboard-layout .ant-btn-default {
   border-radius: 10px;
-  border-color: #c8dbe6;
-  color: #315664;
+  border-color: var(--border-strong);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -488,7 +473,7 @@
 .dashboard-layout .ant-input-number,
 .dashboard-layout .ant-input-number-input {
   border-radius: 10px !important;
-  border-color: #cfdee8 !important;
+  border-color: var(--border) !important;
 }
 
 .dashboard-layout .ant-input-affix-wrapper:focus,
@@ -498,7 +483,7 @@
 .dashboard-layout .ant-picker-focused,
 .dashboard-layout .ant-input-number-focused {
   border-color: var(--primary-blue) !important;
-  box-shadow: 0 0 0 4px rgba(55, 198, 245, 0.14) !important;
+  box-shadow: 0 0 0 4px var(--tint-cyan) !important;
 }
 
 .dashboard-layout .ant-table {
@@ -507,14 +492,18 @@
 }
 
 .dashboard-layout .ant-table-thead > tr > th {
-  background: #edf7fc;
-  color: #3c6270;
+  /* Pas de background ici : Ant Design pose la sienne sur exactement le meme
+     selecteur, a specificite identique (0,2,2). Les deux regles se disputaient
+     la propriete selon l'ordre d'injection, et la valeur restait figee sur
+     l'ancien theme au basculement. La couleur de fond vient donc du jeton
+     Table.headerBg configure dans ThemeContext, source unique. */
+  color: var(--text-muted);
   font-weight: 700;
-  border-bottom: 1px solid #d8e7f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .dashboard-layout .ant-table-tbody > tr:hover > td {
-  background: #f5fbff !important;
+  background: var(--surface-hover) !important;
 }
 
 .dashboard-layout .ant-modal-content {
@@ -523,12 +512,12 @@
 }
 
 .dashboard-layout .ant-modal-header {
-  border-bottom: 1px solid #deebf2;
-  background: #f5fbff;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
 }
 
 .dashboard-layout .ant-modal-footer {
-  border-top: 1px solid #deebf2;
+  border-top: 1px solid var(--border);
 }
 
 @media (max-width: 992px) {
@@ -570,4 +559,19 @@
     font-size: 2.5rem;
   }
 
+}
+
+/* Barre d'onglets de module — le decoupage inaugure par le module RH,
+   generalise. Les onglets sont pilotes par l'URL (?tab=), la barre laterale
+   pointant directement sur un volet. */
+.module-tabs {
+  margin-bottom: 20px;
+}
+
+.module-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+.module-tabs .ant-tabs-nav::before {
+  border-bottom-color: var(--border);
 }

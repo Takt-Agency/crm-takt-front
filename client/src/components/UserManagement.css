@@ -12,7 +12,7 @@
 .user-management-content .ant-card {
   border-radius: 14px;
   border: 1px solid var(--border-gray);
-  box-shadow: 0 10px 22px rgba(12, 65, 84, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .user-management-content .ant-statistic-title {
@@ -27,13 +27,13 @@
 }
 
 .user-management-content .ant-table-thead > tr > th {
-  background: #edf7fc;
-  color: #3c6270;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
   font-weight: 700;
 }
 
 .user-management-content .ant-table-tbody > tr:hover > td {
-  background: #f5fbff;
+  background: var(--surface-hover);
 }
 
 .user-management-content .ant-tag {

@@ -13,6 +13,7 @@ import {
   InputNumber,
   Popconfirm,
   Tooltip,
+  Tabs,
 } from "antd";
 import {
   ProjectOutlined,
@@ -29,6 +30,7 @@ import {
   deleteProjectById,
   getAllClients,
 } from "../utils/api";
+import { useOngletUrl, cleOnglet } from "../hooks/useOngletUrl";
 import "./Dashboard.css";
 
 const { Option } = Select;
@@ -58,12 +60,27 @@ const formatCurrency = (amount) =>
     maximumFractionDigits: 0,
   }).format(Number(amount || 0));
 
+// Un onglet par etat de projet : libelles et valeurs viennent des tables
+// deja definies plus haut, aucune liste n'est dupliquee.
+const ONGLETS = [
+  { key: "tous", label: "Tous" },
+  ...STATUSES.map((statut) => ({
+    key: cleOnglet(statut),
+    label: STATUS_LABELS[statut],
+  })),
+];
+const STATUT_PAR_ONGLET = Object.fromEntries([
+  ["tous", ""],
+  ...STATUSES.map((statut) => [cleOnglet(statut), statut]),
+]);
+
 function Projects() {
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [ongletActif, choisirOnglet] = useOngletUrl(ONGLETS);
+  const statusFilter = STATUT_PAR_ONGLET[ongletActif];
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [form] = Form.useForm();
@@ -178,7 +195,7 @@ function Projects() {
       render: (name, record) => (
         <Space direction="vertical" size={0}>
           <strong>{name}</strong>
-          {record.code && <span style={{ color: "#999", fontSize: 12 }}>{record.code}</span>}
+          {record.code && <span style={{ color: "var(--text-subtle)", fontSize: 12 }}>{record.code}</span>}
         </Space>
       ),
     },
@@ -249,6 +266,13 @@ function Projects() {
         </Button>
       </div>
 
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={ONGLETS}
+        className="module-tabs"
+      />
+
       <Space style={{ marginBottom: 16 }} wrap>
         <Input.Search
           placeholder="Rechercher un projet..."
@@ -257,18 +281,6 @@ function Projects() {
           style={{ width: 280 }}
           onSearch={handleSearch}
         />
-        <Select
-          value={statusFilter}
-          onChange={setStatusFilter}
-          style={{ width: 180 }}
-        >
-          <Option value="">Tous les statuts</Option>
-          {STATUSES.map((status) => (
-            <Option key={status} value={status}>
-              {STATUS_LABELS[status]}
-            </Option>
-          ))}
-        </Select>
       </Space>
 
       <Table

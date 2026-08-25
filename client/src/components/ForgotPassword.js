@@ -4,6 +4,7 @@ import { Form, Input, Button, Alert, message, Result } from "antd";
 import { ArrowLeftOutlined, MailOutlined } from "@ant-design/icons";
 import { forgotPassword } from "../utils/api";
 import { BRAND_LOGO_DARK, BRAND_LOGO_MARK } from "../utils/brandAssets";
+import ThemeToggle from "./ThemeToggle";
 import "./Auth.css";
 
 function ForgotPassword() {
@@ -31,6 +32,7 @@ function ForgotPassword() {
   if (success) {
     return (
       <div className="auth-container">
+        <ThemeToggle className="theme-toggle-floating" />
         <div className="auth-card">
           <Result
             status="success"
@@ -76,6 +78,7 @@ function ForgotPassword() {
 
   return (
     <div className="auth-container">
+      <ThemeToggle className="theme-toggle-floating" />
       <div className="auth-card">
         <div className="auth-header">
           <div className="logo">

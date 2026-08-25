@@ -1,0 +1,48 @@
+/* Devises et taux de change — jetons semantiques du theme. */
+
+.devise-code {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.devise-nom {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.devise-meta {
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+
+/* Le taux se lit chiffre a chiffre : une chasse fixe evite de confondre
+   0,092 et 0,92. */
+.devise-taux {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.devise-exposition {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+}
+
+.devise-exposition-titre {
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+}

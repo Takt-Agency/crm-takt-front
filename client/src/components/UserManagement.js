@@ -16,6 +16,7 @@ import {
   Statistic,
   Avatar,
   Checkbox,
+  Tabs,
 } from "antd";
 import {
   UserOutlined,
@@ -38,7 +39,9 @@ import {
   toggleUserStatus,
   getUserStats,
   getMe,
+  getDepartments,
 } from "../utils/api";
+import { useOngletUrl } from "../hooks/useOngletUrl";
 import {
   MODULE_PERMISSIONS,
   getDefaultPermissionsForRole,
@@ -54,6 +57,24 @@ const ROLES = {
   manager: { label: "Chef de projet (Manager)", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
+  rh: { label: "Responsable RH", color: "cyan" },
+  directeur_general: { label: "Directeur général", color: "magenta" },
+  directeur_administratif_financier: {
+    label: "Directeur administratif et financier (DAF)",
+    color: "gold",
+  },
+  directeur_ressources_humaines: {
+    label: "Directeur des ressources humaines (DRH)",
+    color: "cyan",
+  },
+  directeur_commercial: { label: "Directeur commercial", color: "green" },
+  directeur_systemes_information: {
+    label: "Directeur des systèmes d'information (DSI)",
+    color: "blue",
+  },
+  directeur_production: { label: "Directeur de production", color: "purple" },
+  directeur_marketing: { label: "Directeur marketing", color: "magenta" },
+  gestionnaire_achat: { label: "Gestionnaire achat", color: "geekblue" },
   employe: { label: "Employé", color: "default" },
 };
 
@@ -67,6 +88,21 @@ const PERMISSION_OPTIONS = [
   { value: "users", label: "Utilisateurs" },
 ].filter((option) => MODULE_PERMISSIONS.includes(option.value));
 
+// Les onglets reprennent exactement les compteurs affiches au-dessus :
+// ce que l'on denombre, on peut le consulter.
+const ONGLETS = [
+  { key: "tous", label: "Tous" },
+  { key: "actifs", label: "Actifs" },
+  { key: "inactifs", label: "Inactifs" },
+  { key: "administrateurs", label: "Administrateurs" },
+];
+const FILTRE_PAR_ONGLET = {
+  tous: {},
+  actifs: { isActive: "true" },
+  inactifs: { isActive: "false" },
+  administrateurs: { role: "administrateur" },
+};
+
 function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,17 +112,25 @@ function UserManagement() {
     total: 0,
   });
   const [filters, setFilters] = useState({});
+  const [ongletActif, choisirOnglet] = useOngletUrl(ONGLETS);
   const [searchText, setSearchText] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [stats, setStats] = useState(null);
+  const [departements, setDepartements] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchCurrentUser();
-    fetchUsers();
     fetchStats();
+    // Le rattachement doit designer un departement reel : la liste vient donc
+    // de la collection, jamais d'une saisie libre.
+    getDepartments({ actif: true })
+      .then(setDepartements)
+      .catch(() => {});
+    // Le chargement de la liste revient a l'effet suivant, qui s'execute
+    // aussi au montage : l'appeler ici ferait un doublon.
   }, []);
 
   const fetchCurrentUser = async () => {
@@ -105,6 +149,7 @@ function UserManagement() {
         page,
         limit: pageSize,
         ...filters,
+        ...FILTRE_PAR_ONGLET[ongletActif],
         ...(searchText && { search: searchText }),
       };
       const data = await getAllUsers(params);
@@ -139,6 +184,13 @@ function UserManagement() {
   const handleSearch = () => {
     fetchUsers(1, pagination.pageSize);
   };
+
+  // Changer d'onglet recharge depuis la premiere page : conserver la
+  // pagination d'une autre selection n'aurait pas de sens.
+  useEffect(() => {
+    fetchUsers(1, pagination.pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ongletActif]);
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -235,11 +287,11 @@ function UserManagement() {
         <Space>
           <Avatar
             icon={<UserOutlined />}
-            style={{ backgroundColor: "#1890ff" }}
+            style={{ backgroundColor: "var(--brand-cyan)" }}
           />
           <div>
             <div style={{ fontWeight: 500 }}>{text}</div>
-            <div style={{ fontSize: "12px", color: "#999" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
               {record.email}
             </div>
           </div>
@@ -357,7 +409,7 @@ function UserManagement() {
                 title="Total Utilisateurs"
                 value={stats.totalUsers}
                 prefix={<TeamOutlined />}
-                valueStyle={{ color: "#1890ff" }}
+                valueStyle={{ color: "var(--brand-cyan)" }}
               />
             </Card>
           </Col>
@@ -367,7 +419,7 @@ function UserManagement() {
                 title="Utilisateurs Actifs"
                 value={stats.activeUsers}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: "#52c41a" }}
+                valueStyle={{ color: "var(--accent-green)" }}
               />
             </Card>
           </Col>
@@ -377,7 +429,7 @@ function UserManagement() {
                 title="Utilisateurs Inactifs"
                 value={stats.inactiveUsers}
                 prefix={<CloseCircleOutlined />}
-                valueStyle={{ color: "#ff4d4f" }}
+                valueStyle={{ color: "var(--accent-red)" }}
               />
             </Card>
           </Col>
@@ -390,12 +442,19 @@ function UserManagement() {
                   (stats.roleCount?.administrateur || 0)
                 }
                 prefix={<UserAddOutlined />}
-                valueStyle={{ color: "#fa8c16" }}
+                valueStyle={{ color: "var(--accent-yellow)" }}
               />
             </Card>
           </Col>
         </Row>
       )}
+
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={ONGLETS}
+        className="module-tabs"
+      />
 
       {/* Filters and Actions */}
       <Card style={{ marginBottom: 16 }}>
@@ -428,15 +487,6 @@ function UserManagement() {
                   {ROLES[role].label}
                 </Option>
               ))}
-            </Select>
-            <Select
-              placeholder="Statut"
-              style={{ width: 150 }}
-              allowClear
-              onChange={(value) => handleFilterChange("isActive", value)}
-            >
-              <Option value="true">Actif</Option>
-              <Option value="false">Inactif</Option>
             </Select>
             <Button
               icon={<SearchOutlined />}
@@ -559,8 +609,25 @@ function UserManagement() {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="department" label="Département">
-                <Input placeholder="Ventes, IT, RH..." />
+              <Form.Item
+                name="department"
+                label="Département"
+                rules={[
+                  { required: true, message: "Le département est obligatoire" },
+                ]}
+                extra="Détermine qui approuve ses demandes d'achat."
+              >
+                <Select
+                  placeholder="Choisir le département"
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {departements.map((d) => (
+                    <Option key={d._id} value={d.nom}>
+                      {d.code} — {d.nom}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             </Col>
           </Row>

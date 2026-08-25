@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { verifyTwoFactorLogin, completeTwoFactorLogin } from "../utils/api";
 import { BRAND_LOGO_DARK, BRAND_LOGO_MARK } from "../utils/brandAssets";
+import ThemeToggle from "./ThemeToggle";
 import "./Auth.css";
 
 function SignIn() {
@@ -119,6 +120,7 @@ function SignIn() {
 
   return (
     <div className="auth-container">
+      <ThemeToggle className="theme-toggle-floating" />
       <div className="auth-shell">
         <div className="auth-card">
           <div className="auth-header">
@@ -288,11 +290,8 @@ function SignIn() {
           )}
 
           <div className="auth-footer">
-            <p>
-              Vous n'avez pas de compte ?{" "}
-              <Link to="/signup" className="link-primary">
-                Creer un compte
-              </Link>
+            <p className="auth-note">
+              Les comptes sont créés par un administrateur.
             </p>
           </div>
         </div>

@@ -37,6 +37,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "./Dashboard.css";
+import BilanComptable from "./BilanComptable";
 import "./Finance.css";
 import {
   getFinanceStats,
@@ -76,6 +77,7 @@ import {
   getAllInvoices,
   getMe,
 } from "../utils/api";
+import { useOngletUrl } from "../hooks/useOngletUrl";
 
 const { Option } = Select;
 
@@ -339,7 +341,7 @@ function Finance() {
       render: (_, record) => (
         <div>
           <strong>{record.name}</strong>
-          <div style={{ color: "#8c8c8c", fontSize: 12 }}>{record.bankName}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{record.bankName}</div>
         </div>
       ),
     },
@@ -631,7 +633,7 @@ function Finance() {
       render: (value) => {
         const amount = Number(value || 0);
         return (
-          <span style={{ color: amount >= 0 ? "#52c41a" : "#ff4d4f" }}>
+          <span style={{ color: amount >= 0 ? "var(--accent-green)" : "var(--accent-red)" }}>
             {amount.toFixed(2)} €
           </span>
         );
@@ -759,7 +761,7 @@ function Finance() {
       render: (_, record) => (
         <div>
           <strong>{record.name}</strong>
-          <div style={{ color: "#8c8c8c", fontSize: 12 }}>{record.contactPerson || "-"}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{record.contactPerson || "-"}</div>
         </div>
       ),
     },
@@ -1295,7 +1297,7 @@ function Finance() {
   };
 
   const paymentProcessingTab = {
-    key: "4",
+    key: "paiements",
     label: "Paiements à traiter",
     children: (
       <Card>
@@ -1315,7 +1317,7 @@ function Finance() {
                       {alert.priority}
                     </Tag>
                     <strong>{alert.orderNumber}</strong> - {alert.supplier?.name || "N/A"}
-                    <div style={{ color: "#595959", marginTop: 4 }}>
+                    <div style={{ color: "var(--text-muted)", marginTop: 4 }}>
                       Reste {Number(alert.remainingAmount || 0).toFixed(2)} € • Échéance {alert.dueDate ? dayjs(alert.dueDate).format("DD/MM/YYYY") : "-"}
                     </div>
                   </div>
@@ -1332,7 +1334,12 @@ function Finance() {
 
   const tabItems = [
     {
-      key: "1",
+      key: "bilan",
+      label: "Bilan comptable",
+      children: <BilanComptable />,
+    },
+    {
+      key: "comptes",
       label: "Comptes bancaires",
       children: (
         <Card>
@@ -1354,7 +1361,7 @@ function Finance() {
       ),
     },
     {
-      key: "2",
+      key: "fournisseurs",
       label: "Fournisseurs",
       children: (
         <Card>
@@ -1376,7 +1383,7 @@ function Finance() {
       ),
     },
     {
-      key: "3",
+      key: "commandes",
       label: "Commandes fournisseurs",
       children: (
         <Card>
@@ -1404,7 +1411,7 @@ function Finance() {
     },
     ...(canManageSupplierPayments ? [paymentProcessingTab] : []),
     {
-      key: "4b",
+      key: "rapprochement",
       label: "Rapprochement bancaire",
       children: (
         <Card>
@@ -1476,7 +1483,7 @@ function Finance() {
       ),
     },
     {
-      key: "5",
+      key: "encaissements",
       label: "Encaissements",
       children: (
         <Card>
@@ -1498,7 +1505,7 @@ function Finance() {
       ),
     },
     {
-      key: "6",
+      key: "decaissements",
       label: "Décaissements",
       children: (
         <Card>
@@ -1522,7 +1529,7 @@ function Finance() {
       ),
     },
     {
-      key: "7",
+      key: "tresorerie",
       label: "Trésorerie",
       children: (
         <Card>
@@ -1544,6 +1551,8 @@ function Finance() {
       ),
     },
   ];
+
+  const [ongletActif, choisirOnglet] = useOngletUrl(tabItems);
 
   return (
     <div className="dashboard-content finance-page">
@@ -1631,7 +1640,12 @@ function Finance() {
         </Card>
       )}
 
-      <Tabs defaultActiveKey="1" items={tabItems} />
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={tabItems}
+        className="module-tabs"
+      />
 
       <Modal
         open={bankModalOpen}
@@ -2029,7 +2043,7 @@ function Finance() {
             <Card size="small">
               <strong>{dayjs(selectedStatementLine.date).format("DD/MM/YYYY")}</strong>
               <div>{selectedStatementLine.description || "-"}</div>
-              <div style={{ color: "#8c8c8c" }}>{selectedStatementLine.reference || "-"}</div>
+              <div style={{ color: "var(--text-muted)" }}>{selectedStatementLine.reference || "-"}</div>
               <div style={{ marginTop: 4 }}>
                 Montant: {Number(selectedStatementLine.amount || 0).toFixed(2)} €
               </div>

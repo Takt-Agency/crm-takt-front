@@ -1,0 +1,50 @@
+/* Module achats — s'appuie sur les jetons semantiques du theme, donc suit
+   le mode sombre sans regle dediee. */
+
+.achats-page .achats-kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.achats-titre {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.achats-sous-titre {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* En-tete des lignes de la demande : separe la saisie du besoin du reste
+   du formulaire, qui porte le contexte. */
+.achats-lignes-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Circuit d'approbation, affiché au-dessus des lignes de la demande : il
+   répond à « où en est-elle ? » avant « que contient-elle ? ». */
+.achats-circuit {
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+}
+
+.achats-circuit-titre {
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}

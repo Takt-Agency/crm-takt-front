@@ -33,11 +33,11 @@
 }
 
 .tasks-page .ant-btn-link:hover {
-  background: #eff8fd;
+  background: var(--surface-sunken);
 }
 
 .tasks-page .ant-modal-header {
-  background: #f5fbff;
+  background: var(--surface-sunken);
   border-bottom: 1px solid var(--border-gray);
 }
 
@@ -46,7 +46,7 @@
 }
 
 .tasks-page .task-overdue {
-  color: #ff4d4f;
+  color: var(--accent-red);
   font-weight: 700;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .tasks-page .task-subtext {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -70,13 +70,13 @@
 }
 
 .tasks-page .kanban-column-drop-active {
-  border-color: #1677ff;
-  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.2);
+  border-color: var(--brand-cyan);
+  box-shadow: 0 0 0 2px var(--tint-cyan);
 }
 
 .tasks-page .kanban-task-card {
   cursor: pointer;
-  border: 1px solid #eef1f4;
+  border: 1px solid var(--border);
 }
 
 .tasks-page .kanban-task-dragging {
@@ -97,7 +97,7 @@
 }
 
 .tasks-page .task-empty {
-  color: #9aa0a6;
+  color: var(--text-subtle);
   font-size: 12px;
   padding: 8px 0;
 }
@@ -117,7 +117,7 @@
 }
 
 .tasks-page .gantt-row {
-  border: 1px solid #e7ecf2;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
@@ -152,14 +152,14 @@
   height: 10px;
   margin-top: 6px;
   border-radius: 50%;
-  background: #1677ff;
+  background: var(--brand-cyan);
 }
 
 .tasks-page .task-timeline-content {
-  border: 1px solid #e6edf5;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
-  background: #fafcff;
+  background: var(--surface-sunken);
 }
 
 .tasks-page .task-timeline-head {

@@ -30,16 +30,16 @@
 }
 
 .invoices-page .ant-btn-link:hover {
-  background: #eff8fd;
+  background: var(--surface-sunken);
 }
 
 .invoices-page .ant-form-item-label > label {
-  color: #2f5665;
+  color: var(--text);
   font-weight: 700;
 }
 
 .invoices-page .ant-table-tbody > tr:hover > td {
-  background: #f4fbff;
+  background: var(--surface-sunken);
 }
 
 .invoices-page .ant-pagination-item-active {

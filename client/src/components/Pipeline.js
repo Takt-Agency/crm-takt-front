@@ -20,6 +20,8 @@ import {
   Alert,
   Badge,
   Switch,
+  Table,
+  Tabs,
 } from "antd";
 import {
   PlusOutlined,
@@ -61,14 +63,23 @@ import {
   updateDealActivity,
   deleteDealActivity,
 } from "../utils/api";
+import { useOngletUrl } from "../hooks/useOngletUrl";
 
 dayjs.extend(relativeTime);
 dayjs.locale("fr");
 const { TextArea } = Input;
 const { Option } = Select;
 
+const ONGLETS = [
+  { key: "pipeline", label: "Pipeline" },
+  { key: "gagnes", label: "Gagnés" },
+  { key: "perdus", label: "Perdus" },
+];
+const ETAPE_PAR_ONGLET = { gagnes: "Gagné", perdus: "Perdu" };
+
 const Pipeline = () => {
   const [deals, setDeals] = useState([]);
+  const [ongletActif, choisirOnglet] = useOngletUrl(ONGLETS);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -297,11 +308,11 @@ const Pipeline = () => {
 
   const getEventMeta = (eventType) => {
     const map = {
-      Appel: { icon: <PhoneOutlined />, color: "#1677ff" },
-      Email: { icon: <MailOutlined />, color: "#13c2c2" },
-      Réunion: { icon: <TeamOutlined />, color: "#722ed1" },
-      Note: { icon: <FileTextOutlined />, color: "#52c41a" },
-      Autre: { icon: <ClockCircleOutlined />, color: "#fa8c16" },
+      Appel: { icon: <PhoneOutlined />, color: "var(--brand-cyan)" },
+      Email: { icon: <MailOutlined />, color: "var(--accent-teal)" },
+      Réunion: { icon: <TeamOutlined />, color: "var(--accent-purple)" },
+      Note: { icon: <FileTextOutlined />, color: "var(--accent-green)" },
+      Autre: { icon: <ClockCircleOutlined />, color: "var(--accent-yellow)" },
     };
     return map[eventType] || map.Autre;
   };
@@ -743,7 +754,7 @@ const Pipeline = () => {
       </div>
 
       <div className="deal-amount">
-        <EuroCircleOutlined style={{ color: "#1890ff", marginRight: 4 }} />
+        <EuroCircleOutlined style={{ color: "var(--brand-cyan)", marginRight: 4 }} />
         <strong>{formatCurrency(deal.amount)}</strong>
       </div>
 
@@ -767,7 +778,7 @@ const Pipeline = () => {
           <span className="assignee-name">{deal.assignedTo?.name}</span>
         </div>
         <Tooltip title={dayjs(deal.updatedAt).format("DD/MM/YYYY HH:mm")}>
-          <CalendarOutlined style={{ color: "#999" }} />
+          <CalendarOutlined style={{ color: "var(--text-subtle)" }} />
           <span className="deal-date">{dayjs(deal.updatedAt).fromNow()}</span>
         </Tooltip>
       </div>
@@ -858,12 +869,12 @@ const Pipeline = () => {
             title="Rappels prospects"
             description={
               <div>
-                <Badge count={alerts.counts?.dueSoon || 0} color="#faad14" />{" "}
+                <Badge count={alerts.counts?.dueSoon || 0} color="var(--accent-yellow)" />{" "}
                 relances proches,
                 <Badge
                   style={{ marginLeft: 8 }}
                   count={alerts.counts?.staleDeals || 0}
-                  color="#ff4d4f"
+                  color="var(--accent-red)"
                 />{" "}
                 deals inactifs.
               </div>
@@ -872,15 +883,85 @@ const Pipeline = () => {
         </Card>
       )}
 
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={ONGLETS}
+        className="module-tabs"
+      />
+
       {/* Pipeline Board */}
       {loading ? (
         <div className="loading-container">
           <Spin size="large" />
         </div>
-      ) : (
+      ) : ongletActif === "pipeline" ? (
         <div className="pipeline-board">
           {stages.map((stage) => renderPipelineColumn(stage))}
         </div>
+      ) : (
+        <Card>
+          <Table
+            rowKey="_id"
+            dataSource={deals.filter(
+              (deal) => deal.stage === ETAPE_PAR_ONGLET[ongletActif],
+            )}
+            pagination={{ pageSize: 12, showSizeChanger: true }}
+            locale={{
+              emptyText: (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    ongletActif === "gagnes"
+                      ? "Aucune affaire gagnée"
+                      : "Aucune affaire perdue"
+                  }
+                />
+              ),
+            }}
+            columns={[
+              {
+                title: "Affaire",
+                dataIndex: "title",
+                key: "title",
+                render: (titre, deal) => (
+                  <div>
+                    <div style={{ fontWeight: 600 }}>{titre}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                      {deal.company}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                title: "Montant",
+                dataIndex: "amount",
+                key: "amount",
+                align: "right",
+                width: 150,
+                sorter: (a, b) => (a.amount || 0) - (b.amount || 0),
+                defaultSortOrder: "descend",
+                render: (montant) => <strong>{formatCurrency(montant)}</strong>,
+              },
+              {
+                title: "Responsable",
+                key: "responsable",
+                width: 200,
+                render: (_, deal) => deal.assignedToUser?.name || "—",
+              },
+              {
+                title: "Clôturée le",
+                dataIndex: "updatedAt",
+                key: "updatedAt",
+                width: 160,
+                sorter: (a, b) =>
+                  new Date(a.updatedAt) - new Date(b.updatedAt),
+                render: (date) =>
+                  date ? dayjs(date).format("DD/MM/YYYY") : "—",
+              },
+            ]}
+          />
+        </Card>
       )}
 
       {/* Create/Edit Deal Modal */}

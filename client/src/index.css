@@ -3,12 +3,18 @@
 body {
   margin: 0;
   font-family: "Manrope", "Segoe UI", sans-serif;
-  background: linear-gradient(180deg, #f8fcff 0%, #f2f8fc 100%);
-  color: #0e3444;
+  background: var(--app-bg-gradient);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+/* Les scrollbars gardent le rendu clair du navigateur sans cette regle,
+   ce qui tranche fortement sur les surfaces sombres. */
+* {
+  scrollbar-color: var(--border-strong) transparent;
 }

@@ -50,6 +50,8 @@ import {
   getTaskStats,
 } from "../utils/api";
 import { canAccessModule, normalizeRole } from "../utils/accessControl";
+import { useTheme } from "../theme/ThemeContext";
+import { getChartTheme } from "../theme/chartTheme";
 import "./Dashboard.css";
 
 const DEFAULT_WIDGETS = {
@@ -69,6 +71,14 @@ const ROLE_WIDGET_PRESETS = {
     financial: false,
   },
   comptable: { ...DEFAULT_WIDGETS },
+  // Le Responsable RH pilote les effectifs, pas le chiffre d'affaires.
+  rh: {
+    kpis: true,
+    charts: false,
+    alerts: true,
+    financial: false,
+    tasks: true,
+  },
   employe: {
     kpis: true,
     charts: false,
@@ -94,7 +104,7 @@ const ROLE_GROUPS = {
     "comptable",
   ],
   finance: ["super_admin", "administrateur", "manager", "comptable"],
-  hr: ["super_admin", "administrateur", "manager", "employe"],
+  hr: ["super_admin", "administrateur", "manager", "rh", "employe"],
 };
 
 const getWidgetsStorageKey = (role) =>
@@ -162,12 +172,15 @@ const dashboardRequestsByUser = (user) => {
   const canAccessInvoice = canAccessModule(user, "invoices");
   const canAccessFinance = canAccessModule(user, "finances");
   const canAccessHR = canAccessModule(user, "hr");
+  const canAccessTasks = canAccessModule(user, "tasks");
 
   return {
     clientStats: canAccessSales ? getClientStats() : Promise.resolve(null),
     pipelineStats: canAccessSales ? getPipelineStats() : Promise.resolve(null),
-    taskStats: getTaskStats(),
-    taskAlerts: getTaskAlerts({ daysAhead: 3, limit: 6 }),
+    taskStats: canAccessTasks ? getTaskStats() : Promise.resolve(null),
+    taskAlerts: canAccessTasks
+      ? getTaskAlerts({ daysAhead: 3, limit: 6 })
+      : Promise.resolve(null),
     financeStats: canAccessFinance ? getFinanceStats() : Promise.resolve(null),
     invoiceStats: canAccessInvoice ? getInvoiceStats() : Promise.resolve(null),
     hrStats: canAccessHR ? getHRStats() : Promise.resolve(null),
@@ -181,6 +194,8 @@ const dashboardRequestsByUser = (user) => {
 };
 
 function Dashboard() {
+  const { isDark } = useTheme();
+  const chart = useMemo(() => getChartTheme(isDark), [isDark]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -660,16 +675,25 @@ function Dashboard() {
               <div className="chart-box">
                 <ResponsiveContainer width="100%" height={260}>
                   <LineChart data={revenueSeries}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                    <Legend />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fill: chart.axis }}
+                      stroke={chart.axisLine}
+                    />
+                    <YAxis tick={{ fill: chart.axis }} stroke={chart.axisLine} />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                      contentStyle={chart.tooltip}
+                      labelStyle={{ color: chart.tooltip.color }}
+                      cursor={{ stroke: chart.axisLine }}
+                    />
+                    <Legend wrapperStyle={{ color: chart.legend }} />
                     <Line
                       type="monotone"
                       dataKey="value"
                       name="Revenus"
-                      stroke="#ff1f8f"
+                      stroke={chart.series.pink}
                       strokeWidth={3}
                       dot={{ r: 4 }}
                     />
@@ -684,25 +708,32 @@ function Dashboard() {
               <div className="chart-box">
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={pipelineSeries}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="stage" />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                    <XAxis
+                      dataKey="stage"
+                      tick={{ fill: chart.axis }}
+                      stroke={chart.axisLine}
+                    />
+                    <YAxis tick={{ fill: chart.axis }} stroke={chart.axisLine} />
                     <Tooltip
                       formatter={(value, name) =>
                         name === "value" ? formatCurrency(value) : value
                       }
+                      contentStyle={chart.tooltip}
+                      labelStyle={{ color: chart.tooltip.color }}
+                      cursor={{ fill: chart.grid, fillOpacity: 0.3 }}
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ color: chart.legend }} />
                     <Bar
                       dataKey="deals"
                       name="Deals"
-                      fill="#37c6f5"
+                      fill={chart.series.cyan}
                       radius={[6, 6, 0, 0]}
                     />
                     <Bar
                       dataKey="value"
                       name="Valeur"
-                      fill="#7082ff"
+                      fill={chart.series.indigo}
                       radius={[6, 6, 0, 0]}
                     />
                   </BarChart>

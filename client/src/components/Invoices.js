@@ -16,6 +16,7 @@ import {
   Statistic,
   InputNumber,
   Space,
+  Tabs,
 } from "antd";
 import {
   PlusOutlined,
@@ -31,12 +32,20 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   WarningOutlined,
+  RollbackOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import "./Dashboard.css";
 import "./Invoices.css";
+import { canAccessModule } from "../utils/accessControl";
+import { useOngletUrl } from "../hooks/useOngletUrl";
+import { CreditNotesDrawer, CreateCreditNoteModal } from "./CreditNotes";
+import CurrenciesDrawer from "./Currencies";
 import {
+  getCurrencies,
+  formatDevise,
   getAllInvoices,
   getInvoiceStats,
   createInvoice,
@@ -59,6 +68,15 @@ const { Option } = Select;
 const TYPES = {
   Devis: { label: "Devis", color: "blue" },
   Facture: { label: "Facture", color: "green" },
+};
+
+// Un onglet par nature de document. Le serveur filtre deja sur ce champ :
+// l'onglet ne fait que porter le choix dans l'URL.
+const TYPE_PAR_ONGLET = {
+  tous: null,
+  devis: "Devis",
+  factures: "Facture",
+  avoirs: "Avoir",
 };
 
 const QUOTE_STATUSES = {
@@ -116,20 +134,45 @@ function Invoices() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [searchText, setSearchText] = useState("");
-  const [filterType, setFilterType] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
   const [clients, setClients] = useState([]);
   const [deals, setDeals] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [avoirsOuverts, setAvoirsOuverts] = useState(false);
+  const [factureAvoir, setFactureAvoir] = useState(null);
+  const [devisesOuvertes, setDevisesOuvertes] = useState(false);
+  const [devises, setDevises] = useState([]);
+  const [deviseBase, setDeviseBase] = useState("EUR");
   const [form] = Form.useForm();
   const watchedType = Form.useWatch("type", form) || "Facture";
   const navigate = useNavigate();
+
+  // Les avoirs sont gouvernes par la permission, non par le role : preparer
+  // et imputer sont deux droits distincts.
+  const peutAvoirs =
+    currentUser && canAccessModule(currentUser, "invoices.credit");
+  const peutEmettreAvoirs =
+    currentUser && canAccessModule(currentUser, "invoices.credit.issue");
+  const peutTenirLesTaux =
+    currentUser && canAccessModule(currentUser, "finances.currencies");
+
+  // L'onglet « Avoirs » suit la permission qui gouverne deja le bouton : le
+  // masquer evite d'offrir une vue que le serveur refuserait de remplir.
+  const onglets = [
+    { key: "tous", label: "Tous" },
+    { key: "devis", label: "Devis" },
+    { key: "factures", label: "Factures" },
+    ...(peutAvoirs ? [{ key: "avoirs", label: "Avoirs" }] : []),
+  ];
+  const [ongletActif, choisirOnglet] = useOngletUrl(onglets);
+  const filterType = TYPE_PAR_ONGLET[ongletActif];
 
   useEffect(() => {
     loadStats();
     loadClients();
     loadDeals();
     loadCurrentUser();
+    loadCurrencies();
   }, []);
 
   useEffect(() => {
@@ -181,6 +224,17 @@ function Invoices() {
     }
   };
 
+  const loadCurrencies = async () => {
+    try {
+      const data = await getCurrencies({ actif: "true" });
+      setDevises(data.devises || []);
+      setDeviseBase(data.deviseBase || "EUR");
+    } catch (error) {
+      // Sans referentiel, la facturation reste possible en devise de base.
+      console.error("Error loading currencies:", error);
+    }
+  };
+
   const loadCurrentUser = async () => {
     try {
       const me = await getMe();
@@ -223,6 +277,7 @@ function Invoices() {
       status: "Brouillon",
       taxRate: 20,
       paidAmount: 0,
+      devise: deviseBase,
       items: [{ description: "", quantity: 1, unitPrice: 0 }],
     });
     setModalVisible(true);
@@ -375,7 +430,7 @@ function Invoices() {
       dataIndex: "total",
       key: "total",
       width: 120,
-      render: (total) => `€${total?.toFixed(2) || "0.00"}`,
+      render: (total, record) => formatDevise(total, record.devise || deviseBase),
     },
     {
       title: "Statut",
@@ -424,6 +479,19 @@ function Invoices() {
               Convertir
             </Button>
           ) : null}
+          {record.type === "Facture" && peutAvoirs ? (
+            <Button
+              type="link"
+              icon={<RollbackOutlined />}
+              size="small"
+              onClick={() => setFactureAvoir(record)}
+              disabled={
+                record.status === "Brouillon" || record.status === "Annulée"
+              }
+            >
+              Avoir
+            </Button>
+          ) : null}
           {record.type === "Devis" && canSendQuote ? (
             <Button
               type="link"
@@ -470,6 +538,20 @@ function Invoices() {
               Export comptable
             </Button>
           ) : null}
+          {peutAvoirs ? (
+            <Button
+              icon={<RollbackOutlined />}
+              onClick={() => setAvoirsOuverts(true)}
+            >
+              Avoirs
+            </Button>
+          ) : null}
+          <Button
+            icon={<GlobalOutlined />}
+            onClick={() => setDevisesOuvertes(true)}
+          >
+            Devises
+          </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -491,7 +573,7 @@ function Invoices() {
                 value={stats.totalRevenue || 0}
                 prefix={<EuroOutlined />}
                 precision={2}
-                styles={{ value: { color: "#52c41a" } }}
+                styles={{ value: { color: "var(--accent-green)" } }}
               />
             </Card>
           </Col>
@@ -502,7 +584,7 @@ function Invoices() {
                 value={stats.pendingRevenue || 0}
                 prefix={<ClockCircleOutlined />}
                 precision={2}
-                styles={{ value: { color: "#1890ff" } }}
+                styles={{ value: { color: "var(--brand-cyan)" } }}
               />
             </Card>
           </Col>
@@ -512,12 +594,19 @@ function Invoices() {
                 title="En retard"
                 value={stats.overdueCount || 0}
                 prefix={<WarningOutlined />}
-                styles={{ value: { color: "#ff4d4f" } }}
+                styles={{ value: { color: "var(--accent-red)" } }}
               />
             </Card>
           </Col>
         </Row>
       )}
+
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={onglets}
+        className="module-tabs"
+      />
 
       {/* Search and Filters */}
       <Card style={{ marginBottom: 16 }}>
@@ -530,19 +619,6 @@ function Invoices() {
             onPressEnter={handleSearch}
             style={{ width: 250 }}
           />
-          <Select
-            placeholder="Tous les types"
-            style={{ width: 150 }}
-            allowClear
-            value={filterType}
-            onChange={setFilterType}
-          >
-            {Object.keys(TYPES).map((type) => (
-              <Option key={type} value={type}>
-                {TYPES[type].label}
-              </Option>
-            ))}
-          </Select>
           <Select
             placeholder="Tous les statuts"
             style={{ width: 150 }}
@@ -747,9 +823,37 @@ function Invoices() {
             </Form.List>
           </Form.Item>
 
-          <Form.Item name="taxRate" label="TVA (%)">
-            <InputNumber min={0} max={100} style={{ width: "100%" }} />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item name="taxRate" label="TVA (%)">
+                <InputNumber min={0} max={100} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="devise"
+                label="Devise"
+                extra={
+                  editingInvoice && editingInvoice.status !== "Brouillon"
+                    ? "Figée : le document n'est plus en brouillon"
+                    : `Comptabilité tenue en ${deviseBase}`
+                }
+              >
+                <Select
+                  disabled={
+                    Boolean(editingInvoice) &&
+                    editingInvoice.status !== "Brouillon"
+                  }
+                >
+                  {devises.map((devise) => (
+                    <Option key={devise.code} value={devise.code}>
+                      {devise.code} — {devise.nom}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item name="notes" label="Notes">
             <TextArea rows={3} placeholder="Notes additionnelles..." />
@@ -760,6 +864,27 @@ function Invoices() {
           </Form.Item>
         </Form>
       </Modal>
+
+      <CreditNotesDrawer
+        ouvert={avoirsOuverts}
+        onFermer={() => setAvoirsOuverts(false)}
+        peutEmettre={peutEmettreAvoirs}
+      />
+
+      <CurrenciesDrawer
+        ouvert={devisesOuvertes}
+        onFermer={() => setDevisesOuvertes(false)}
+        peutTenirLesTaux={peutTenirLesTaux}
+      />
+
+      <CreateCreditNoteModal
+        facture={factureAvoir}
+        ouvert={Boolean(factureAvoir)}
+        onFermer={() => setFactureAvoir(null)}
+        // L'avoir modifie le reste du : la liste doit refleter la facture
+        // corrigee sans attendre un rechargement manuel.
+        onCree={loadInvoices}
+      />
     </div>
   );
 }

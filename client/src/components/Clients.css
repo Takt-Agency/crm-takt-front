@@ -10,7 +10,7 @@
 }
 
 .clients-page .ant-card {
-  background: linear-gradient(180deg, #ffffff, #f7fcff);
+  background: linear-gradient(180deg, var(--surface), var(--surface-sunken));
 }
 
 .clients-page .ant-table-cell strong {
@@ -24,7 +24,7 @@
 }
 
 .clients-page .ant-modal-header {
-  background: #f5fbff;
+  background: var(--surface-sunken);
   border-bottom: 1px solid var(--border-gray);
 }
 
@@ -63,10 +63,10 @@
 }
 
 .clients-page .client-project-card {
-  border: 1px solid #dfeaf2;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: linear-gradient(180deg, #fbfdff 0%, #f5fbff 100%);
-  box-shadow: 0 8px 16px rgba(12, 65, 84, 0.08);
+  background: linear-gradient(180deg, var(--surface), var(--surface-sunken));
+  box-shadow: var(--shadow-md);
 }
 
 .clients-page .client-project-title-row {
@@ -78,7 +78,7 @@
 
 .clients-page .client-project-meta {
   margin: 0 0 6px;
-  color: #6e7d8c;
+  color: var(--text-muted);
   font-size: 12px;
 }
 

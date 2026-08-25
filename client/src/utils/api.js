@@ -2799,3 +2799,606 @@ export const exportAttendancePDF = async () => {
   );
   triggerBlobDownload(blob, filename);
 };
+
+// =========== MARKETING API ===========
+
+const marketingRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/marketing${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au module marketing");
+  }
+
+  return response.json();
+};
+
+export const getMarketingStats = async () => {
+  const data = await marketingRequest("/stats");
+  return data.data || data;
+};
+
+export const getAllCampaigns = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.status) query.append("status", params.status);
+  if (params.channel) query.append("channel", params.channel);
+  if (params.search) query.append("search", params.search);
+  if (params.page) query.append("page", params.page);
+  if (params.limit) query.append("limit", params.limit);
+
+  return marketingRequest(`/campaigns?${query.toString()}`);
+};
+
+export const getCampaignById = async (id) => {
+  const data = await marketingRequest(`/campaigns/${id}`);
+  return data.campaign || data;
+};
+
+export const createCampaign = async (payload) =>
+  marketingRequest("/campaigns", { method: "POST", body: payload });
+
+export const updateCampaign = async (id, payload) =>
+  marketingRequest(`/campaigns/${id}`, { method: "PUT", body: payload });
+
+export const deleteCampaign = async (id) =>
+  marketingRequest(`/campaigns/${id}`, { method: "DELETE" });
+
+export const previewCampaignAudience = async (audience) => {
+  const data = await marketingRequest("/campaigns/audience-preview", {
+    method: "POST",
+    body: { audience },
+  });
+  return data.data || data;
+};
+
+export const sendCampaign = async (id) =>
+  marketingRequest(`/campaigns/${id}/send`, { method: "POST" });
+
+// =========== BILAN COMPTABLE ===========
+
+export const getBilanComptable = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.dateDebut) query.append("dateDebut", params.dateDebut);
+  if (params.dateFin) query.append("dateFin", params.dateFin);
+
+  const response = await fetch(
+    `${API_URL}/api/finance/bilan?${query.toString()}`,
+    { method: "GET", headers: getAuthHeaders() },
+  );
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors du chargement du bilan");
+  }
+
+  return response.json();
+};
+
+// =========== AVANTAGES SOCIAUX : PRETS ET SOINS ===========
+
+const hrRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/hr${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au module RH");
+  }
+
+  return response.json();
+};
+
+export const getBenefitsStats = async () => {
+  const data = await hrRequest("/benefits/stats");
+  return data.data || data;
+};
+
+// --- Prets au personnel ---
+export const getStaffLoans = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.statut) query.append("statut", params.statut);
+  if (params.employee) query.append("employee", params.employee);
+  const data = await hrRequest(`/loans?${query.toString()}`);
+  return data.data?.loans || [];
+};
+
+export const createStaffLoan = async (payload) =>
+  hrRequest("/loans", { method: "POST", body: payload });
+
+export const updateStaffLoan = async (id, payload) =>
+  hrRequest(`/loans/${id}`, { method: "PUT", body: payload });
+
+export const recordLoanRepayment = async (id, payload) =>
+  hrRequest(`/loans/${id}/repayments`, { method: "POST", body: payload });
+
+export const deleteStaffLoan = async (id) =>
+  hrRequest(`/loans/${id}`, { method: "DELETE" });
+
+// --- Soins ---
+export const getCareClaims = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.statut) query.append("statut", params.statut);
+  if (params.nature) query.append("nature", params.nature);
+  if (params.employee) query.append("employee", params.employee);
+  const data = await hrRequest(`/care?${query.toString()}`);
+  return data.data?.claims || [];
+};
+
+export const createCareClaim = async (payload) =>
+  hrRequest("/care", { method: "POST", body: payload });
+
+export const updateCareClaimStatus = async (id, payload) =>
+  hrRequest(`/care/${id}/status`, { method: "PATCH", body: payload });
+
+export const deleteCareClaim = async (id) =>
+  hrRequest(`/care/${id}`, { method: "DELETE" });
+
+// --- Notifications ---
+// La portee est intrinsequement limitee au destinataire cote serveur : aucun
+// identifiant d'utilisateur n'est transmis ici.
+const notificationRequest = async (path, { method = "GET" } = {}) => {
+  const response = await fetch(`${API_URL}/api/notifications${path}`, {
+    method,
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel aux notifications");
+  }
+
+  return response.json();
+};
+
+export const getNotifications = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.lu !== undefined) query.append("lu", String(params.lu));
+  if (params.type) query.append("type", params.type);
+  if (params.limit) query.append("limit", String(params.limit));
+  const data = await notificationRequest(`/?${query.toString()}`);
+  return data.data || { notifications: [], nonLues: 0 };
+};
+
+export const getUnreadNotificationCount = async () => {
+  const data = await notificationRequest("/unread-count");
+  return data.data?.nonLues ?? 0;
+};
+
+export const markNotificationAsRead = async (id) =>
+  notificationRequest(`/${id}/read`, { method: "PATCH" });
+
+export const markAllNotificationsAsRead = async () =>
+  notificationRequest("/read-all", { method: "PATCH" });
+
+export const deleteNotification = async (id) =>
+  notificationRequest(`/${id}`, { method: "DELETE" });
+
+// --- Catalogue de services ---
+const catalogRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/catalog${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au catalogue");
+  }
+  return response.json();
+};
+
+const versQuery = (params) => {
+  const query = new URLSearchParams();
+  Object.entries(params || {}).forEach(([cle, valeur]) => {
+    if (valeur !== undefined && valeur !== null && valeur !== "") {
+      query.append(cle, String(valeur));
+    }
+  });
+  return query.toString();
+};
+
+export const getCatalogServices = async (params = {}) => {
+  const data = await catalogRequest(`/?${versQuery(params)}`);
+  return data.data || { services: [], categories: [], unites: [] };
+};
+
+export const getCatalogStats = async () => {
+  const data = await catalogRequest("/stats");
+  return data.data || {};
+};
+
+export const createCatalogService = async (payload) =>
+  catalogRequest("/", { method: "POST", body: payload });
+
+export const updateCatalogService = async (id, payload) =>
+  catalogRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const deleteCatalogService = async (id) =>
+  catalogRequest(`/${id}`, { method: "DELETE" });
+
+// --- Avoirs ---
+const creditNoteRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/credit-notes${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel aux avoirs");
+  }
+  return response.json();
+};
+
+export const getCreditNotes = async (params = {}) => {
+  const data = await creditNoteRequest(`/?${versQuery(params)}`);
+  return data.data || { avoirs: [], totaux: {} };
+};
+
+export const getCreditNote = async (id) => {
+  const data = await creditNoteRequest(`/${id}`);
+  return data.data?.avoir;
+};
+
+export const createCreditNote = async (invoiceId, payload) =>
+  creditNoteRequest(`/from-invoice/${invoiceId}`, {
+    method: "POST",
+    body: payload,
+  });
+
+export const updateCreditNote = async (id, payload) =>
+  creditNoteRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const issueCreditNote = async (id) =>
+  creditNoteRequest(`/${id}/issue`, { method: "PATCH" });
+
+export const deleteCreditNote = async (id) =>
+  creditNoteRequest(`/${id}`, { method: "DELETE" });
+
+// --- Abonnements ---
+const subscriptionRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/subscriptions${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel aux abonnements");
+  }
+  return response.json();
+};
+
+export const getSubscriptions = async (params = {}) => {
+  const data = await subscriptionRequest(`/?${versQuery(params)}`);
+  return data.data || { abonnements: [], periodicites: [], statuts: [] };
+};
+
+export const getSubscriptionStats = async () => {
+  const data = await subscriptionRequest("/stats");
+  return data.data || {};
+};
+
+export const getSubscription = async (id) => {
+  const data = await subscriptionRequest(`/${id}`);
+  return data.data?.abonnement;
+};
+
+export const createSubscription = async (payload) =>
+  subscriptionRequest("/", { method: "POST", body: payload });
+
+export const updateSubscription = async (id, payload) =>
+  subscriptionRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const generateSubscriptionInvoice = async (id) =>
+  subscriptionRequest(`/${id}/generate`, { method: "POST" });
+
+export const deleteSubscription = async (id) =>
+  subscriptionRequest(`/${id}`, { method: "DELETE" });
+
+// --- Documents clients ---
+export const getClientDocuments = async (clientId) => {
+  const response = await fetch(`${API_URL}/api/clients/${clientId}/documents`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Chargement des documents impossible");
+  }
+  const data = await response.json();
+  return data.data || { documents: [], total: 0, tailleTotale: 0 };
+};
+
+/**
+ * Le corps est un FormData : l'en-tete Content-Type doit etre laisse au
+ * navigateur, qui seul connait la frontiere du multipart.
+ */
+export const uploadClientDocuments = async (clientId, formData) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_URL}/api/clients/${clientId}/documents`, {
+    method: "POST",
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+    body: formData,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Dépôt impossible");
+  }
+  return response.json();
+};
+
+export const updateClientDocument = async (clientId, docId, payload) => {
+  const response = await fetch(
+    `${API_URL}/api/clients/${clientId}/documents/${docId}`,
+    { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify(payload) },
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Modification impossible");
+  }
+  return response.json();
+};
+
+export const deleteClientDocument = async (clientId, docId) => {
+  const response = await fetch(
+    `${API_URL}/api/clients/${clientId}/documents/${docId}`,
+    { method: "DELETE", headers: getAuthHeaders() },
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Suppression impossible");
+  }
+  return response.json();
+};
+
+/**
+ * Le jeton voyage dans un en-tete : un lien direct ne peut pas le porter.
+ * Le flux est donc recupere puis remis au navigateur sous forme de blob.
+ */
+const telechargerFlux = async (url, nomFichier) => {
+  const token = localStorage.getItem("token");
+  const response = await fetch(url, {
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Téléchargement impossible");
+  }
+  const blob = await response.blob();
+  const lienUrl = window.URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = lienUrl;
+  lien.download = nomFichier || "document";
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  window.URL.revokeObjectURL(lienUrl);
+};
+
+export const downloadClientDocument = (clientId, docId, nomFichier) =>
+  telechargerFlux(
+    `${API_URL}/api/clients/${clientId}/documents/${docId}/download`,
+    nomFichier,
+  );
+
+// --- Conformite RGPD ---
+export const getErasurePreview = async (clientId) => {
+  const response = await fetch(
+    `${API_URL}/api/clients/${clientId}/rgpd/erasure-preview`,
+    { headers: getAuthHeaders() },
+  );
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Analyse impossible");
+  }
+  const data = await response.json();
+  return data.data;
+};
+
+export const downloadClientDataExport = (clientId, nomClient) =>
+  telechargerFlux(
+    `${API_URL}/api/clients/${clientId}/rgpd/export`,
+    `export-rgpd-${String(nomClient || "client").replace(/[^a-zA-Z0-9-_]/g, "-")}.json`,
+  );
+
+export const eraseClientData = async (clientId) => {
+  const response = await fetch(`${API_URL}/api/clients/${clientId}/rgpd`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Effacement impossible");
+  }
+  return response.json();
+};
+
+// --- Devises et taux de change ---
+const currencyRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/currencies${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel aux devises");
+  }
+  return response.json();
+};
+
+export const getCurrencies = async (params = {}) => {
+  const data = await currencyRequest(`/?${versQuery(params)}`);
+  return data.data || { devises: [], deviseBase: "EUR" };
+};
+
+export const getCurrencyExposure = async () => {
+  const data = await currencyRequest("/exposure");
+  return data.data || { repartition: [], deviseBase: "EUR", totalBase: 0 };
+};
+
+export const createCurrency = async (payload) =>
+  currencyRequest("/", { method: "POST", body: payload });
+
+export const updateCurrency = async (id, payload) =>
+  currencyRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const deleteCurrency = async (id) =>
+  currencyRequest(`/${id}`, { method: "DELETE" });
+
+export const seedCurrencies = async () =>
+  currencyRequest("/seed", { method: "POST" });
+
+/**
+ * Formate un montant dans sa devise. Le nombre de decimales suit la devise :
+ * le dinar en compte trois, l'euro deux.
+ */
+export const formatDevise = (montant, devise = "EUR", decimales) => {
+  const code = String(devise || "EUR").toUpperCase();
+  try {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: decimales ?? undefined,
+      maximumFractionDigits: decimales ?? undefined,
+    }).format(Number(montant || 0));
+  } catch {
+    // Un code inconnu d'Intl ne doit pas faire disparaitre le montant.
+    return `${Number(montant || 0).toFixed(decimales ?? 2)} ${code}`;
+  }
+};
+
+// --- Achats : demande d'achat -> demande de prix -> commande ---
+const purchaseRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/purchases${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au module achats");
+  }
+
+  return response.json();
+};
+
+export const getPurchaseStats = async () => {
+  const data = await purchaseRequest("/stats");
+  return data.data || {};
+};
+
+// Demandes d'achat
+export const getPurchaseRequests = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.statut) query.append("statut", params.statut);
+  if (params.departement) query.append("departement", params.departement);
+  const data = await purchaseRequest(`/requests?${query.toString()}`);
+  return data.data?.demandes || [];
+};
+
+export const createPurchaseRequest = async (payload) =>
+  purchaseRequest("/requests", { method: "POST", body: payload });
+
+export const updatePurchaseRequest = async (id, payload) =>
+  purchaseRequest(`/requests/${id}`, { method: "PUT", body: payload });
+
+export const submitPurchaseRequest = async (id) =>
+  purchaseRequest(`/requests/${id}/submit`, { method: "PATCH" });
+
+export const decidePurchaseRequest = async (id, payload) =>
+  purchaseRequest(`/requests/${id}/decision`, { method: "PATCH", body: payload });
+
+export const deletePurchaseRequest = async (id) =>
+  purchaseRequest(`/requests/${id}`, { method: "DELETE" });
+
+// Demandes de prix
+export const getQuotations = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.statut) query.append("statut", params.statut);
+  if (params.demandeAchat) query.append("demandeAchat", params.demandeAchat);
+  const data = await purchaseRequest(`/quotations?${query.toString()}`);
+  return data.data?.consultations || [];
+};
+
+export const createQuotation = async (payload) =>
+  purchaseRequest("/quotations", { method: "POST", body: payload });
+
+export const sendQuotation = async (id) =>
+  purchaseRequest(`/quotations/${id}/send`, { method: "PATCH" });
+
+export const recordQuotationOffer = async (id, offreId, payload) =>
+  purchaseRequest(`/quotations/${id}/offers/${offreId}`, {
+    method: "PATCH",
+    body: payload,
+  });
+
+export const awardQuotation = async (id, payload) =>
+  purchaseRequest(`/quotations/${id}/award`, { method: "PATCH", body: payload });
+
+// Commandes d'achat
+export const getPurchaseOrders = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.statut) query.append("statut", params.statut);
+  if (params.reception) query.append("reception", params.reception);
+  if (params.flux) query.append("flux", params.flux);
+  const data = await purchaseRequest(`/orders?${query.toString()}`);
+  return data.data?.commandes || [];
+};
+
+export const createOrderFromQuotation = async (id, payload = {}) =>
+  purchaseRequest(`/quotations/${id}/order`, { method: "POST", body: payload });
+
+export const validatePurchaseOrder = async (id) =>
+  purchaseRequest(`/orders/${id}/validate`, { method: "PATCH" });
+
+export const receivePurchaseOrder = async (id, payload = {}) =>
+  purchaseRequest(`/orders/${id}/receive`, { method: "PATCH", body: payload });
+
+// --- Départements et organisation ---
+const departmentRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/departments${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel aux départements");
+  }
+
+  return response.json();
+};
+
+export const getDepartments = async (params = {}) => {
+  const query = new URLSearchParams();
+  if (params.actif !== undefined) query.append("actif", String(params.actif));
+  const data = await departmentRequest(`/?${query.toString()}`);
+  return data.data?.departements || [];
+};
+
+export const getOrganisation = async () => {
+  const data = await departmentRequest("/organisation");
+  return data.data || { organisation: [], orphelins: [] };
+};
+
+export const createDepartment = async (payload) =>
+  departmentRequest("/", { method: "POST", body: payload });
+
+export const updateDepartment = async (id, payload) =>
+  departmentRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const deleteDepartment = async (id) =>
+  departmentRequest(`/${id}`, { method: "DELETE" });
+
+export const assignEmployeeToDepartment = async (payload) =>
+  departmentRequest("/assign", { method: "PATCH", body: payload });

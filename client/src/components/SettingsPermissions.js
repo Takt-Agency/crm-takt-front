@@ -36,6 +36,24 @@ const ROLE_LABELS = {
   manager: { label: "Manager", color: "blue" },
   commercial: { label: "Commercial", color: "green" },
   comptable: { label: "Comptable", color: "purple" },
+  rh: { label: "Responsable RH", color: "cyan" },
+  directeur_general: { label: "Directeur général", color: "magenta" },
+  directeur_administratif_financier: {
+    label: "Directeur administratif et financier (DAF)",
+    color: "gold",
+  },
+  directeur_ressources_humaines: {
+    label: "Directeur des ressources humaines (DRH)",
+    color: "cyan",
+  },
+  directeur_commercial: { label: "Directeur commercial", color: "green" },
+  directeur_systemes_information: {
+    label: "Directeur des systèmes d'information (DSI)",
+    color: "blue",
+  },
+  directeur_production: { label: "Directeur de production", color: "purple" },
+  directeur_marketing: { label: "Directeur marketing", color: "magenta" },
+  gestionnaire_achat: { label: "Gestionnaire achat", color: "geekblue" },
   employe: { label: "Employe", color: "default" },
 };
 

@@ -16,11 +16,11 @@ import {
   Popconfirm,
   Progress,
   Row,
-  Segmented,
   Select,
   Space,
   Statistic,
   Table,
+  Tabs,
   Tag,
   Tooltip,
   Upload,
@@ -69,6 +69,7 @@ import {
   updateTaskComment,
   updateTaskStatus,
 } from "../utils/api";
+import { useOngletUrl } from "../hooks/useOngletUrl";
 import "./Tasks.css";
 
 dayjs.extend(relativeTime);
@@ -81,6 +82,19 @@ const PRIORITIES = {
   Basse: { label: "Basse", color: "default" },
 };
 
+const ONGLETS = [
+  { key: "liste", label: "Liste" },
+  { key: "kanban", label: "Kanban" },
+  { key: "calendrier", label: "Calendrier" },
+  { key: "gantt", label: "Gantt" },
+];
+const VUE_PAR_ONGLET = {
+  liste: "list",
+  kanban: "kanban",
+  calendrier: "calendar",
+  gantt: "gantt",
+};
+
 function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState(null);
@@ -88,7 +102,8 @@ function Tasks() {
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [viewMode, setViewMode] = useState("list");
+  const [ongletActif, choisirOnglet] = useOngletUrl(ONGLETS);
+  const viewMode = VUE_PAR_ONGLET[ongletActif];
   const [searchText, setSearchText] = useState("");
   const [filterStatus, setFilterStatus] = useState(null);
   const [filterPriority, setFilterPriority] = useState(null);
@@ -556,6 +571,12 @@ function Tasks() {
       .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
   }, [selectedTask]);
 
+  // Le vocabulaire des departements vient de l'organigramme : on le deduit
+  // des taches deja rattachees plutot que de le saisir librement.
+  const departementsConnus = [
+    ...new Set(tasks.map((t) => t.department).filter(Boolean)),
+  ].sort();
+
   const columns = [
     {
       title: "",
@@ -599,6 +620,13 @@ function Tasks() {
       key: "project",
       render: (project) =>
         project ? <Tag color="cyan">{project.name}</Tag> : "-",
+    },
+    {
+      title: "Département",
+      dataIndex: "department",
+      key: "department",
+      render: (department) =>
+        department ? <Tag>{department}</Tag> : <span style={{ color: "var(--text-subtle)" }}>-</span>,
     },
     {
       title: "Échéance",
@@ -818,6 +846,13 @@ function Tasks() {
         </Row>
       )}
 
+      <Tabs
+        activeKey={ongletActif}
+        onChange={choisirOnglet}
+        items={ONGLETS}
+        className="module-tabs"
+      />
+
       <Card style={{ marginBottom: 16 }}>
         <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
           <Space wrap>
@@ -866,16 +901,6 @@ function Tasks() {
               Rechercher
             </Button>
           </Space>
-          <Segmented
-            options={[
-              { label: "Liste", value: "list" },
-              { label: "Kanban", value: "kanban" },
-              { label: "Calendrier", value: "calendar" },
-              { label: "Gantt", value: "gantt" },
-            ]}
-            value={viewMode}
-            onChange={setViewMode}
-          />
         </Space>
       </Card>
 
@@ -918,6 +943,20 @@ function Tasks() {
                 value: project._id,
                 label: `${project.name}${project.client?.entreprise ? ` - ${project.client.entreprise}` : ""}`,
               }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="department"
+            label="Département"
+            extra="Laisser vide rattache la tâche à votre propre département."
+          >
+            <Select
+              allowClear
+              showSearch
+              placeholder="Département responsable"
+              optionFilterProp="label"
+              options={departementsConnus.map((d) => ({ value: d, label: d }))}
             />
           </Form.Item>
 

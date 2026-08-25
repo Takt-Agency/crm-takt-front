@@ -1,0 +1,37 @@
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--surface-hover) !important;
+  color: var(--brand-pink) !important;
+}
+
+.theme-toggle-btn .anticon {
+  font-size: 17px;
+}
+
+/* Bascule flottante des pages publiques (connexion, inscription, devis),
+   qui n'ont pas de barre de navigation ou l'accrocher. */
+.theme-toggle-floating {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-segmented {
+  background: var(--surface-sunken);
+}

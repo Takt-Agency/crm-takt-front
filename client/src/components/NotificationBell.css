@@ -1,0 +1,206 @@
+/* Cloche de notifications — s'appuie sur les jetons semantiques du theme,
+   donc suit automatiquement le mode sombre. */
+
+.notif-popover .ant-popover-inner {
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.notif-panneau {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  color: var(--text);
+}
+
+.notif-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-titre-panneau {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.notif-compteur {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--brand-pink);
+  color: var(--text-on-brand);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+.notif-liste {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.notif-vide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 16px;
+}
+
+.notif-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: var(--surface-hover);
+}
+
+/* Le niveau est porte par un liseré, pas par la couleur du texte : le libelle
+   reste lisible dans les deux themes. */
+.notif-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+}
+
+.notif-item.notif-information::before {
+  background: var(--brand-cyan);
+}
+
+.notif-item.notif-avertissement::before {
+  background: var(--accent-yellow);
+}
+
+.notif-item.notif-urgent::before {
+  background: var(--accent-red);
+}
+
+/* Une notification lue s'efface sans disparaitre. */
+.notif-item.notif-lue {
+  opacity: 0.58;
+}
+
+.notif-item.notif-lue::before {
+  background: transparent;
+}
+
+.notif-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.notif-item.notif-information .notif-icone {
+  background: var(--tint-cyan);
+  color: var(--brand-cyan-strong);
+}
+
+.notif-item.notif-avertissement .notif-icone {
+  background: var(--tint-yellow);
+  color: var(--accent-yellow);
+}
+
+.notif-item.notif-urgent .notif-icone {
+  background: var(--tint-red);
+  color: var(--accent-red);
+}
+
+.notif-corps {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-ligne-titre {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notif-titre {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.notif-date {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
+.notif-message {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.notif-supprimer {
+  flex-shrink: 0;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.notif-item:hover .notif-supprimer {
+  opacity: 1;
+}
+
+.notif-supprimer:hover {
+  color: var(--accent-red);
+}
+
+.notif-pied {
+  padding: 9px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+  font-size: 11.5px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .notif-panneau {
+    width: 300px;
+  }
+}

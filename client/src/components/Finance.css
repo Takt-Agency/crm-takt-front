@@ -17,7 +17,7 @@
   border-radius: 999px;
   padding: 8px 16px;
   margin-right: 8px;
-  background: #eef6fb;
+  background: var(--surface-hover);
 }
 
 .finance-page .ant-tabs-tab-active {
@@ -25,7 +25,7 @@
 }
 
 .finance-page .ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: #fff !important;
+  color: var(--text-on-brand) !important;
   font-weight: 700;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .finance-page .ant-table-tbody > tr:hover > td {
-  background: #f4fbff;
+  background: var(--surface-sunken);
 }
 
 .finance-page .ant-btn-link {
@@ -52,11 +52,11 @@
 }
 
 .finance-page .ant-btn-link:hover {
-  background: #eff8fd;
+  background: var(--surface-sunken);
 }
 
 .finance-page .ant-form-item-label > label {
-  color: #2f5665;
+  color: var(--text);
   font-weight: 700;
 }
 

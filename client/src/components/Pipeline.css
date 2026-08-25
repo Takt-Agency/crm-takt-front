@@ -8,7 +8,7 @@
 .pipeline-page .stat-card {
   border-radius: 14px;
   border: 1px solid var(--border-gray);
-  box-shadow: 0 10px 20px rgba(12, 65, 84, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .pipeline-page .stat-label {
@@ -32,16 +32,16 @@
 }
 
 .pipeline-page .pipeline-column {
-  background: linear-gradient(180deg, #f2f9fd 0%, #eef6fb 100%);
+  background: linear-gradient(180deg, var(--surface-sunken), var(--surface-hover));
   border-radius: 14px;
-  border: 1px solid #d8e7f0;
+  border: 1px solid var(--border);
   padding: 12px;
   min-height: 500px;
   transition: background-color 0.2s ease;
 }
 
 .pipeline-page .pipeline-column.drag-over {
-  background: #e8f8ff;
+  background: var(--tint-cyan);
   border: 2px dashed var(--primary-blue);
 }
 
@@ -61,17 +61,17 @@
 }
 
 .pipeline-page .deal-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
-  border: 1px solid #dce9f1;
-  box-shadow: 0 6px 14px rgba(12, 65, 84, 0.08);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   transition: all 0.25s ease;
   cursor: move;
   user-select: none;
 }
 
 .pipeline-page .deal-card:hover {
-  box-shadow: 0 12px 22px rgba(12, 65, 84, 0.13);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -92,11 +92,11 @@
 }
 
 .pipeline-page .deal-amount {
-  color: #0d8dbe;
+  color: var(--brand-cyan-strong);
 }
 
 .pipeline-page .deal-footer {
-  border-top: 1px solid #e3eef5;
+  border-top: 1px solid var(--border);
 }
 
 .pipeline-page .ant-tag {
@@ -119,8 +119,8 @@
 }
 
 .deal-history-header {
-  background: linear-gradient(135deg, #f5fbff 0%, #f9f3ff 100%);
-  border: 1px solid #e4edf6;
+  background: linear-gradient(135deg, var(--surface-sunken), var(--surface-hover));
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
 }
@@ -132,8 +132,8 @@
 }
 
 .history-kpi-item {
-  background: #fff;
-  border: 1px solid #e6edf5;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
   display: flex;
@@ -143,13 +143,13 @@
 
 .history-kpi-label {
   font-size: 12px;
-  color: #7e8a98;
+  color: var(--text-muted);
 }
 
 .history-kpi-value {
   font-size: 13px;
   font-weight: 600;
-  color: #243748;
+  color: var(--text);
 }
 
 .deal-history-content {
@@ -159,10 +159,10 @@
 }
 
 .deal-history-feed {
-  border: 1px solid #e4edf6;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .deal-history-tools {
@@ -177,7 +177,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #607080;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -187,15 +187,15 @@
   justify-content: center;
   width: 18px;
   height: 18px;
-  background: #ffffff;
+  background: var(--surface);
   border-radius: 999px;
 }
 
 .timeline-event-card {
-  border: 1px solid #e6edf5;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px;
-  background: #fbfdff;
+  background: var(--surface-sunken);
 }
 
 .timeline-event-head {
@@ -220,18 +220,18 @@
 
 .timeline-event-date {
   font-size: 12px;
-  color: #6f7f8f;
+  color: var(--text-muted);
 }
 
 .timeline-event-text {
   margin: 0 0 6px;
   font-size: 13px;
-  color: #1e2e3d;
+  color: var(--text);
 }
 
 .timeline-event-author {
   font-size: 12px;
-  color: #6f7f8f;
+  color: var(--text-muted);
 }
 
 .timeline-event-author-row {
@@ -242,7 +242,7 @@
 
 .timeline-event-author-email {
   font-size: 12px;
-  color: #9aa8b5;
+  color: var(--text-subtle);
 }
 
 .timeline-edit-actions {
@@ -258,7 +258,7 @@
 }
 
 .history-action-card {
-  border: 1px solid #e4edf6;
+  border: 1px solid var(--border);
   border-radius: 12px;
 }
 

@@ -13,12 +13,12 @@
   background:
     radial-gradient(
       circle at top left,
-      rgba(55, 198, 245, 0.14),
+      var(--tint-cyan),
       transparent 34%
     ),
-    linear-gradient(135deg, #ffffff 0%, #f3f9fd 100%);
+    linear-gradient(135deg, var(--surface), var(--surface-sunken));
   border: 1px solid var(--border-gray);
-  box-shadow: 0 10px 24px rgba(12, 65, 84, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .settings-kicker {
@@ -39,14 +39,14 @@
   color: var(--primary-blue);
   padding: 12px;
   border-radius: 16px;
-  background: rgba(55, 198, 245, 0.12);
+  background: var(--tint-cyan);
 }
 
 .settings-toolbar,
 .settings-table-card {
   border-radius: 18px;
   border: 1px solid var(--border-gray);
-  box-shadow: 0 10px 24px rgba(12, 65, 84, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .settings-toolbar {
@@ -66,8 +66,8 @@
 }
 
 .settings-table .ant-table-thead > tr > th {
-  background: #edf7fc;
-  color: #315d6d;
+  background: var(--surface-sunken);
+  color: var(--text);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -77,7 +77,7 @@
 }
 
 .settings-table .ant-table-tbody > tr:hover > td {
-  background: #f5fbff;
+  background: var(--surface-sunken);
 }
 
 .settings-table .ant-tag {
@@ -92,7 +92,7 @@
 
 .settings-table .ant-table-cell-fix-left,
 .settings-table .ant-table-cell-fix-right {
-  background: #fff;
+  background: var(--surface);
 }
 
 @media (max-width: 768px) {

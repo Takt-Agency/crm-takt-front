@@ -4,6 +4,7 @@ import { Form, Input, Button, Alert, message, Result, Spin } from "antd";
 import { LockOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { verifyResetToken, resetPassword } from "../utils/api";
 import { BRAND_LOGO_DARK, BRAND_LOGO_MARK } from "../utils/brandAssets";
+import ThemeToggle from "./ThemeToggle";
 import "./Auth.css";
 
 function ResetPassword() {
@@ -61,12 +62,13 @@ function ResetPassword() {
   if (verifying) {
     return (
       <div className="auth-container">
+        <ThemeToggle className="theme-toggle-floating" />
         <div
           className="auth-card"
           style={{ textAlign: "center", padding: "60px 40px" }}
         >
           <Spin size="large" />
-          <p style={{ marginTop: 20, color: "#666" }}>
+          <p style={{ marginTop: 20, color: "var(--text-muted)" }}>
             Vérification du lien...
           </p>
         </div>
@@ -77,6 +79,7 @@ function ResetPassword() {
   if (!tokenValid) {
     return (
       <div className="auth-container">
+        <ThemeToggle className="theme-toggle-floating" />
         <div className="auth-card">
           <Result
             status="error"
@@ -113,9 +116,10 @@ function ResetPassword() {
   if (success) {
     return (
       <div className="auth-container">
+        <ThemeToggle className="theme-toggle-floating" />
         <div className="auth-card">
           <Result
-            icon={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+            icon={<CheckCircleOutlined style={{ color: "var(--accent-green)" }} />}
             status="success"
             title="Mot de passe réinitialisé!"
             subTitle={
@@ -125,7 +129,7 @@ function ResetPassword() {
                   Vous pouvez maintenant vous connecter avec votre nouveau mot
                   de passe.
                 </p>
-                <p style={{ marginTop: 16, color: "#666", fontSize: "14px" }}>
+                <p style={{ marginTop: 16, color: "var(--text-muted)", fontSize: "14px" }}>
                   Redirection automatique dans 3 secondes...
                 </p>
               </div>
@@ -145,6 +149,7 @@ function ResetPassword() {
 
   return (
     <div className="auth-container">
+      <ThemeToggle className="theme-toggle-floating" />
       <div className="auth-card">
         <div className="auth-header">
           <div className="logo">

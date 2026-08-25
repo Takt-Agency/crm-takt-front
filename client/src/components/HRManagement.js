@@ -25,7 +25,11 @@ import {
   EditOutlined,
   DeleteOutlined,
   DownloadOutlined,
+  MedicineBoxOutlined,
+  SafetyCertificateOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
+import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import {
@@ -53,6 +57,14 @@ import {
   markPayrollPeriodPaid,
   exportPayrollExcel,
   exportPayrollPDF,
+  getStaffLoans,
+  createStaffLoan,
+  recordLoanRepayment,
+  deleteStaffLoan,
+  getCareClaims,
+  createCareClaim,
+  updateCareClaimStatus,
+  deleteCareClaim,
 } from "../utils/api";
 import "./HRManagement.css";
 
@@ -110,24 +122,57 @@ function HRManagement() {
   const [attendanceForm] = Form.useForm();
   const [payrollPeriodForm] = Form.useForm();
 
-  const canApproveLeave = ["super_admin", "administrateur", "manager"].includes(
-    currentUser?.role,
-  );
+  // L'onglet affiche est porte par l'URL : la barre laterale peut ainsi
+  // pointer directement sur un volet, et le lien reste partageable.
+  const [parametresUrl, setParametresUrl] = useSearchParams();
+
+  // --- Avantages sociaux : prets et soins ---
+  const [loans, setLoans] = useState([]);
+  const [careClaims, setCareClaims] = useState([]);
+  const [loadingBenefits, setLoadingBenefits] = useState(false);
+  const [loanModalOpen, setLoanModalOpen] = useState(false);
+  const [careModalOpen, setCareModalOpen] = useState(false);
+  const [claimEnTraitement, setClaimEnTraitement] = useState(null);
+  const [loanForm] = Form.useForm();
+  const [careForm] = Form.useForm();
+  const [decisionForm] = Form.useForm();
+
+  const canApproveLeave = [
+    "super_admin",
+    "administrateur",
+    "manager",
+    "rh",
+  ].includes(currentUser?.role);
   const canManageEmployees = [
     "super_admin",
     "administrateur",
     "manager",
+    "rh",
   ].includes(currentUser?.role);
   const canViewAllLeaveBalances = [
     "super_admin",
     "administrateur",
     "manager",
+    "rh",
   ].includes(currentUser?.role);
+  // Les prets pesent sur la paie : le comptable les suit. Les soins sont des
+  // donnees medicales et restent fermes au manager comme au comptable.
+  const canManageLoans = [
+    "super_admin",
+    "administrateur",
+    "rh",
+    "comptable",
+  ].includes(currentUser?.role);
+  const canManageCare = ["super_admin", "administrateur", "rh"].includes(
+    currentUser?.role,
+  );
+
   const canManagePayroll = [
     "super_admin",
     "administrateur",
     "manager",
     "comptable",
+    "rh",
   ].includes(currentUser?.role);
 
   useEffect(() => {
@@ -146,12 +191,102 @@ function HRManagement() {
         loadAttendance(),
         loadLeaveBalances(),
         loadPayrollPeriods(),
+        loadBenefits(),
       ]);
     };
 
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadBenefits = async () => {
+    setLoadingBenefits(true);
+    try {
+      const [prets, soins] = await Promise.all([
+        getStaffLoans().catch(() => []),
+        getCareClaims().catch(() => []),
+      ]);
+      setLoans(prets);
+      setCareClaims(soins);
+    } finally {
+      setLoadingBenefits(false);
+    }
+  };
+
+  const onSubmitLoan = async (values) => {
+    try {
+      await createStaffLoan({
+        ...values,
+        dateDebut: values.dateDebut ? values.dateDebut.toISOString() : undefined,
+      });
+      message.success("Prêt enregistré");
+      setLoanModalOpen(false);
+      loanForm.resetFields();
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const onSubmitCare = async (values) => {
+    try {
+      await createCareClaim({
+        ...values,
+        date: values.date ? values.date.toISOString() : undefined,
+      });
+      message.success("Demande enregistrée");
+      setCareModalOpen(false);
+      careForm.resetFields();
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const onSubmitDecision = async (values) => {
+    try {
+      await updateCareClaimStatus(claimEnTraitement._id, values);
+      message.success("Demande mise à jour");
+      setClaimEnTraitement(null);
+      decisionForm.resetFields();
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const onRecordRepayment = async (loan) => {
+    try {
+      await recordLoanRepayment(loan._id, {});
+      message.success("Échéance enregistrée");
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const onDeleteLoan = async (id) => {
+    try {
+      await deleteStaffLoan(id);
+      message.success("Prêt supprimé");
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const onDeleteClaim = async (id) => {
+    try {
+      await deleteCareClaim(id);
+      message.success("Demande supprimée");
+      loadBenefits();
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const nomEmploye = (e) =>
+    e ? `${e.firstName || ""} ${e.lastName || ""}`.trim() : "-";
 
   const loadStats = async () => {
     try {
@@ -623,7 +758,7 @@ function HRManagement() {
 
         return canApproveLeave ? (
           <div className="hr-actions">
-            <span style={{ marginRight: 8, color: "#4b5563" }}>
+            <span style={{ marginRight: 8, color: "var(--text-muted)" }}>
               Restants:{" "}
               {typeof remainingDays === "number" ? `${remainingDays} j` : "-"}
             </span>
@@ -1074,7 +1209,328 @@ function HRManagement() {
         </Card>
       ),
     },
-  ];
+    {
+      key: "soins",
+      label: (
+        <span>
+          <MedicineBoxOutlined /> Soins
+        </span>
+      ),
+      children: (
+        <Card>
+          <div className="hr-toolbar">
+            <div className="hr-actions">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  careForm.resetFields();
+                  setCareModalOpen(true);
+                }}
+              >
+                Déclarer des frais
+              </Button>
+            </div>
+          </div>
+          <Table
+            rowKey="_id"
+            loading={loadingBenefits}
+            dataSource={careClaims}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 1000 }}
+            columns={[
+              {
+                title: "Date",
+                dataIndex: "date",
+                render: (d) => (d ? dayjs(d).format("DD/MM/YYYY") : "-"),
+              },
+              {
+                title: "Employé",
+                dataIndex: "employee",
+                render: (e) => nomEmploye(e),
+              },
+              { title: "Nature", dataIndex: "nature" },
+              {
+                title: "Engagé",
+                dataIndex: "montant",
+                align: "right",
+                render: (v) => `${Number(v || 0).toFixed(2)} €`,
+              },
+              {
+                title: "Remboursé",
+                dataIndex: "montantRembourse",
+                align: "right",
+                render: (v) => `${Number(v || 0).toFixed(2)} €`,
+              },
+              {
+                title: "Reste à charge",
+                dataIndex: "resteACharge",
+                align: "right",
+                render: (v) => (
+                  <strong>{`${Number(v || 0).toFixed(2)} €`}</strong>
+                ),
+              },
+              {
+                title: "Statut",
+                dataIndex: "statut",
+                render: (st) => {
+                  const couleurs = {
+                    soumis: "processing",
+                    accepte: "warning",
+                    rembourse: "success",
+                    refuse: "error",
+                  };
+                  return <Tag color={couleurs[st] || "default"}>{st}</Tag>;
+                },
+              },
+              ...(canManageCare
+                ? [
+                    {
+                      title: "Actions",
+                      key: "actions",
+                      render: (_, claim) => (
+                        <>
+                          <Button
+                            type="link"
+                            icon={<EditOutlined />}
+                            onClick={() => {
+                              setClaimEnTraitement(claim);
+                              decisionForm.setFieldsValue({
+                                statut: claim.statut,
+                                montantRembourse: claim.montantRembourse,
+                                decisionComment: claim.decisionComment,
+                              });
+                            }}
+                          >
+                            Traiter
+                          </Button>
+                          <Popconfirm
+                            title="Supprimer cette demande ?"
+                            okText="Supprimer"
+                            cancelText="Annuler"
+                            onConfirm={() => onDeleteClaim(claim._id)}
+                          >
+                            <Button type="link" danger icon={<DeleteOutlined />}>
+                              Supprimer
+                            </Button>
+                          </Popconfirm>
+                        </>
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </Card>
+      ),
+    },
+    {
+      key: "assurance",
+      label: (
+        <span>
+          <SafetyCertificateOutlined /> Assurance
+        </span>
+      ),
+      children: (
+        <Card>
+          <Table
+            rowKey="_id"
+            loading={loadingEmployees}
+            dataSource={employees}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 900 }}
+            columns={[
+              {
+                title: "Employé",
+                key: "employe",
+                render: (_, e) => nomEmploye(e),
+              },
+              {
+                title: "Organisme",
+                dataIndex: "insuranceProvider",
+                render: (v) => v || <span className="hr-vide">Non renseigné</span>,
+              },
+              {
+                title: "N° d'affiliation",
+                dataIndex: "insuranceNumber",
+                render: (v) => v || "-",
+              },
+              {
+                title: "Couverture",
+                dataIndex: "insuranceCoverage",
+                render: (v) => {
+                  const couleurs = {
+                    familiale: "green",
+                    individuelle: "blue",
+                    aucune: "default",
+                  };
+                  return <Tag color={couleurs[v] || "default"}>{v || "aucune"}</Tag>;
+                },
+              },
+              {
+                title: "Cotisation",
+                dataIndex: "insuranceRate",
+                align: "right",
+                render: (v) => (v ? `${v} %` : "-"),
+              },
+              {
+                title: "Date d'effet",
+                dataIndex: "insuranceStartDate",
+                render: (d) => (d ? dayjs(d).format("DD/MM/YYYY") : "-"),
+              },
+              ...(canManageEmployees
+                ? [
+                    {
+                      title: "Actions",
+                      key: "actions",
+                      render: (_, employee) => (
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => onEditEmployee(employee)}
+                        >
+                          Modifier
+                        </Button>
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </Card>
+      ),
+    },
+    {
+      key: "prets",
+      label: (
+        <span>
+          <WalletOutlined /> Prêts
+        </span>
+      ),
+      children: (
+        <Card>
+          <div className="hr-toolbar">
+            <div className="hr-actions">
+              {canManageLoans && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    loanForm.resetFields();
+                    setLoanModalOpen(true);
+                  }}
+                >
+                  Accorder un prêt
+                </Button>
+              )}
+            </div>
+          </div>
+          <Table
+            rowKey="_id"
+            loading={loadingBenefits}
+            dataSource={loans}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 1100 }}
+            columns={[
+              { title: "Référence", dataIndex: "reference" },
+              {
+                title: "Employé",
+                dataIndex: "employee",
+                render: (e) => nomEmploye(e),
+              },
+              { title: "Motif", dataIndex: "motif", render: (v) => v || "-" },
+              {
+                title: "Montant",
+                dataIndex: "montant",
+                align: "right",
+                render: (v) => `${Number(v || 0).toFixed(2)} €`,
+              },
+              {
+                title: "Mensualité",
+                dataIndex: "mensualite",
+                align: "right",
+                render: (v) => `${Number(v || 0).toFixed(2)} €`,
+              },
+              {
+                title: "Remboursé",
+                dataIndex: "montantRembourse",
+                align: "right",
+                render: (v) => `${Number(v || 0).toFixed(2)} €`,
+              },
+              {
+                title: "Solde restant",
+                dataIndex: "soldeRestant",
+                align: "right",
+                render: (v) => (
+                  <strong>{`${Number(v || 0).toFixed(2)} €`}</strong>
+                ),
+              },
+              {
+                title: "Statut",
+                dataIndex: "statut",
+                render: (st) => {
+                  const couleurs = {
+                    en_cours: "processing",
+                    solde: "success",
+                    annule: "default",
+                  };
+                  return (
+                    <Tag color={couleurs[st] || "default"}>
+                      {st === "en_cours" ? "en cours" : st}
+                    </Tag>
+                  );
+                },
+              },
+              ...(canManageLoans
+                ? [
+                    {
+                      title: "Actions",
+                      key: "actions",
+                      render: (_, loan) => (
+                        <>
+                          {loan.statut === "en_cours" && (
+                            <Popconfirm
+                              title={`Enregistrer une échéance de ${Number(loan.mensualite).toFixed(2)} € ?`}
+                              okText="Enregistrer"
+                              cancelText="Annuler"
+                              onConfirm={() => onRecordRepayment(loan)}
+                            >
+                              <Button type="link">Échéance</Button>
+                            </Popconfirm>
+                          )}
+                          <Popconfirm
+                            title="Supprimer ce prêt ?"
+                            okText="Supprimer"
+                            cancelText="Annuler"
+                            onConfirm={() => onDeleteLoan(loan._id)}
+                          >
+                            <Button type="link" danger icon={<DeleteOutlined />}>
+                              Supprimer
+                            </Button>
+                          </Popconfirm>
+                        </>
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </Card>
+      ),
+    },
+  ].filter((tab) => {
+    // Onglets reserves : l'annuaire expose salaires, IBAN et RIB ; la paie
+    // n'a de sens que pour ceux qui la produisent ou la reglent.
+    if (tab.key === "employees") return canManageEmployees;
+    if (tab.key === "payroll") return canManagePayroll;
+    // L'onglet Assurance expose la couverture de tout le personnel.
+    if (tab.key === "assurance") return canManageEmployees;
+    // Soins et Prets restent ouverts : chacun y consulte son propre dossier,
+    // le controleur restreignant la portee cote serveur.
+    // Conges et pointage restent ouverts a tous : chaque compte est aussi
+    // un employe de l'agence et doit pouvoir pointer et poser ses conges.
+    return true;
+  });
 
   return (
     <div className="dashboard-content hr-page">
@@ -1128,7 +1584,15 @@ function HRManagement() {
         </Row>
       )}
 
-      <Tabs items={tabItems} />
+      <Tabs
+        activeKey={
+          tabItems.some((t) => t.key === parametresUrl.get("tab"))
+            ? parametresUrl.get("tab")
+            : tabItems[0]?.key
+        }
+        onChange={(cle) => setParametresUrl({ tab: cle })}
+        items={tabItems}
+      />
 
       <Modal
         title={editingEmployee ? "Modifier l'employé" : "Nouvel employé"}
@@ -1258,6 +1722,47 @@ function HRManagement() {
                 initialValue={22}
               >
                 <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div className="hr-section-title">Couverture assurance</div>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item name="insuranceProvider" label="Organisme">
+                <Input placeholder="Ex : CNAM, mutuelle" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="insuranceNumber" label="N° d'affiliation">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={12}>
+            <Col span={8}>
+              <Form.Item
+                name="insuranceCoverage"
+                label="Couverture"
+                initialValue="aucune"
+              >
+                <Select
+                  options={[
+                    { value: "aucune", label: "Aucune" },
+                    { value: "individuelle", label: "Individuelle" },
+                    { value: "familiale", label: "Familiale" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="insuranceRate" label="Cotisation salarié (%)">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="insuranceStartDate" label="Date d'effet">
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
               </Form.Item>
             </Col>
           </Row>
@@ -1531,6 +2036,166 @@ function HRManagement() {
             </Col>
           </Row>
           <Form.Item name="notes" label="Notes">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="Accorder un prêt"
+        open={loanModalOpen}
+        onCancel={() => setLoanModalOpen(false)}
+        onOk={() => loanForm.submit()}
+        okText="Enregistrer"
+        cancelText="Annuler"
+        destroyOnClose
+      >
+        <Form form={loanForm} layout="vertical" onFinish={onSubmitLoan}>
+          <Form.Item
+            name="employee"
+            label="Employé"
+            rules={[{ required: true, message: "Employé requis" }]}
+          >
+            <Select
+              showSearch
+              optionFilterProp="label"
+              options={employees.map((e) => ({
+                value: e._id,
+                label: nomEmploye(e),
+              }))}
+            />
+          </Form.Item>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item
+                name="montant"
+                label="Montant du prêt (€)"
+                rules={[{ required: true, message: "Montant requis" }]}
+              >
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="mensualite"
+                label="Mensualité (€)"
+                rules={[{ required: true, message: "Mensualité requise" }]}
+                extra="Retenue automatiquement sur chaque bulletin de paie."
+              >
+                <Input type="number" min={0} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="dateDebut"
+            label="Première échéance"
+            rules={[{ required: true, message: "Date requise" }]}
+          >
+            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+          </Form.Item>
+          <Form.Item name="motif" label="Motif">
+            <Input placeholder="Ex : avance sur salaire, prêt véhicule" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Déclarer des frais de soins"
+        open={careModalOpen}
+        onCancel={() => setCareModalOpen(false)}
+        onOk={() => careForm.submit()}
+        okText="Déclarer"
+        cancelText="Annuler"
+        destroyOnClose
+      >
+        <Form form={careForm} layout="vertical" onFinish={onSubmitCare}>
+          {canManageCare && (
+            <Form.Item
+              name="employee"
+              label="Employé"
+              extra="Laisser vide pour déclarer vos propres frais."
+            >
+              <Select
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={employees.map((e) => ({
+                  value: e._id,
+                  label: nomEmploye(e),
+                }))}
+              />
+            </Form.Item>
+          )}
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item
+                name="date"
+                label="Date des soins"
+                rules={[{ required: true, message: "Date requise" }]}
+              >
+                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="nature" label="Nature" initialValue="Consultation">
+                <Select
+                  options={[
+                    "Consultation",
+                    "Pharmacie",
+                    "Hospitalisation",
+                    "Optique",
+                    "Dentaire",
+                    "Analyses",
+                    "Autre",
+                  ].map((n) => ({ value: n, label: n }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="montant"
+            label="Montant engagé (€)"
+            rules={[{ required: true, message: "Montant requis" }]}
+          >
+            <Input type="number" min={0} />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Traiter la demande"
+        open={Boolean(claimEnTraitement)}
+        onCancel={() => setClaimEnTraitement(null)}
+        onOk={() => decisionForm.submit()}
+        okText="Enregistrer"
+        cancelText="Annuler"
+        destroyOnClose
+      >
+        <Form form={decisionForm} layout="vertical" onFinish={onSubmitDecision}>
+          <Form.Item name="statut" label="Statut">
+            <Select
+              options={[
+                { value: "soumis", label: "Soumis" },
+                { value: "accepte", label: "Accepté" },
+                { value: "rembourse", label: "Remboursé" },
+                { value: "refuse", label: "Refusé" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item
+            name="montantRembourse"
+            label="Montant remboursé (€)"
+            extra={
+              claimEnTraitement
+                ? `Montant engagé : ${Number(claimEnTraitement.montant || 0).toFixed(2)} €`
+                : undefined
+            }
+          >
+            <Input type="number" min={0} />
+          </Form.Item>
+          <Form.Item name="decisionComment" label="Commentaire">
             <Input.TextArea rows={2} />
           </Form.Item>
         </Form>
