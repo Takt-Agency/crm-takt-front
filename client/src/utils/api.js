@@ -3357,8 +3357,11 @@ export const getPurchaseOrders = async (params = {}) => {
 export const createOrderFromQuotation = async (id, payload = {}) =>
   purchaseRequest(`/quotations/${id}/order`, { method: "POST", body: payload });
 
-export const validatePurchaseOrder = async (id) =>
-  purchaseRequest(`/orders/${id}/validate`, { method: "PATCH" });
+// Seconde approbation du flux : le directeur approuve ou refuse l'engagement.
+// La charge utile suit celle de la demande d'achat — { decision, motif } — pour
+// que les deux etapes se pilotent de la meme facon.
+export const decidePurchaseOrder = async (id, payload) =>
+  purchaseRequest(`/orders/${id}/decision`, { method: "PATCH", body: payload });
 
 export const receivePurchaseOrder = async (id, payload = {}) =>
   purchaseRequest(`/orders/${id}/receive`, { method: "PATCH", body: payload });

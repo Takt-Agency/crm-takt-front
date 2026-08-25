@@ -51,7 +51,7 @@ import {
   awardQuotation,
   getPurchaseOrders,
   createOrderFromQuotation,
-  validatePurchaseOrder,
+  decidePurchaseOrder,
   receivePurchaseOrder,
   getAllSuppliers,
 } from "../utils/api";
@@ -79,6 +79,7 @@ const COULEUR_STATUT = {
   Envoyée: "processing",
   Dépouillée: "warning",
   Attribuée: "success",
+  "En attente d'approbation": "processing",
   Validée: "success",
   "Partiellement payée": "warning",
   Payée: "green",
@@ -116,12 +117,27 @@ const niveauCourant = (demande) =>
  * donc que pour le titulaire du niveau courant — le serveur applique la même
  * règle, ceci n'est que sa traduction visible.
  */
-const peutTrancher = (utilisateur, demande) => {
-  const niveau = niveauCourant(demande);
+const peutTrancher = (utilisateur, dossier) => {
+  const niveau = niveauCourant(dossier);
   if (!niveau || !utilisateur) return false;
-  if (utilisateur.role === "super_admin") return true;
   if (niveau.ouvert) return true; // la permission a déjà été vérifiée en amont
-  return String(niveau.approbateur?._id || niveau.approbateur) === String(utilisateur._id);
+
+  // Le titulaire désigné, d'abord.
+  if (
+    String(niveau.approbateur?._id || niveau.approbateur) ===
+    String(utilisateur._id)
+  ) {
+    return true;
+  }
+
+  // À défaut, tout détenteur du même titre : c'est ce qui évite qu'un départ
+  // ne fige durablement le circuit. Le super administrateur, lui, n'est pas
+  // titulaire d'office — il dispose d'un déblocage explicite, que le serveur
+  // exige motivé. L'inclure ici masquerait ce bouton et lui proposerait une
+  // approbation que le serveur refuserait.
+  return Boolean(
+    niveau.roleApprobateur && utilisateur.role === niveau.roleApprobateur,
+  );
 };
 
 const ETAT_NIVEAU = {
@@ -129,6 +145,41 @@ const ETAT_NIVEAU = {
   Refusé: "error",
   "En attente": "process",
   "Sans objet": "wait",
+};
+
+/**
+ * Circuit d'approbation d'un dossier — demande d'achat ou commande.
+ *
+ * Les deux étapes qui demandent une approbation l'affichent à l'identique :
+ * c'est lui qui explique où en est le dossier, qui doit trancher, et pourquoi
+ * il attend.
+ */
+const CircuitApprobation = ({ dossier }) => {
+  const circuit = dossier.circuit || [];
+  if (!circuit.length) return null;
+
+  return (
+    <div className="achats-circuit">
+      <div className="achats-circuit-titre">Circuit d'approbation</div>
+      <Steps
+        size="small"
+        direction="horizontal"
+        responsive
+        current={circuit.findIndex((n) => n.statut === "En attente")}
+        items={circuit.map((n) => ({
+          title: n.intitule,
+          status: ETAT_NIVEAU[n.statut] || "wait",
+          description: (
+            <span className="achats-sous-titre">
+              {n.approbateur?.name || (n.ouvert ? "toute habilitation" : "—")}
+              {n.date ? ` · ${jour(n.date)}` : ""}
+              {n.motif ? ` · ${n.motif}` : ""}
+            </span>
+          ),
+        }))}
+      />
+    </div>
+  );
 };
 
 const Purchases = () => {
@@ -212,7 +263,7 @@ const Purchases = () => {
         icone: <FileDoneOutlined />,
       },
       {
-        libelle: "Commandes à valider",
+        libelle: "Commandes à approuver",
         valeur: stats.aValider ?? 0,
         icone: <ShoppingCartOutlined />,
       },
@@ -507,6 +558,93 @@ const Purchases = () => {
     });
   };
 
+  /**
+   * Refus d'un engagement. Comme pour la demande d'achat, le motif est
+   * obligatoire : c'est la seule trace qui expliquera, plus tard, pourquoi
+   * une consultation menée à son terme n'a pas donné de commande.
+   */
+  const refuserCommande = (commande) => {
+    let motif = "";
+    Modal.confirm({
+      title: `Refuser la commande ${commande.orderNumber}`,
+      content: (
+        <div>
+          <p className="achats-sous-titre">
+            La demande d'achat d'origine reste approuvée : une autre
+            consultation pourra être lancée sans la ressaisir.
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Motif du refus (obligatoire)"
+            onChange={(e) => {
+              motif = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      okText: "Refuser",
+      okButtonProps: { danger: true },
+      cancelText: "Annuler",
+      onOk: async () => {
+        if (!motif.trim()) {
+          message.error("Un refus doit être motivé");
+          throw new Error("motif manquant");
+        }
+        await agir(
+          () =>
+            decidePurchaseOrder(commande._id, {
+              decision: "Refusée",
+              motif: motif.trim(),
+            }),
+          "Commande refusée",
+        );
+      },
+    });
+  };
+
+  /** Sort une commande d'un circuit figé. Motivé, tracé dans le circuit. */
+  const debloquerCommande = (commande) => {
+    const niveau = niveauCourant(commande);
+    let motif = "";
+    Modal.confirm({
+      title: `Débloquer ${commande.orderNumber}`,
+      content: (
+        <div>
+          <p className="achats-sous-titre">
+            Cette commande attend la décision de{" "}
+            <strong>{niveau?.intitule}</strong>. Le déblocage passe outre et
+            reste inscrit dans le circuit.
+          </p>
+          <Input.TextArea
+            rows={3}
+            placeholder="Motif du déblocage (obligatoire)"
+            onChange={(e) => {
+              motif = e.target.value;
+            }}
+          />
+        </div>
+      ),
+      okText: "Débloquer et approuver",
+      okButtonProps: { danger: true },
+      cancelText: "Annuler",
+      onOk: async () => {
+        if (!motif.trim()) {
+          message.error("Un déblocage doit être motivé");
+          throw new Error("motif manquant");
+        }
+        await agir(
+          () =>
+            decidePurchaseOrder(commande._id, {
+              decision: "Approuvée",
+              forcer: true,
+              motif: motif.trim(),
+            }),
+          "Commande débloquée",
+        );
+      },
+    });
+  };
+
   // --- Consultations --------------------------------------------------------
 
   const ouvrirConsultation = (demande) => {
@@ -702,24 +840,70 @@ const Purchases = () => {
       align: "right",
       render: (_, c) => {
         const emetteur = String(c.createdBy?._id || c.createdBy) === String(utilisateur?._id);
+
+        // Une commande attend une décision tant qu'elle n'est ni approuvée ni
+        // refusée. « Brouillon » couvre les commandes saisies hors flux
+        // achats, qui n'ont pas de service demandeur, donc pas de circuit :
+        // l'habilitation seule y décide, comme auparavant.
+        const aDecider =
+          c.status === "Brouillon" || c.status === "En attente d'approbation";
+        const sousCircuit = (c.circuit || []).length > 0;
+
         return (
           <Space size={4} wrap>
-            {c.status === "Brouillon" &&
+            {aDecider &&
               peut("purchases.orders.validate") &&
-              !emetteur && (
+              !emetteur &&
+              (!sousCircuit || peutTrancher(utilisateur, c)) && (
+                <>
+                  <Button
+                    size="small"
+                    type="primary"
+                    icon={<CheckOutlined />}
+                    onClick={() =>
+                      agir(
+                        () =>
+                          decidePurchaseOrder(c._id, {
+                            decision: "Approuvée",
+                          }),
+                        "Commande approuvée",
+                      )
+                    }
+                  >
+                    Approuver
+                  </Button>
+                  <Button
+                    size="small"
+                    danger
+                    icon={<CloseOutlined />}
+                    onClick={() => refuserCommande(c)}
+                  >
+                    Refuser
+                  </Button>
+                </>
+              )}
+            {/* Déblocage : un circuit figé — directeur absent, compte
+                désactivé — ne doit pas immobiliser un engagement. Réservé au
+                super administrateur, motivé, et tracé. */}
+            {aDecider &&
+              sousCircuit &&
+              utilisateur?.role === "super_admin" &&
+              !peutTrancher(utilisateur, c) && (
                 <Button
                   size="small"
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  onClick={() =>
-                    agir(() => validatePurchaseOrder(c._id), "Commande validée")
-                  }
+                  danger
+                  ghost
+                  icon={<UnlockOutlined />}
+                  onClick={() => debloquerCommande(c)}
                 >
-                  Valider
+                  Débloquer
                 </Button>
               )}
-            {c.status !== "Brouillon" &&
+            {/* On ne réceptionne que ce qui a été réellement commandé : ni un
+                brouillon, ni une commande en attente, refusée ou annulée. */}
+            {!aDecider &&
               c.status !== "Annulée" &&
+              c.status !== "Refusée" &&
               c.receptionStatut !== "Complète" &&
               peut("purchases.orders.receive") && (
                 <Button
@@ -753,31 +937,7 @@ const Purchases = () => {
             <div>
               {/* Le circuit d'abord : c'est lui qui explique où en est la
                   demande, et pourquoi elle attend. */}
-              {(d.circuit || []).length > 0 && (
-                <div className="achats-circuit">
-                  <div className="achats-circuit-titre">Circuit d'approbation</div>
-                  <Steps
-                    size="small"
-                    direction="horizontal"
-                    responsive
-                    current={(d.circuit || []).findIndex(
-                      (n) => n.statut === "En attente",
-                    )}
-                    items={(d.circuit || []).map((n) => ({
-                      title: n.intitule,
-                      status: ETAT_NIVEAU[n.statut] || "wait",
-                      description: (
-                        <span className="achats-sous-titre">
-                          {n.approbateur?.name ||
-                            (n.ouvert ? "toute habilitation" : "—")}
-                          {n.date ? ` · ${jour(n.date)}` : ""}
-                          {n.motif ? ` · ${n.motif}` : ""}
-                        </span>
-                      ),
-                    }))}
-                  />
-                </div>
-              )}
+              <CircuitApprobation dossier={d} />
               <Table
                 rowKey="_id"
                 size="small"
@@ -878,7 +1038,11 @@ const Purchases = () => {
         scroll={{ x: 1100 }}
         expandable={{
           expandedRowRender: (c) => (
-            <Table
+            <div>
+              {/* Le circuit d'abord : c'est lui qui dit qui doit approuver
+                  l'engagement, et ce qu'il en a décidé. */}
+              <CircuitApprobation dossier={c} />
+              <Table
               rowKey="_id"
               size="small"
               pagination={false}
@@ -906,7 +1070,8 @@ const Purchases = () => {
                   render: montant,
                 },
               ]}
-            />
+              />
+            </div>
           ),
         }}
       />
