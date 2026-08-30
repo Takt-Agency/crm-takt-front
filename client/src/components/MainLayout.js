@@ -17,6 +17,7 @@ import {
   SyncOutlined,
   ShoppingCartOutlined,
   ApartmentOutlined,
+  FundOutlined,
 } from "@ant-design/icons";
 import { getMe, logout } from "../utils/api";
 import { BRAND_LOGO_LIGHT } from "../utils/brandAssets";
@@ -52,6 +53,11 @@ const ROLES = {
   },
   directeur_production: { label: "Directeur de production", color: "purple" },
   directeur_marketing: { label: "Directeur marketing", color: "magenta" },
+  directeur_controle_gestion: {
+    label: "Directeur du contrôle de gestion",
+    color: "geekblue",
+  },
+  controleur_gestion: { label: "Contrôleur de gestion", color: "blue" },
   gestionnaire_achat: { label: "Gestionnaire achat", color: "geekblue" },
   employe: { label: "Employé", color: "default" },
 };
@@ -132,6 +138,8 @@ const MainLayout = ({ children }) => {
     if (path.startsWith("/finances")) return "6";
     if (path.startsWith("/purchases")) return "14";
     if (path.startsWith("/departments")) return "15";
+    if (path.startsWith("/budget")) return "16";
+    if (path.startsWith("/commercial")) return "17";
     if (path.startsWith("/hr")) return "7";
     if (path.startsWith("/marketing")) return "8";
     if (path === "/users") return "9";
@@ -205,6 +213,27 @@ const MainLayout = ({ children }) => {
                 key: "9-administrateurs",
                 label: "Administrateurs",
                 onClick: () => navigate("/users?tab=administrateurs"),
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(user && canAccessModule(user, "commercial")
+      ? [
+          {
+            key: "17",
+            icon: <RiseOutlined />,
+            label: "Commercial",
+            children: [
+              {
+                key: "17-tableau",
+                label: "Tableau de bord",
+                onClick: () => navigate("/commercial?tab=tableau"),
+              },
+              {
+                key: "17-objectifs",
+                label: "Objectifs commerciaux",
+                onClick: () => navigate("/commercial?tab=objectifs"),
               },
             ],
           },
@@ -468,6 +497,37 @@ const MainLayout = ({ children }) => {
                 label: "Trésorerie",
                 onClick: () => navigate("/finances?tab=tresorerie"),
               },
+            ],
+          },
+        ]
+      : []),
+    ...(user && canAccessModule(user, "budget")
+      ? [
+          {
+            key: "16",
+            icon: <FundOutlined />,
+            label: "Contrôle de gestion",
+            children: [
+
+              {
+                key: "16-budgets",
+                label: "Budgets",
+                onClick: () => navigate("/budget?tab=budgets"),
+              },
+              {
+                key: "16-suivi",
+                label: "Suivi budgétaire",
+                onClick: () => navigate("/budget?tab=suivi"),
+              },
+              ...(canAccessModule(user, "budget.analysis")
+                ? [
+                    {
+                      key: "16-campagnes",
+                      label: "ROI des campagnes",
+                      onClick: () => navigate("/budget?tab=campagnes"),
+                    },
+                  ]
+                : []),
             ],
           },
         ]

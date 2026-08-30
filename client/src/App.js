@@ -25,6 +25,8 @@ import ServiceCatalog from "./components/ServiceCatalog";
 import Subscriptions from "./components/Subscriptions";
 import Purchases from "./components/Purchases";
 import Departments from "./components/Departments";
+import Budget from "./components/Budget";
+import Commercial from "./components/Commercial";
 import SettingsPermissions from "./components/SettingsPermissions";
 import PublicQuoteAcceptance from "./components/PublicQuoteAcceptance";
 import MainLayout from "./components/MainLayout";
@@ -254,6 +256,30 @@ function App() {
                 <MainLayout>
                   <RoleBasedRoute requiredPermission="departments">
                     <Departments />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/budget"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="budget">
+                    <Budget />
+                  </RoleBasedRoute>
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/commercial"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RoleBasedRoute requiredPermission="commercial">
+                    <Commercial />
                   </RoleBasedRoute>
                 </MainLayout>
               </ProtectedRoute>

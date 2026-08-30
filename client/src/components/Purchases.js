@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -25,6 +26,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   FileDoneOutlined,
+  FilePdfOutlined,
   InboxOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -53,6 +55,7 @@ import {
   createOrderFromQuotation,
   decidePurchaseOrder,
   receivePurchaseOrder,
+  downloadPurchaseOrderPdf,
   getAllSuppliers,
 } from "../utils/api";
 import { canAccessModule } from "../utils/accessControl";
@@ -250,6 +253,13 @@ const Purchases = () => {
       .catch(() => {});
   }, [peut]);
 
+  // Ses propres brouillons : ceux qui attendent une action de sa part.
+  const mesBrouillons = demandes.filter(
+    (d) =>
+      d.statut === "Brouillon" &&
+      String(d.demandeur?._id || d.demandeur) === String(utilisateur?._id),
+  );
+
   const indicateurs = useMemo(
     () => [
       {
@@ -295,7 +305,7 @@ const Purchases = () => {
     setDemandeModale(true);
   };
 
-  const enregistrerDemande = async () => {
+  const enregistrerDemande = async (soumettre = false) => {
     try {
       const valeurs = await formDemande.validateFields();
       const charge = {
@@ -306,10 +316,25 @@ const Purchases = () => {
       };
       if (demandeEnEdition) {
         await updatePurchaseRequest(demandeEnEdition._id, charge);
-        message.success("Demande mise à jour");
+        if (soumettre) {
+          await submitPurchaseRequest(demandeEnEdition._id);
+          message.success("Demande soumise à approbation");
+        } else {
+          message.success("Demande mise à jour");
+        }
       } else {
-        await createPurchaseRequest(charge);
-        message.success("Demande créée — elle reste un brouillon jusqu'à sa soumission");
+        const reponse = await createPurchaseRequest(charge);
+        const creee = reponse?.data?.demande;
+        if (soumettre && creee?._id) {
+          // Le circuit ne se construit qu'a la soumission : sans elle, aucun
+          // approbateur n'est saisi et la demande dort en brouillon.
+          await submitPurchaseRequest(creee._id);
+          message.success("Demande créée et soumise à approbation");
+        } else {
+          message.warning(
+            "Brouillon enregistré — il faut le soumettre pour qu'il parte en approbation",
+          );
+        }
       }
       setDemandeModale(false);
       charger();
@@ -317,6 +342,21 @@ const Purchases = () => {
       if (error?.errorFields) return;
       message.error(error.message || "Enregistrement impossible");
     }
+  };
+
+  const telechargerBon = async (commande) => {
+    try {
+      await downloadPurchaseOrderPdf(commande._id, commande.orderNumber);
+    } catch (error) {
+      message.error(error.message || "Téléchargement impossible");
+    }
+  };
+
+  /** Le demandeur de la demande d'achat dont la commande découle. */
+  const estDemandeurDe = (commande) => {
+    const demandeur =
+      commande.demandeAchat?.demandeur?._id || commande.demandeAchat?.demandeur;
+    return Boolean(demandeur) && String(demandeur) === String(utilisateur?._id);
   };
 
   const agir = async (action, succes) => {
@@ -899,13 +939,22 @@ const Purchases = () => {
                   Débloquer
                 </Button>
               )}
+            <Tooltip title="Bon de commande (PDF)">
+              <Button
+                size="small"
+                icon={<FilePdfOutlined />}
+                onClick={() => telechargerBon(c)}
+              />
+            </Tooltip>
             {/* On ne réceptionne que ce qui a été réellement commandé : ni un
                 brouillon, ni une commande en attente, refusée ou annulée. */}
             {!aDecider &&
               c.status !== "Annulée" &&
               c.status !== "Refusée" &&
               c.receptionStatut !== "Complète" &&
-              peut("purchases.orders.receive") && (
+              // Celui qui a exprimé le besoin constate sa propre livraison,
+              // sans détenir de droit général sur les commandes.
+              (peut("purchases.orders.receive") || estDemandeurDe(c)) && (
                 <Button
                   size="small"
                   icon={<InboxOutlined />}
@@ -1117,6 +1166,19 @@ const Purchases = () => {
         ))}
       </Row>
 
+      {/* Un brouillon n'est parti nulle part : tant qu'il n'est pas soumis,
+          aucun approbateur ne le voit. Le rappel evite d'attendre une
+          approbation qui n'a jamais ete demandee. */}
+      {ongletActif === "demandes" && mesBrouillons.length > 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`${mesBrouillons.length} brouillon(s) non soumis`}
+          description="Un brouillon n'est pas transmis : cliquez sur l'icône d'envoi pour le soumettre à son approbateur."
+        />
+      )}
+
       <Tabs
         activeKey={ongletActif}
         onChange={choisirOnglet}
@@ -1131,10 +1193,26 @@ const Purchases = () => {
         title={demandeEnEdition ? "Modifier la demande" : "Nouvelle demande d'achat"}
         open={demandeModale}
         onCancel={() => setDemandeModale(false)}
-        onOk={enregistrerDemande}
-        okText="Enregistrer"
-        cancelText="Annuler"
         width={820}
+        // Deux issues explicites : le brouillon se garde pour plus tard, la
+        // soumission engage le circuit. Un bouton unique laissait croire que
+        // « Enregistrer » suffisait a demander l'approbation.
+        footer={[
+          <Button key="annuler" onClick={() => setDemandeModale(false)}>
+            Annuler
+          </Button>,
+          <Button key="brouillon" onClick={() => enregistrerDemande(false)}>
+            Enregistrer le brouillon
+          </Button>,
+          <Button
+            key="soumettre"
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={() => enregistrerDemande(true)}
+          >
+            Enregistrer et soumettre
+          </Button>,
+        ]}
       >
         <Form form={formDemande} layout="vertical">
           <Row gutter={16}>

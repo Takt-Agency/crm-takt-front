@@ -213,6 +213,48 @@ const FUNCTIONALITY_DEFINITIONS = [
     label: "Gerer les departements et leurs responsables",
     group: "departments",
   },
+
+  {
+    key: "budget.view",
+    label: "Consulter les budgets",
+    group: "budget",
+  },
+  {
+    key: "budget.create",
+    label: "Preparer les budgets",
+    group: "budget",
+  },
+  {
+    key: "budget.update",
+    label: "Modifier les budgets",
+    group: "budget",
+  },
+  {
+    key: "budget.validate",
+    label: "Voter et cloturer les budgets",
+    group: "budget",
+  },
+  {
+    key: "budget.delete",
+    label: "Supprimer les budgets",
+    group: "budget",
+  },
+  {
+    key: "budget.analysis",
+    label: "Analyser les ecarts budgetaires",
+    group: "budget",
+  },
+
+  {
+    key: "commercial.view",
+    label: "Voir les objectifs commerciaux",
+    group: "commercial",
+  },
+  {
+    key: "commercial.manage",
+    label: "Definir les objectifs commerciaux",
+    group: "commercial",
+  },
 ];
 
 const MODULE_PERMISSIONS = FUNCTIONALITY_DEFINITIONS.map(
@@ -222,6 +264,14 @@ const MODULE_PERMISSIONS = FUNCTIONALITY_DEFINITIONS.map(
 const ROLE_DEFAULT_PERMISSIONS = {
   super_admin: [...MODULE_PERMISSIONS],
   administrateur: [
+    "commercial.view",
+    "commercial.manage",
+    "budget.view",
+    "budget.create",
+    "budget.update",
+    "budget.validate",
+    "budget.delete",
+    "budget.analysis",
     "departments.view",
     "departments.manage",
     "purchases.view",
@@ -301,10 +351,14 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "payroll.rules",
   ],
   manager: [
+    "commercial.view",
+    "commercial.manage",
+    "budget.view",
     "departments.view",
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
     "catalog.view",
     "catalog.manage",
     "subscriptions.view",
@@ -351,6 +405,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "payroll.update",
   ],
   commercial: [
+    "commercial.view",
     "purchases.view",
     "purchases.requests.create",
     "catalog.view",
@@ -381,6 +436,8 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "hr.attendance",
   ],
   comptable: [
+    "commercial.view",
+    "budget.view",
     "purchases.requests.create",
     "purchases.view",
     "finances.currencies",
@@ -445,6 +502,11 @@ const ROLE_DEFAULT_PERMISSIONS = {
   // Direction generale : dernier niveau du circuit d'approbation des achats,
   // et vision d'ensemble. Elle ne saisit pas, elle arbitre.
   directeur_general: [
+    "commercial.view",
+    "commercial.manage",
+    "budget.view",
+    "budget.validate",
+    "budget.analysis",
     "dashboard.view",
     "audit.view",
     "departments.view",
@@ -467,6 +529,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.receive",
     "purchases.orders.validate",
   ],
   // Directeur de departement. Le departement dont il repond n'est pas porte
@@ -481,6 +544,11 @@ const ROLE_DEFAULT_PERMISSIONS = {
   // DAF — finances, facturation, tresorerie. Approuve les demandes de la
   // comptabilite.
   directeur_administratif_financier: [
+    "commercial.view",
+    "budget.view",
+    "budget.create",
+    "budget.update",
+    "budget.analysis",
     "dashboard.view",
     "departments.view",
     "audit.view",
@@ -508,10 +576,12 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.receive",
     "purchases.orders.validate",
   ],
   // DRH — effectifs, conges, paie jusqu'a l'approbation.
   directeur_ressources_humaines: [
+    "budget.view",
     "dashboard.view",
     "departments.view",
     "departments.manage",
@@ -535,9 +605,13 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
   ],
   // Directeur commercial — clients, prospects, devis.
   directeur_commercial: [
+    "commercial.view",
+    "commercial.manage",
     "dashboard.view",
     "departments.view",
     "tasks.view",
@@ -564,9 +638,12 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
   ],
   // DSI — systemes d'information, projets techniques.
   directeur_systemes_information: [
+    "budget.view",
     "dashboard.view",
     "departments.view",
     "audit.view",
@@ -587,9 +664,12 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
   ],
   // Directeur de production — realisation des projets clients.
   directeur_production: [
+    "budget.view",
     "dashboard.view",
     "departments.view",
     "tasks.view",
@@ -610,9 +690,12 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
   ],
   // Directeur marketing — campagnes et acquisition.
   directeur_marketing: [
+    "budget.view",
     "dashboard.view",
     "departments.view",
     "tasks.view",
@@ -631,6 +714,65 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
+  ],
+  // --- Controle de gestion ---
+  // Le directeur du controle de gestion vote les budgets et arbitre les
+  // ecarts ; ses collaborateurs les preparent et les analysent sans pouvoir
+  // les voter. Preparer et approuver restent deux actes distincts, ici comme
+  // ailleurs dans l'outil.
+  directeur_controle_gestion: [
+    "commercial.view",
+    "commercial.manage",
+    "dashboard.view",
+    "departments.view",
+    "audit.view",
+    "tasks.view",
+    "tasks.all",
+    "hr.view",
+    "hr.leaves",
+    "hr.attendance",
+    "clients.view",
+    "projects.view",
+    "invoices.view",
+    "finances.view",
+    "catalog.view",
+    "subscriptions.view",
+    "payroll.view",
+    "budget.view",
+    "budget.create",
+    "budget.update",
+    "budget.validate",
+    "budget.delete",
+    "budget.analysis",
+    "purchases.view",
+    "purchases.requests.create",
+    "purchases.requests.approve",
+    "purchases.orders.validate",
+    "purchases.orders.receive",
+  ],
+  // Controleur de gestion : il instruit, il n'arbitre pas.
+  controleur_gestion: [
+    "commercial.view",
+    "dashboard.view",
+    "departments.view",
+    "tasks.view",
+    "hr.view",
+    "hr.leaves",
+    "hr.attendance",
+    "clients.view",
+    "projects.view",
+    "invoices.view",
+    "finances.view",
+    "catalog.view",
+    "payroll.view",
+    "budget.view",
+    "budget.create",
+    "budget.update",
+    "budget.analysis",
+    "purchases.view",
+    "purchases.requests.create",
   ],
   gestionnaire_achat: [
     "dashboard.view",
@@ -644,6 +786,7 @@ const ROLE_DEFAULT_PERMISSIONS = {
     "purchases.view",
     "purchases.requests.create",
     "purchases.requests.approve",
+    "purchases.orders.validate",
     "purchases.rfq.manage",
     "purchases.rfq.award",
     "purchases.orders.create",

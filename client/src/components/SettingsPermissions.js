@@ -53,6 +53,11 @@ const ROLE_LABELS = {
   },
   directeur_production: { label: "Directeur de production", color: "purple" },
   directeur_marketing: { label: "Directeur marketing", color: "magenta" },
+  directeur_controle_gestion: {
+    label: "Directeur du contrôle de gestion",
+    color: "geekblue",
+  },
+  controleur_gestion: { label: "Contrôleur de gestion", color: "blue" },
   gestionnaire_achat: { label: "Gestionnaire achat", color: "geekblue" },
   employe: { label: "Employe", color: "default" },
 };

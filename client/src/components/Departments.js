@@ -253,18 +253,6 @@ const Departments = () => {
       render: (n) => <Tag>{n || 0}</Tag>,
     },
     {
-      title: "Plafond d'approbation",
-      dataIndex: "plafondApprobation",
-      key: "plafondApprobation",
-      width: 180,
-      align: "right",
-      render: (p) => (
-        <Tooltip title="Au-delà de ce montant, la demande remonte à la direction générale">
-          <span>{montant(p)}</span>
-        </Tooltip>
-      ),
-    },
-    {
       title: "État",
       dataIndex: "actif",
       key: "actif",
@@ -362,9 +350,6 @@ const Departments = () => {
                   <span className="dept-sous-titre">Direction générale</span>
                 )}
               </div>
-              <div className="dept-plafond">
-                Approuve seul jusqu'à <strong>{montant(d.plafondApprobation)}</strong>
-              </div>
               <div className="dept-membres">
                 {d.membres.length === 0 ? (
                   <span className="dept-sous-titre">Aucun agent rattaché</span>
@@ -411,7 +396,7 @@ const Departments = () => {
         showIcon
         style={{ marginBottom: 16 }}
         message="Le responsable d'un département approuve les demandes d'achat de son service"
-        description="Au-delà de son plafond, la demande remonte à la direction générale. Un service sans responsable fait remonter toutes ses demandes."
+        description="Chaque dossier — demande d'achat puis commande — est approuvé par le directeur du service demandeur. Un service sans direction fait remonter ses dossiers à la direction générale."
       />
 
       <Tabs
@@ -512,7 +497,7 @@ const Departments = () => {
           <Form.Item
             name="plafondApprobation"
             label="Plafond d'approbation (€)"
-            extra="Montant que le responsable peut approuver seul. Au-delà, la direction générale tranche."
+            extra="Indicatif : le circuit ne s'en sert pas aujourd'hui, l'engagement réel étant approuvé sur la commande."
           >
             <InputNumber min={0} step={500} style={{ width: "100%" }} />
           </Form.Item>

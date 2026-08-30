@@ -3405,3 +3405,160 @@ export const deleteDepartment = async (id) =>
 
 export const assignEmployeeToDepartment = async (payload) =>
   departmentRequest("/assign", { method: "PATCH", body: payload });
+
+/**
+ * Bon de commande au format PDF. Le flux binaire ne passe pas par
+ * purchaseRequest, qui suppose une réponse JSON.
+ */
+export const downloadPurchaseOrderPdf = async (id, numero) => {
+  const response = await fetch(`${API_URL}/api/purchases/orders/${id}/pdf`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Génération du bon de commande impossible");
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = `${numero || "bon-de-commande"}.pdf`;
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+// --- Contrôle de gestion et budget ---
+const budgetRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/budget${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au contrôle de gestion");
+  }
+
+  return response.json();
+};
+
+export const getBudgets = async (params = {}) => {
+  const query = new URLSearchParams();
+  ["exercice", "nature", "axe", "cible", "statut"].forEach((c) => {
+    if (params[c] !== undefined && params[c] !== "") query.append(c, params[c]);
+  });
+  const data = await budgetRequest(`/?${query.toString()}`);
+  return data.data || { budgets: [] };
+};
+
+export const getBudgetStats = async (exercice) => {
+  const data = await budgetRequest(`/stats?exercice=${exercice || ""}`);
+  return data.data || {};
+};
+
+export const getBudgetSuivi = async (params = {}) => {
+  const query = new URLSearchParams();
+  ["exercice", "nature", "axe", "moisDebut", "moisFin"].forEach((c) => {
+    if (params[c] !== undefined && params[c] !== "") query.append(c, params[c]);
+  });
+  const data = await budgetRequest(`/suivi?${query.toString()}`);
+  return data.data || { lignes: [], totaux: {} };
+};
+
+export const getDashboardCommercial = async (params = {}) => {
+  const query = new URLSearchParams();
+  ["exercice", "moisDebut", "moisFin"].forEach((c) => {
+    if (params[c] !== undefined && params[c] !== "") query.append(c, params[c]);
+  });
+  const data = await budgetRequest(`/dashboard?${query.toString()}`);
+  return data.data || { kpi: {}, progression: [], consommation: [] };
+};
+
+export const getBudgetCibles = async (axe) => {
+  const data = await budgetRequest(`/cibles?axe=${encodeURIComponent(axe)}`);
+  return data.data?.cibles || [];
+};
+
+export const getRoiCampagnes = async (exercice) => {
+  const data = await budgetRequest(`/roi-campagnes?exercice=${exercice || ""}`);
+  return data.data?.lignes || [];
+};
+
+export const getBudgetDisponible = async (departement, montant, exercice) => {
+  const query = new URLSearchParams({ departement, montant: String(montant || 0) });
+  if (exercice) query.append("exercice", String(exercice));
+  const data = await budgetRequest(`/disponible?${query.toString()}`);
+  return data.data || {};
+};
+
+export const createBudget = async (payload) =>
+  budgetRequest("/", { method: "POST", body: payload });
+
+export const updateBudget = async (id, payload) =>
+  budgetRequest(`/${id}`, { method: "PUT", body: payload });
+
+export const decideBudget = async (id, action) =>
+  budgetRequest(`/${id}/decision`, { method: "PATCH", body: { action } });
+
+export const deleteBudget = async (id) =>
+  budgetRequest(`/${id}`, { method: "DELETE" });
+
+// --- Module commercial ---
+// Les objectifs sont des lignes budgétaires de nature « Revenu » : le serveur
+// partage le moteur du contrôle de gestion, mais les garde derrière des
+// permissions distinctes.
+const commercialRequest = async (path, { method = "GET", body } = {}) => {
+  const response = await fetch(`${API_URL}/api/commercial${path}`, {
+    method,
+    headers: getAuthHeaders(),
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Erreur lors de l'appel au module commercial");
+  }
+
+  return response.json();
+};
+
+export const getCommercialDashboard = async (params = {}) => {
+  const query = new URLSearchParams();
+  ["exercice", "moisDebut", "moisFin"].forEach((c) => {
+    if (params[c] !== undefined && params[c] !== "") query.append(c, params[c]);
+  });
+  const data = await commercialRequest(`/dashboard?${query.toString()}`);
+  return data.data || { kpi: {}, progression: [] };
+};
+
+export const getCommercialObjectifs = async (params = {}) => {
+  const query = new URLSearchParams();
+  ["exercice", "axe", "cible", "statut"].forEach((c) => {
+    if (params[c] !== undefined && params[c] !== "") query.append(c, params[c]);
+  });
+  const data = await commercialRequest(`/objectifs?${query.toString()}`);
+  return data.data || { budgets: [] };
+};
+
+export const getCommercialCibles = async (axe) => {
+  const data = await commercialRequest(`/cibles?axe=${encodeURIComponent(axe)}`);
+  return data.data?.cibles || [];
+};
+
+export const createCommercialObjectif = async (payload) =>
+  commercialRequest("/objectifs", { method: "POST", body: payload });
+
+export const updateCommercialObjectif = async (id, payload) =>
+  commercialRequest(`/objectifs/${id}`, { method: "PUT", body: payload });
+
+export const decideCommercialObjectif = async (id, action) =>
+  commercialRequest(`/objectifs/${id}/decision`, { method: "PATCH", body: { action } });
+
+export const deleteCommercialObjectif = async (id) =>
+  commercialRequest(`/objectifs/${id}`, { method: "DELETE" });
