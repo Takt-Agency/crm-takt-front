@@ -68,6 +68,9 @@ const { Option } = Select;
 const TYPES = {
   Devis: { label: "Devis", color: "blue" },
   Facture: { label: "Facture", color: "green" },
+  // L'avoir vient en déduction d'une facture : sa couleur le distingue des
+  // documents qui, eux, créent une créance.
+  Avoir: { label: "Avoir", color: "volcano" },
 };
 
 // Un onglet par nature de document. Le serveur filtre deja sur ce champ :
@@ -400,8 +403,12 @@ function Invoices() {
       dataIndex: "type",
       key: "type",
       width: 100,
+      // Un type inconnu ne doit pas interrompre le rendu du tableau : on
+      // affiche la valeur brute plutôt que de faire tomber la page.
       render: (type) => (
-        <Tag color={TYPES[type].color}>{TYPES[type].label}</Tag>
+        <Tag color={TYPES[type]?.color || "default"}>
+          {TYPES[type]?.label || type || "—"}
+        </Tag>
       ),
     },
     {
